@@ -2,7 +2,6 @@
   "root": true,
   "extends": [
     "@lolpants/eslint-config/common",
-    "@lolpants/eslint-config/node",
     "@lolpants/eslint-config/typescript",
     "@lolpants/eslint-config/browser",
     "@lolpants/eslint-config/prettier"
