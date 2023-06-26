@@ -1,4 +1,7 @@
 import './style.css'
 import { init } from './game.js'
 
-void init().catch(console.error)
+void document.fonts
+  .load('1rem Fira Code')
+  .then(async () => init())
+  .catch(console.error)
