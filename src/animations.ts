@@ -1,7 +1,7 @@
 import {
   loadAnimations as loadAnims,
   loadSpritesheet,
-} from '@dreamlab.gg/core/dist/textures'
+} from '@dreamlab.gg/core/textures'
 
 const getCharacterID = () => {
   const params = new URLSearchParams(window.location.search)

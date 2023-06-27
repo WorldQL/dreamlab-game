@@ -1,4 +1,4 @@
-import * as InputCore from '@dreamlab.gg/core/dist/input'
+import * as InputCore from '@dreamlab.gg/core/input'
 
 type Inputs = typeof inputs
 export type Input = Inputs[number]

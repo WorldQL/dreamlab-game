@@ -3,7 +3,8 @@ import {
   createCursor,
   createInputs,
   createPlayer,
-} from '@dreamlab.gg/core/dist/entities'
+} from '@dreamlab.gg/core/entities'
+import { createNetClient } from '@dreamlab.gg/core/network'
 import { loadAnimations } from './animations.js'
 import { isDebug } from './debug.js'
 import { defaultInputMap as inputMap, emitter as inputs } from './inputs.js'
@@ -18,6 +19,9 @@ export const init = async () => {
     headless: false,
     container,
     dimensions: { width: 1_600, height: 900 },
+    network: createNetClient({
+      /* TODO */
+    }),
     graphicsOptions: {
       backgroundAlpha: 0,
       antialias: true,
