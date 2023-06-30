@@ -4,7 +4,7 @@ import type {
   NetClient,
 } from '@dreamlab.gg/core/network'
 import { createNetClient } from '@dreamlab.gg/core/network'
-import { CustomMessageSchema } from './packets.js'
+import { ToClientPacketSchema } from './packets.js'
 import type { CustomMessagePacket } from './packets.js'
 
 export const createNetwork = (): NetClient => {
@@ -15,14 +15,21 @@ export const createNetwork = (): NetClient => {
     if (typeof ev.data !== 'string') return
 
     try {
-      const result = CustomMessageSchema.safeParse(JSON.parse(ev.data))
+      const result = ToClientPacketSchema.safeParse(JSON.parse(ev.data))
       if (!result.success) throw result.error
-      const { channel, data } = result.data
+      const packet = result.data
 
-      const set = listeners.get(channel)
-      if (!set) return
+      switch (packet.t) {
+        case 'CustomMessage': {
+          const { channel, data } = packet
 
-      for (const fn of set.values()) fn(channel, data)
+          const set = listeners.get(channel)
+          if (!set) return
+
+          for (const fn of set.values()) fn(channel, data)
+          break
+        }
+      }
     } catch {
       console.warn(`malformed packet: ${ev.data}`)
     }
