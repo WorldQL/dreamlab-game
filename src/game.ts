@@ -1,4 +1,4 @@
-import { createGame } from '@dreamlab.gg/core'
+import { createGame, LevelSchema } from '@dreamlab.gg/core'
 import {
   createCursor,
   createInputs,
@@ -7,6 +7,7 @@ import {
 import { loadAnimations } from './animations.js'
 import { isDebug } from './debug.js'
 import { defaultInputMap as inputMap, emitter as inputs } from './inputs.js'
+import TestLevel from './levels/test.json' assert { type: 'json' }
 import { createNetwork } from './network.js'
 
 export const init = async () => {
@@ -49,36 +50,6 @@ export const init = async () => {
   // #endregion
 
   // #region Test "Level"
-  const height = 250
-
-  await game.spawn({
-    entityFn: 'createSolid',
-    transform: { position: [0, 30 + height] },
-    args: [1_240, 20],
-  })
-
-  await game.spawn({
-    entityFn: 'createSolid',
-    transform: { position: [610, -180 + height] },
-    args: [20, 400],
-  })
-
-  await game.spawn({
-    entityFn: 'createSolid',
-    transform: { position: [-610, -180 + height] },
-    args: [20, 400],
-  })
-
-  await game.spawn({
-    entityFn: 'createSolid',
-    transform: { position: [-400, -130 + height], rotation: 45 },
-    args: [100, 100],
-  })
-
-  await game.spawn({
-    entityFn: 'createNonsolid',
-    transform: { position: [400, -130 + height], rotation: -45 },
-    args: [100, 100],
-  })
+  await game.load(LevelSchema.parse(TestLevel))
   // #endregion
 }
