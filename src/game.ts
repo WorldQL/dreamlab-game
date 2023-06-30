@@ -4,10 +4,10 @@ import {
   createInputs,
   createPlayer,
 } from '@dreamlab.gg/core/entities'
-import { createNetClient } from '@dreamlab.gg/core/network'
 import { loadAnimations } from './animations.js'
 import { isDebug } from './debug.js'
 import { defaultInputMap as inputMap, emitter as inputs } from './inputs.js'
+import { createNetwork } from './network.js'
 
 export const init = async () => {
   // #region Setup
@@ -19,9 +19,7 @@ export const init = async () => {
     headless: false,
     container,
     dimensions: { width: 1_600, height: 900 },
-    network: createNetClient({
-      /* TODO */
-    }),
+    network: createNetwork(),
     graphicsOptions: {
       backgroundAlpha: 0,
       antialias: true,
