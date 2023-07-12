@@ -1,23 +1,23 @@
 [
   {
     "entityFn": "createSolid",
-    "args": [1240, 20],
+    "args": [1290, 50],
     "transform": {
-      "position": [0, 280]
+      "position": [0, 295]
     }
   },
   {
     "entityFn": "createSolid",
-    "args": [20, 400],
+    "args": [50, 400],
     "transform": {
-      "position": [610, 70]
+      "position": [620, 70]
     }
   },
   {
     "entityFn": "createSolid",
-    "args": [20, 400],
+    "args": [50, 400],
     "transform": {
-      "position": [-610, 70]
+      "position": [-620, 70]
     }
   },
   {
