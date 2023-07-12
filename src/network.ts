@@ -5,7 +5,7 @@ import type {
 } from '@dreamlab.gg/core/network'
 import { createNetClient } from '@dreamlab.gg/core/network'
 import { ToClientPacketSchema } from './packets.js'
-import type { CustomMessagePacket } from './packets.js'
+import type { CustomMessagePacket, PlayerMotionPacket } from './packets.js'
 
 export const createNetwork = (): NetClient => {
   const listeners = new Map<string, Set<MessageListenerClient>>()
@@ -29,6 +29,10 @@ export const createNetwork = (): NetClient => {
           for (const fn of set.values()) fn(channel, data)
           break
         }
+
+        default:
+          console.warn(`unhandled packet: ${packet.t}`)
+          break
       }
     } catch {
       console.warn(`malformed packet: ${ev.data}`)
@@ -58,6 +62,17 @@ export const createNetwork = (): NetClient => {
       set.delete(listener)
 
       listeners.set(channel, set)
+    },
+
+    sendPlayerPosition(position, velocity, flipped) {
+      const payload: PlayerMotionPacket = {
+        t: 'PlayerMotion',
+        position: [position.x, position.y],
+        velocity: [velocity.x, velocity.y],
+        flipped,
+      }
+
+      ws.send(JSON.stringify(payload))
     },
   })
 }
