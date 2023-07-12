@@ -1,0 +1,8 @@
+{
+  "json.schemas": [
+    {
+      "fileMatch": ["/levels/**/*.json"],
+      "url": "https://www.unpkg.com/@dreamlab.gg/core/schemas/level.schema.json"
+    }
+  ]
+}
