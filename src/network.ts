@@ -1,18 +1,25 @@
 /* eslint-disable id-length */
+import type { Game } from '@dreamlab.gg/core'
 import type {
   MessageListenerClient,
   NetClient,
 } from '@dreamlab.gg/core/network'
 import { createNetClient } from '@dreamlab.gg/core/network'
+import type { Ref } from '@dreamlab.gg/core/utils'
 import { ToClientPacketSchema } from './packets.js'
 import type { CustomMessagePacket, PlayerMotionPacket } from './packets.js'
 
-export const createNetwork = (): NetClient => {
+export const createNetwork = (
+  gameRef: Ref<Game<false> | undefined>,
+): NetClient => {
   const listeners = new Map<string, Set<MessageListenerClient>>()
   const ws = new WebSocket('wss://ws.postman-echo.com/raw') // TODO: WebSocket URL
 
   ws.addEventListener('message', ev => {
     if (typeof ev.data !== 'string') return
+
+    const game = gameRef.value
+    if (!game) return
 
     try {
       const result = ToClientPacketSchema.safeParse(JSON.parse(ev.data))

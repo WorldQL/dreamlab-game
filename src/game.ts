@@ -1,9 +1,11 @@
 import { createGame, LevelSchema } from '@dreamlab.gg/core'
+import type { Game } from '@dreamlab.gg/core'
 import {
   createCursor,
   createInputs,
   createPlayer,
 } from '@dreamlab.gg/core/entities'
+import { ref } from '@dreamlab.gg/core/utils'
 import { loadAnimations } from './animations.js'
 import { isDebug } from './debug.js'
 import { defaultInputMap as inputMap, emitter as inputs } from './inputs.js'
@@ -15,18 +17,20 @@ export const init = async () => {
   const container = document.querySelector<HTMLDivElement>('#app')
   if (!container) throw new Error('missing container')
 
+  const gameRef = ref<Game<false> | undefined>(undefined)
   const game = await createGame({
     debug: isDebug(),
     headless: false,
     container,
     dimensions: { width: 1_600, height: 900 },
-    network: createNetwork(),
+    network: createNetwork(gameRef),
     graphicsOptions: {
       backgroundAlpha: 0,
       antialias: true,
     },
   })
 
+  gameRef.value = game
   const onToggleDebug = (pressed: boolean) => {
     if (!pressed) return
     game.debug.toggle()
@@ -51,5 +55,11 @@ export const init = async () => {
 
   // #region Test "Level"
   await game.load(LevelSchema.parse(TestLevel))
+
+  await game.spawn({
+    entityFn: 'createBouncyBall',
+    args: [50],
+    transform: { position: [-375, -300] },
+  })
   // #endregion
 }
