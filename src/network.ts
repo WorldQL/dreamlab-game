@@ -1,7 +1,7 @@
 /* eslint-disable id-length */
 import type { Game } from '@dreamlab.gg/core'
 import { createNetPlayer } from '@dreamlab.gg/core/entities'
-import type { NetPlayer } from '@dreamlab.gg/core/entities'
+import type { Animation, NetPlayer } from '@dreamlab.gg/core/entities'
 import type {
   MessageListenerClient,
   NetClient,
@@ -86,6 +86,18 @@ export const createNetwork = (
             netplayer.setPosition(info.position)
             netplayer.setVelocity(info.velocity)
             netplayer.setFlipped(info.flipped)
+          }
+
+          break
+        }
+
+        case 'PlayerAnimationSnapshot': {
+          for (const info of packet.animation_info) {
+            const netplayer = players.get(info.entity_id)
+            if (!netplayer) continue
+
+            // TODO: Maybe validate this string
+            netplayer.setAnimation(info.animation as Animation)
           }
 
           break

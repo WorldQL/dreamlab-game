@@ -50,6 +50,21 @@ export const PhysicsSnapshotSchema = z.object({
   // TODO
 })
 
+export type PlayerAnimationInfo = z.infer<typeof PlayerAnimationInfoSchema>
+export const PlayerAnimationInfoSchema = z.object({
+  entity_id: z.string(),
+  animation: z.string(),
+})
+
+export type PlayerAnimationSnapshotPacket = z.infer<
+  typeof PlayerAnimationSnapshotSchema
+>
+export const PlayerAnimationSnapshotSchema = z.object({
+  t: z.literal('PlayerAnimationSnapshot'),
+
+  animation_info: PlayerAnimationInfoSchema.array(),
+})
+
 export type CustomMessagePacket = z.infer<typeof CustomMessageSchema>
 export const CustomMessageSchema = z.object({
   t: z.literal('CustomMessage'),
@@ -90,6 +105,7 @@ export const ToClientPacketSchema = HandshakeSchema.or(SpawnPlayerSchema)
   .or(DespawnPlayerSchema)
   .or(PlayerMotionSnapshotSchema)
   .or(PhysicsSnapshotSchema)
+  .or(PlayerAnimationSnapshotSchema)
   .or(CustomMessageSchema)
 
 export type ToServerPacket = z.infer<typeof ToServerPacketSchema>
