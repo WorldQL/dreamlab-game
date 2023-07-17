@@ -10,7 +10,11 @@ import { createNetClient } from '@dreamlab.gg/core/network'
 import type { Ref } from '@dreamlab.gg/core/utils'
 import { loadAnimations } from './animations.js'
 import { ToClientPacketSchema } from './packets.js'
-import type { CustomMessagePacket, PlayerMotionPacket } from './packets.js'
+import type {
+  CustomMessagePacket,
+  PlayerAnimationChangePacket,
+  PlayerMotionPacket,
+} from './packets.js'
 
 export const createNetwork = (
   gameRef: Ref<Game<false> | undefined>,
@@ -127,6 +131,15 @@ export const createNetwork = (
         position: [position.x, position.y],
         velocity: [velocity.x, velocity.y],
         flipped,
+      }
+
+      ws.send(JSON.stringify(payload))
+    },
+
+    sendPlayerAnimation(animation) {
+      const payload: PlayerAnimationChangePacket = {
+        t: 'PlayerAnimationChange',
+        animation,
       }
 
       ws.send(JSON.stringify(payload))
