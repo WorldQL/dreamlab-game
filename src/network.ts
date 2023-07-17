@@ -56,7 +56,7 @@ export const createNetwork = (
           const animations = await loadAnimations()
           const netplayer = createNetPlayer(packet.entity_id, animations)
 
-          players.set(packet.peer_id, netplayer)
+          players.set(packet.entity_id, netplayer)
           await game.instantiate(netplayer)
 
           break
@@ -64,10 +64,10 @@ export const createNetwork = (
 
         case 'DespawnPlayer': {
           if (packet.peer_id === selfID) break
-          const netplayer = players.get(packet.peer_id)
+          const netplayer = players.get(packet.entity_id)
 
           if (netplayer) {
-            players.delete(packet.peer_id)
+            players.delete(packet.entity_id)
             await game.destroy(netplayer)
           }
 
@@ -75,9 +75,15 @@ export const createNetwork = (
         }
 
         case 'PlayerMotionSnapshot': {
-          console.log(packet)
+          for (const info of packet.motion_info) {
+            const netplayer = players.get(info.entity_id)
+            if (!netplayer) continue
 
-          // TODO
+            netplayer.setPosition(info.position)
+            netplayer.setVelocity(info.velocity)
+            // TODO: Set flipped
+          }
+
           break
         }
 
