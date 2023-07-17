@@ -17,6 +17,14 @@ export const SpawnPlayerSchema = z.object({
   position: z.tuple([z.number(), z.number()]),
 })
 
+export type DespawnPlayerPacket = z.infer<typeof DespawnPlayerSchema>
+export const DespawnPlayerSchema = z.object({
+  t: z.literal('DespawnPlayer'),
+
+  peer_id: z.string(),
+  entity_id: z.string(),
+})
+
 export type PlayerMotionSnapshotPacket = z.infer<
   typeof PlayerMotionSnapshotSchema
 >
