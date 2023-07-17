@@ -12,11 +12,11 @@
     "test": "npm run lint"
   },
   "devDependencies": {
-    "@lolpants/eslint-config": "^0.4.1",
-    "eslint": "^8.44.0",
+    "@luludev/eslint-config": "^0.4.2",
+    "eslint": "^8.45.0",
     "prettier": "^3.0.0",
     "typescript": "^5.1.6",
-    "vite": "^4.3.9"
+    "vite": "^4.4.4"
   },
   "dependencies": {
     "@dreamlab.gg/core": "^0.0.7",
