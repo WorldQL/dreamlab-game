@@ -15,6 +15,8 @@ export const createNetwork = (
   const listeners = new Map<string, Set<MessageListenerClient>>()
   const ws = new WebSocket('wss://ws.postman-echo.com/raw') // TODO: WebSocket URL
 
+  let selfID: string | undefined
+
   ws.addEventListener('message', ev => {
     if (typeof ev.data !== 'string') return
 
@@ -26,6 +28,12 @@ export const createNetwork = (
       if (!result.success) throw result.error
       const packet = result.data
 
+      if (packet.t === 'Handshake') {
+        selfID = packet.peer_id
+        return
+      }
+
+      if (!selfID) return
       switch (packet.t) {
         case 'CustomMessage': {
           const { channel, data } = packet
