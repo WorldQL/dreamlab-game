@@ -6,7 +6,7 @@ import {
   createPlayer,
 } from '@dreamlab.gg/core/entities'
 import { ref } from '@dreamlab.gg/core/utils'
-import { loadAnimations } from './animations.js'
+import { getCharacterID, loadAnimations } from './animations.js'
 import { isDebug } from './debug.js'
 import { defaultInputMap as inputMap, emitter as inputs } from './inputs.js'
 import TestLevel from './levels/test.json' assert { type: 'json' }
@@ -44,7 +44,8 @@ export const init = async () => {
   const inputsEntity = createInputs(inputs, inputMap)
   await game.instantiate(inputsEntity)
 
-  const animations = await loadAnimations()
+  const characterID = getCharacterID()
+  const animations = await loadAnimations(characterID)
   const player = createPlayer(inputs, animations)
   await game.instantiate(player)
   game.render.camera.setTarget(player)

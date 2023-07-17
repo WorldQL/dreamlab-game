@@ -3,7 +3,7 @@ import {
   loadSpritesheet,
 } from '@dreamlab.gg/core/textures'
 
-const getCharacterID = () => {
+export const getCharacterID = () => {
   const params = new URLSearchParams(window.location.search)
   const characterId = params.get('characterId')
 
@@ -11,8 +11,7 @@ const getCharacterID = () => {
 }
 
 const animations = ['idle', 'walk', 'jump'] as const
-export const loadAnimations = async () => {
-  const characterID = getCharacterID()
+export const loadAnimations = async (characterID: string | undefined) => {
   const animationURL = (animation: string, fallback = false): string => {
     const stockURL = `/animations/${animation}.json` as const
     if (fallback === true) return stockURL

@@ -57,7 +57,7 @@ export const createNetwork = (
           if (packet.peer_id === selfID) break
 
           // TODO: Load correct animations
-          const animations = await loadAnimations()
+          const animations = await loadAnimations(undefined)
           const netplayer = createNetPlayer(packet.entity_id, animations)
 
           players.set(packet.entity_id, netplayer)
