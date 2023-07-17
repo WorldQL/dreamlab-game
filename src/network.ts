@@ -8,6 +8,7 @@ import type {
 } from '@dreamlab.gg/core/network'
 import { createNetClient } from '@dreamlab.gg/core/network'
 import type { Ref } from '@dreamlab.gg/core/utils'
+import { loadAnimations } from './animations.js'
 import { ToClientPacketSchema } from './packets.js'
 import type { CustomMessagePacket, PlayerMotionPacket } from './packets.js'
 
@@ -50,7 +51,10 @@ export const createNetwork = (
 
         case 'SpawnPlayer': {
           if (packet.peer_id === selfID) break
-          const netplayer = createNetPlayer(packet.entity_id, undefined)
+
+          // TODO: Load correct animations
+          const animations = await loadAnimations()
+          const netplayer = createNetPlayer(packet.entity_id, animations)
 
           players.set(packet.peer_id, netplayer)
           await game.instantiate(netplayer)
