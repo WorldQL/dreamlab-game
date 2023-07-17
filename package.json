@@ -19,7 +19,7 @@
     "vite": "^4.4.4"
   },
   "dependencies": {
-    "@dreamlab.gg/core": "^0.0.7",
+    "@dreamlab.gg/core": "^0.0.8",
     "zod": "^3.21.4"
   }
 }
