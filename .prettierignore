@@ -3,3 +3,6 @@
 
 # Generated
 dist/
+
+# Animation Files
+public/animations/**/*.json
