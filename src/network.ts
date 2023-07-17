@@ -16,11 +16,25 @@ import type {
   PlayerMotionPacket,
 } from './packets.js'
 
+export const connect = async (nickname: string): Promise<WebSocket> => {
+  const url = new URL(import.meta.env.VITE_WEBSOCKET_BASE)
+  url.pathname = '/api/connect'
+  url.searchParams.set('instance', 'instance') // TODO: Set instance
+  url.searchParams.set('nickname', nickname)
+
+  return new Promise<WebSocket>((resolve, reject) => {
+    const ws = new WebSocket(url.toString())
+
+    ws.addEventListener('error', reject)
+    ws.addEventListener('open', () => resolve(ws))
+  })
+}
+
 export const createNetwork = (
+  ws: WebSocket,
   gameRef: Ref<Game<false> | undefined>,
 ): NetClient => {
   const listeners = new Map<string, Set<MessageListenerClient>>()
-  const ws = new WebSocket('wss://ws.postman-echo.com/raw') // TODO: WebSocket URL
 
   let selfID: string | undefined
   const players = new Map<string, NetPlayer>()

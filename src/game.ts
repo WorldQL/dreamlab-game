@@ -10,12 +10,15 @@ import { getCharacterID, loadAnimations } from './animations.js'
 import { isDebug } from './debug.js'
 import { defaultInputMap as inputMap, emitter as inputs } from './inputs.js'
 import TestLevel from './levels/test.json' assert { type: 'json' }
-import { createNetwork } from './network.js'
+import { connect, createNetwork } from './network.js'
 
 export const init = async () => {
   // #region Setup
   const container = document.querySelector<HTMLDivElement>('#app')
   if (!container) throw new Error('missing container')
+
+  const ws = await connect('Player') // TODO: Set nickname
+  // TODO: Handle ws connect errors and alert user
 
   const gameRef = ref<Game<false> | undefined>(undefined)
   const game = await createGame({
@@ -23,7 +26,7 @@ export const init = async () => {
     headless: false,
     container,
     dimensions: { width: 1_600, height: 900 },
-    network: createNetwork(gameRef),
+    network: createNetwork(ws, gameRef),
     graphicsOptions: {
       backgroundAlpha: 0,
       antialias: true,
