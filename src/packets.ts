@@ -1,6 +1,8 @@
 /* eslint-disable id-length */
 import { z } from 'zod'
 
+const VectorSchema = z.tuple([z.number(), z.number()])
+
 export type HandshakePacket = z.infer<typeof HandshakeSchema>
 export const HandshakeSchema = z.object({
   t: z.literal('Handshake'),
@@ -14,7 +16,7 @@ export const SpawnPlayerSchema = z.object({
 
   peer_id: z.string(),
   entity_id: z.string(),
-  position: z.tuple([z.number(), z.number()]),
+  position: VectorSchema,
 })
 
 export type DespawnPlayerPacket = z.infer<typeof DespawnPlayerSchema>
@@ -25,12 +27,21 @@ export const DespawnPlayerSchema = z.object({
   entity_id: z.string(),
 })
 
+export type PlayerMotionInfo = z.infer<typeof PlayerMotionInfoSchema>
+export const PlayerMotionInfoSchema = z.object({
+  entity_id: z.string(),
+  position: VectorSchema,
+  velocity: VectorSchema,
+  flipped: z.boolean(),
+})
+
 export type PlayerMotionSnapshotPacket = z.infer<
   typeof PlayerMotionSnapshotSchema
 >
 export const PlayerMotionSnapshotSchema = z.object({
   t: z.literal('PlayerMotionSnapshot'),
-  // TODO
+
+  motion_info: PlayerMotionInfoSchema.array(),
 })
 
 export type PhysicsSnapshotPacket = z.infer<typeof PhysicsSnapshotSchema>
@@ -60,8 +71,8 @@ export type PlayerMotionPacket = z.infer<typeof PlayerMotionSchema>
 export const PlayerMotionSchema = z.object({
   t: z.literal('PlayerMotion'),
 
-  position: z.tuple([z.number(), z.number()]),
-  velocity: z.tuple([z.number(), z.number()]),
+  position: VectorSchema,
+  velocity: VectorSchema,
   flipped: z.boolean(),
 })
 
