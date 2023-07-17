@@ -81,7 +81,7 @@ export const createNetwork = (
 
             netplayer.setPosition(info.position)
             netplayer.setVelocity(info.velocity)
-            // TODO: Set flipped
+            netplayer.setFlipped(info.flipped)
           }
 
           break
