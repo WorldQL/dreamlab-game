@@ -1,5 +1,7 @@
 /* eslint-disable id-length */
 import type { Game } from '@dreamlab.gg/core'
+import { createNetPlayer } from '@dreamlab.gg/core/entities'
+import type { NetPlayer } from '@dreamlab.gg/core/entities'
 import type {
   MessageListenerClient,
   NetClient,
@@ -16,8 +18,9 @@ export const createNetwork = (
   const ws = new WebSocket('wss://ws.postman-echo.com/raw') // TODO: WebSocket URL
 
   let selfID: string | undefined
+  const players = new Map<string, NetPlayer>()
 
-  ws.addEventListener('message', ev => {
+  ws.addEventListener('message', async ev => {
     if (typeof ev.data !== 'string') return
 
     const game = gameRef.value
@@ -42,6 +45,35 @@ export const createNetwork = (
           if (!set) return
 
           for (const fn of set.values()) fn(channel, data)
+          break
+        }
+
+        case 'SpawnPlayer': {
+          if (packet.peer_id === selfID) break
+          const netplayer = createNetPlayer(packet.entity_id, undefined)
+
+          players.set(packet.peer_id, netplayer)
+          await game.instantiate(netplayer)
+
+          break
+        }
+
+        case 'DespawnPlayer': {
+          if (packet.peer_id === selfID) break
+          const netplayer = players.get(packet.peer_id)
+
+          if (netplayer) {
+            players.delete(packet.peer_id)
+            await game.destroy(netplayer)
+          }
+
+          break
+        }
+
+        case 'PlayerMotionSnapshot': {
+          console.log(packet)
+
+          // TODO
           break
         }
 
