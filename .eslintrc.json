@@ -1,10 +1,10 @@
 {
   "root": true,
   "extends": [
-    "@lolpants/eslint-config/common",
-    "@lolpants/eslint-config/typescript",
-    "@lolpants/eslint-config/browser",
-    "@lolpants/eslint-config/prettier"
+    "@luludev/eslint-config/common",
+    "@luludev/eslint-config/typescript",
+    "@luludev/eslint-config/browser",
+    "@luludev/eslint-config/prettier"
   ],
   "parserOptions": {
     "project": "./tsconfig.eslint.json"
