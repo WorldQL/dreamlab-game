@@ -76,6 +76,7 @@ export const PlayerAnimationChangeSchema = z.object({
 
 export type ToClientPacket = z.infer<typeof ToClientPacketSchema>
 export const ToClientPacketSchema = HandshakeSchema.or(SpawnPlayerSchema)
+  .or(DespawnPlayerSchema)
   .or(PlayerMotionSnapshotSchema)
   .or(PhysicsSnapshotSchema)
   .or(CustomMessageSchema)
