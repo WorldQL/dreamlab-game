@@ -20,6 +20,7 @@
   },
   "dependencies": {
     "@dreamlab.gg/core": "^0.0.9",
+    "modern-normalize": "^2.0.0",
     "zod": "^3.21.4"
   }
 }
