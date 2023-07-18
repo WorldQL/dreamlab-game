@@ -16,22 +16,26 @@ import type {
   PlayerMotionPacket,
 } from './packets.js'
 
-export const connect = async (nickname: string): Promise<WebSocket> => {
+export const connect = async (
+  nickname: string,
+): Promise<WebSocket | undefined> => {
+  if (import.meta.env.VITE_SKIP_WS) return undefined
+
   const url = new URL(import.meta.env.VITE_WEBSOCKET_BASE)
   url.pathname = '/api/connect'
   url.searchParams.set('instance', 'instance') // TODO: Set instance
   url.searchParams.set('nickname', nickname)
 
-  return new Promise<WebSocket>((resolve, reject) => {
+  return new Promise<WebSocket | undefined>(resolve => {
     const ws = new WebSocket(url.toString())
 
-    ws.addEventListener('error', reject)
     ws.addEventListener('open', () => resolve(ws))
+    ws.addEventListener('error', () => resolve(undefined))
   })
 }
 
 export const createNetwork = (
-  ws: WebSocket,
+  ws: WebSocket | undefined,
   gameRef: Ref<Game<false> | undefined>,
 ): NetClient => {
   const listeners = new Map<string, Set<MessageListenerClient>>()
@@ -39,7 +43,7 @@ export const createNetwork = (
   let selfID: string | undefined
   const players = new Map<string, NetPlayer>()
 
-  ws.addEventListener('message', async ev => {
+  ws?.addEventListener('message', async ev => {
     if (typeof ev.data !== 'string') return
 
     const game = gameRef.value
@@ -134,7 +138,7 @@ export const createNetwork = (
         data,
       }
 
-      ws.send(JSON.stringify(payload))
+      ws?.send(JSON.stringify(payload))
     },
 
     addCustomMessageListener(channel, listener) {
@@ -159,7 +163,7 @@ export const createNetwork = (
         flipped,
       }
 
-      ws.send(JSON.stringify(payload))
+      ws?.send(JSON.stringify(payload))
     },
 
     sendPlayerAnimation(animation) {
@@ -168,7 +172,7 @@ export const createNetwork = (
         animation,
       }
 
-      ws.send(JSON.stringify(payload))
+      ws?.send(JSON.stringify(payload))
     },
   })
 }

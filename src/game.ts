@@ -18,7 +18,9 @@ export const init = async () => {
   if (!container) throw new Error('missing container')
 
   const ws = await connect('Player') // TODO: Set nickname
-  // TODO: Handle ws connect errors and alert user
+  if (!ws) {
+    // TODO: Handle ws connect errors and alert user
+  }
 
   const gameRef = ref<Game<false> | undefined>(undefined)
   const game = await createGame({
