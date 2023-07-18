@@ -22,12 +22,15 @@ export const init = async () => {
     // TODO: Handle ws connect errors and alert user
   }
 
+  const width = 1_600
+  const height = width / (16 / 9)
+
   const gameRef = ref<Game<false> | undefined>(undefined)
   const game = await createGame({
     debug: isDebug(),
     headless: false,
     container,
-    dimensions: { width: 1_600, height: 900 },
+    dimensions: { width, height },
     network: createNetwork(ws, gameRef),
     graphicsOptions: {
       backgroundAlpha: 0,
@@ -43,6 +46,15 @@ export const init = async () => {
 
   container.append(game.render.canvas)
   inputs.addListener('toggle-debug', onToggleDebug)
+  // #endregion
+
+  // #region Automatic Resizing
+  const ro = new ResizeObserver(() => {
+    const renderScale = container.clientWidth / width
+    game.render.camera.rescale({ renderScale })
+  })
+
+  ro.observe(container)
   // #endregion
 
   // #region Utility Entities

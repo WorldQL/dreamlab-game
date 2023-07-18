@@ -1,8 +1,13 @@
-#app {
-  width: 1600px;
-  height: 900px;
+html,
+body {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
 }
 
-.p {
-  display: flex;
+#app {
+  aspect-ratio: 16 / 9;
+  width: 100%;
+  height: auto;
+  overflow: hidden;
 }
