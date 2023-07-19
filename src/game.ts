@@ -17,7 +17,7 @@ export const init = async () => {
   const container = document.querySelector<HTMLDivElement>('#app')
   if (!container) throw new Error('missing container')
 
-  const ws = await connect('Player') // TODO: Set nickname
+  const ws = await connect()
   if (!ws) {
     // TODO: Handle ws connect errors and alert user
   }

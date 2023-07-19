@@ -16,18 +16,22 @@ import type {
   PlayerMotionPacket,
 } from './packets.js'
 
-export const connect = async (
-  nickname: string,
-): Promise<WebSocket | undefined> => {
-  if (import.meta.env.VITE_SKIP_WS) return undefined
+export const connect = async (): Promise<WebSocket | undefined> => {
+  const url = new URL(window.location.href)
 
-  const url = new URL(import.meta.env.VITE_WEBSOCKET_BASE)
-  url.pathname = '/api/connect'
-  url.searchParams.set('instance', 'instance') // TODO: Set instance
-  url.searchParams.set('nickname', nickname)
+  const base = import.meta.env.VITE_WEBSOCKET_BASE
+  const instance = url.searchParams.get('instance')
+  const nickname = url.searchParams.get('nickname')
+
+  if (!base || !instance || !nickname) return undefined
+
+  const serverURL = new URL(base)
+  serverURL.pathname = '/api/connect'
+  serverURL.searchParams.set('instance', instance)
+  serverURL.searchParams.set('nickname', nickname)
 
   return new Promise<WebSocket | undefined>(resolve => {
-    const ws = new WebSocket(url.toString())
+    const ws = new WebSocket(serverURL.toString())
 
     ws.addEventListener('open', () => resolve(ws))
     ws.addEventListener('error', () => resolve(undefined))
