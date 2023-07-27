@@ -1,11 +1,10 @@
 {
-  "name": "@dreamlab.gg/app-client",
+  "name": "@dreamlab.gg/app-server",
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc && vite build",
-    "preview": "vite preview",
+    "dev": "npm run build -- --watch",
+    "build": "tsup",
     "lint": "prettier --check . && eslint src --ext mjs,js,ts,tsx",
     "format": "prettier --write . && eslint src --ext mjs,js,ts,tsx --fix",
     "fmt": "npm run format",
@@ -13,14 +12,14 @@
   },
   "devDependencies": {
     "@luludev/eslint-config": "^0.4.2",
+    "@types/express": "^4.17.17",
     "eslint": "^8.45.0",
     "prettier": "^3.0.0",
-    "typescript": "^5.1.6",
-    "vite": "^4.4.4"
+    "tsup": "^7.1.0",
+    "typescript": "^5.1.6"
   },
   "dependencies": {
-    "@dreamlab.gg/core": "^0.0.9",
-    "modern-normalize": "^2.0.0",
-    "zod": "^3.21.4"
+    "@luludev/env": "^0.6.5",
+    "express": "^4.18.2"
   }
 }
