@@ -1,4 +1,5 @@
 /* eslint-disable id-length */
+import { SpawnableDefinitionSchema } from '@dreamlab.gg/core'
 import { z } from 'zod'
 
 const VectorSchema = z.tuple([z.number(), z.number()])
@@ -100,11 +101,74 @@ export const PlayerAnimationChangeSchema = z.object({
   animation: z.string(),
 })
 
+export type PhysicsFullSnapshotPacket = z.infer<
+  typeof PhysicsFullSnapshotSchema
+>
+export const PhysicsFullSnapshotSchema = z.object({
+  t: z.literal('PhysicsFullSnapshot'),
+  snapshot: z.object({
+    tickNumber: z.number(),
+    entities: z.array(
+      z.object({
+        entityId: z.string(),
+        definition: SpawnableDefinitionSchema,
+        bodyInfo: z.array(
+          z.object({
+            bodyIndex: z.number(),
+            position: z.object({ x: z.number(), y: z.number() }),
+            velocity: z.object({ x: z.number(), y: z.number() }),
+            angularVelocity: z.number(),
+          }),
+        ),
+      }),
+    ),
+  }),
+})
+
+export type PhysicsDeltaSnapshotPacket = z.infer<
+  typeof PhysicsFullSnapshotSchema
+>
+export const PhysicsDeltaSnapshotSchema = z.object({
+  t: z.literal('PhysicsDeltaSnapshot'),
+  snapshot: z.object({
+    tickNumber: z.number(),
+    newEntities: z.array(
+      z.object({
+        entityId: z.string(),
+        definition: SpawnableDefinitionSchema,
+        bodyInfo: z.array(
+          z.object({
+            bodyIndex: z.number(),
+            position: z.object({ x: z.number(), y: z.number() }),
+            velocity: z.object({ x: z.number(), y: z.number() }),
+            angularVelocity: z.number(),
+          }),
+        ),
+      }),
+    ),
+    bodyUpdates: z.array(
+      z.object({
+        entityId: z.string(),
+        bodyInfo: z.array(
+          z.object({
+            bodyIndex: z.number(),
+            position: z.object({ x: z.number(), y: z.number() }),
+            velocity: z.object({ x: z.number(), y: z.number() }),
+            angularVelocity: z.number(),
+          }),
+        ),
+      }),
+    ),
+    destroyedEntities: z.array(z.string()),
+  }),
+})
+
 export type ToClientPacket = z.infer<typeof ToClientPacketSchema>
 export const ToClientPacketSchema = HandshakeSchema.or(SpawnPlayerSchema)
   .or(DespawnPlayerSchema)
   .or(PlayerMotionSnapshotSchema)
-  .or(PhysicsSnapshotSchema)
+  .or(PhysicsFullSnapshotSchema)
+  .or(PhysicsDeltaSnapshotSchema)
   .or(PlayerAnimationSnapshotSchema)
   .or(CustomMessageSchema)
 

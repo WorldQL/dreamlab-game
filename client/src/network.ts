@@ -15,6 +15,7 @@ import type {
   PlayerAnimationChangePacket,
   PlayerMotionPacket,
 } from './packets.js'
+import Matter from 'matter-js'
 
 export const connect = async (): Promise<WebSocket | undefined> => {
   const url = new URL(window.location.href)
@@ -46,6 +47,7 @@ export const createNetwork = (
 
   let selfID: string | undefined
   const players = new Map<string, NetPlayer>()
+  let tickNumber = -1
 
   ws?.addEventListener('message', async ev => {
     if (typeof ev.data !== 'string') return
@@ -125,12 +127,67 @@ export const createNetwork = (
           break
         }
 
+        case 'PhysicsFullSnapshot': {
+          if (packet.snapshot.tickNumber <= tickNumber) break
+          tickNumber = packet.snapshot.tickNumber
+
+          await Promise.all(
+            packet.snapshot.entities.map(async entityInfo => {
+              const definition = {
+                ...entityInfo.definition,
+                uid: entityInfo.entityId,
+              }
+              const entity = await game.spawn(definition)
+              if (entity === undefined) return
+
+              const bodies = game.physics.getBodies(entity)
+              // eslint-disable-next-line unicorn/no-for-loop
+              for (let bodyIdx = 0; bodyIdx < bodies.length; bodyIdx++) {
+                const body = bodies[bodyIdx]
+                const bodyInfo = entityInfo.bodyInfo[bodyIdx]
+                Matter.Body.setPosition(body, bodyInfo.position)
+                Matter.Body.setVelocity(body, bodyInfo.velocity)
+                Matter.Body.setAngularVelocity(body, bodyInfo.angularVelocity)
+              }
+            }),
+          )
+
+          break
+        }
+
+        case 'PhysicsDeltaSnapshot': {
+          if (packet.snapshot.tickNumber <= tickNumber) break
+          tickNumber = packet.snapshot.tickNumber
+
+          // TODO: spawn newEntities, delete destroyedEntities
+
+          await Promise.all(
+            packet.snapshot.bodyUpdates.map(async entityInfo => {
+              const entity = game.lookup(entityInfo.entityId)
+              if (entity === undefined) return
+
+              const bodies = game.physics.getBodies(entity)
+              // eslint-disable-next-line unicorn/no-for-loop
+              for (let bodyIdx = 0; bodyIdx < bodies.length; bodyIdx++) {
+                const body = bodies[bodyIdx]
+                const bodyInfo = entityInfo.bodyInfo[bodyIdx]
+                Matter.Body.setPosition(body, bodyInfo.position)
+                Matter.Body.setVelocity(body, bodyInfo.velocity)
+                Matter.Body.setAngularVelocity(body, bodyInfo.angularVelocity)
+              }
+            }),
+          )
+
+          break
+        }
+
         default:
-          console.warn(`unhandled packet: ${packet.t}`)
+          // console.warn(`unhandled packet: ${packet.t}`)
           break
       }
-    } catch {
+    } catch (error) {
       console.warn(`malformed packet: ${ev.data}`)
+      console.log({ error })
     }
   })
 

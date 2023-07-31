@@ -74,10 +74,10 @@ export const init = async () => {
   // #region Test "Level"
   await game.load(LevelSchema.parse(TestLevel))
 
-  await game.spawn({
+  /* await game.spawn({
     entityFn: 'createBouncyBall',
     args: [50],
     transform: { position: [-375, -300] },
-  })
+  }) */
   // #endregion
 }

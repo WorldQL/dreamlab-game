@@ -12,8 +12,9 @@
     "test": "npm run lint"
   },
   "devDependencies": {
-    "@dreamlab.gg/core": "^0.0.13",
+    "@dreamlab.gg/core": "^0.0.15",
     "@luludev/eslint-config": "^0.4.2",
+    "@types/matter-js": "^0.18.5",
     "eslint": "^8.46.0",
     "prettier": "^3.0.0",
     "typescript": "^5.1.6",
@@ -21,6 +22,7 @@
   },
   "dependencies": {
     "modern-normalize": "^2.0.0",
-    "zod": "^3.21.4"
+    "zod": "^3.21.4",
+    "matter-js": "^0.19.0"
   }
 }
