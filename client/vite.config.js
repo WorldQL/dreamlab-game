@@ -43,7 +43,7 @@ export default defineConfig(async () => ({
 
   build: {
     rollupOptions: {
-      external: ['@dreamlab.gg/core', /@dreamlab.gg\/core\/*/g],
+      external: ['@dreamlab.gg/core', /@dreamlab.gg\/core\/.*/g],
     },
   },
 }))
