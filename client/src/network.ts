@@ -1,12 +1,12 @@
 /* eslint-disable id-length */
 import type { Game } from '@dreamlab.gg/core'
 import { createNetPlayer } from '@dreamlab.gg/core/entities'
-import type { Animation, NetPlayer } from '@dreamlab.gg/core/entities'
+import type { NetPlayer, PlayerAnimation } from '@dreamlab.gg/core/entities'
+import { createNetClient } from '@dreamlab.gg/core/network'
 import type {
   MessageListenerClient,
   NetClient,
 } from '@dreamlab.gg/core/network'
-import { createNetClient } from '@dreamlab.gg/core/network'
 import type { Ref } from '@dreamlab.gg/core/utils'
 import { loadAnimations } from './animations.js'
 import { ToClientPacketSchema } from './packets.js'
@@ -119,7 +119,7 @@ export const createNetwork = (
             if (!netplayer) continue
 
             // TODO: Maybe validate this string
-            netplayer.setAnimation(info.animation as Animation)
+            netplayer.setAnimation(info.animation as PlayerAnimation)
           }
 
           break
