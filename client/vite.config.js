@@ -21,16 +21,10 @@ const importMapPlugin = () => ({
       },
     }
 
-    // TODO: Resolve modules dynamically
-    const modules = [
-      'entities',
-      'input',
-      'math',
-      'network',
-      'textures',
-      'utils',
-    ]
+    const modulesPath = await resolve(`${pkg}/modules.json`, import.meta.url)
+    const modulesJson = await readFile(fileURLToPath(modulesPath), 'utf8')
 
+    const modules = JSON.parse(modulesJson)
     for (const module of modules) {
       map.imports[`${pkg}/${module}`] = resolved
     }
