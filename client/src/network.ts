@@ -8,14 +8,16 @@ import type {
   NetClient,
 } from '@dreamlab.gg/core/network'
 import type { Ref } from '@dreamlab.gg/core/utils'
+import Matter from 'matter-js'
+import type { Body } from 'matter-js'
 import { loadAnimations } from './animations.js'
 import { ToClientPacketSchema } from './packets.js'
 import type {
+  BodyInfo,
   CustomMessagePacket,
   PlayerAnimationChangePacket,
   PlayerMotionPacket,
 } from './packets.js'
-import Matter from 'matter-js'
 
 export const connect = async (): Promise<WebSocket | undefined> => {
   const url = new URL(window.location.href)
@@ -39,6 +41,16 @@ export const connect = async (): Promise<WebSocket | undefined> => {
   })
 }
 
+const updateBodies = (bodies: Body[], bodyInfo: BodyInfo[]) => {
+  for (const [idx, body] of bodies.entries()) {
+    const info = bodyInfo[idx]
+
+    Matter.Body.setPosition(body, info.position)
+    Matter.Body.setVelocity(body, info.velocity)
+    Matter.Body.setAngularVelocity(body, info.angularVelocity)
+  }
+}
+
 export const createNetwork = (
   ws: WebSocket | undefined,
   gameRef: Ref<Game<false> | undefined>,
@@ -47,7 +59,7 @@ export const createNetwork = (
 
   let selfID: string | undefined
   const players = new Map<string, NetPlayer>()
-  let tickNumber = -1
+  let lastTickNumber = -1
 
   ws?.addEventListener('message', async ev => {
     if (typeof ev.data !== 'string') return
@@ -128,56 +140,62 @@ export const createNetwork = (
         }
 
         case 'PhysicsFullSnapshot': {
-          if (packet.snapshot.tickNumber <= tickNumber) break
-          tickNumber = packet.snapshot.tickNumber
+          const { entities, tickNumber } = packet.snapshot
 
-          await Promise.all(
-            packet.snapshot.entities.map(async entityInfo => {
-              const definition = {
-                ...entityInfo.definition,
-                uid: entityInfo.entityId,
-              }
-              const entity = await game.spawn(definition)
-              if (entity === undefined) return
+          if (tickNumber <= lastTickNumber) break
+          lastTickNumber = tickNumber
 
-              const bodies = game.physics.getBodies(entity)
-              // eslint-disable-next-line unicorn/no-for-loop
-              for (let bodyIdx = 0; bodyIdx < bodies.length; bodyIdx++) {
-                const body = bodies[bodyIdx]
-                const bodyInfo = entityInfo.bodyInfo[bodyIdx]
-                Matter.Body.setPosition(body, bodyInfo.position)
-                Matter.Body.setVelocity(body, bodyInfo.velocity)
-                Matter.Body.setAngularVelocity(body, bodyInfo.angularVelocity)
-              }
-            }),
-          )
+          const jobs = entities.map(async entityInfo => {
+            const definition = {
+              ...entityInfo.definition,
+              uid: entityInfo.entityId,
+            }
 
+            const entity = await game.spawn(definition)
+            if (entity === undefined) return
+
+            const bodies = game.physics.getBodies(entity)
+            updateBodies(bodies, entityInfo.bodyInfo)
+          })
+
+          await Promise.all(jobs)
           break
         }
 
         case 'PhysicsDeltaSnapshot': {
-          if (packet.snapshot.tickNumber <= tickNumber) break
-          tickNumber = packet.snapshot.tickNumber
+          const { bodyUpdates, destroyedEntities, newEntities, tickNumber } =
+            packet.snapshot
 
-          // TODO: spawn newEntities, delete destroyedEntities
+          if (tickNumber <= lastTickNumber) break
+          lastTickNumber = tickNumber
 
-          await Promise.all(
-            packet.snapshot.bodyUpdates.map(async entityInfo => {
-              const entity = game.lookup(entityInfo.entityId)
-              if (entity === undefined) return
+          const spawnJobs = newEntities.map(async entityInfo => {
+            const definition = {
+              ...entityInfo.definition,
+              uid: entityInfo.entityId,
+            }
 
-              const bodies = game.physics.getBodies(entity)
-              // eslint-disable-next-line unicorn/no-for-loop
-              for (let bodyIdx = 0; bodyIdx < bodies.length; bodyIdx++) {
-                const body = bodies[bodyIdx]
-                const bodyInfo = entityInfo.bodyInfo[bodyIdx]
-                Matter.Body.setPosition(body, bodyInfo.position)
-                Matter.Body.setVelocity(body, bodyInfo.velocity)
-                Matter.Body.setAngularVelocity(body, bodyInfo.angularVelocity)
-              }
-            }),
-          )
+            const entity = await game.spawn(definition)
+            if (entity === undefined) return
 
+            const bodies = game.physics.getBodies(entity)
+            updateBodies(bodies, entityInfo.bodyInfo)
+          })
+
+          const updateJobs = bodyUpdates.map(async entityInfo => {
+            const entity = game.lookup(entityInfo.entityId)
+            if (entity === undefined) return
+
+            const bodies = game.physics.getBodies(entity)
+            updateBodies(bodies, entityInfo.bodyInfo)
+          })
+
+          const destroyJobs = destroyedEntities.map(async uid => {
+            const entity = game.lookup(uid)
+            if (entity) await game.destroy(entity)
+          })
+
+          await Promise.all([...spawnJobs, ...updateJobs, ...destroyJobs])
           break
         }
 

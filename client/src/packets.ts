@@ -96,17 +96,19 @@ export const PlayerAnimationChangeSchema = z.object({
   animation: z.string(),
 })
 
-const EntitySnapshotSchema = z.object({
+export type BodyInfo = z.infer<typeof BodyInfoSchema>
+export const BodyInfoSchema = z.object({
+  bodyIndex: z.number(),
+  position: ObjectVectorSchema,
+  velocity: ObjectVectorSchema,
+  angularVelocity: z.number(),
+})
+
+export type EntitySnapshot = z.infer<typeof EntitySnapshotSchema>
+export const EntitySnapshotSchema = z.object({
   entityId: z.string(),
   definition: SpawnableDefinitionSchema,
-  bodyInfo: z.array(
-    z.object({
-      bodyIndex: z.number(),
-      position: ObjectVectorSchema,
-      velocity: ObjectVectorSchema,
-      angularVelocity: z.number(),
-    }),
-  ),
+  bodyInfo: BodyInfoSchema.array(),
 })
 
 export type PhysicsFullSnapshotPacket = z.infer<
