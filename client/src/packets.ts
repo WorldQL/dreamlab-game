@@ -2,7 +2,8 @@
 import { SpawnableDefinitionSchema } from '@dreamlab.gg/core'
 import { z } from 'zod'
 
-const VectorSchema = z.tuple([z.number(), z.number()])
+const TupleVectorSchema = z.tuple([z.number(), z.number()])
+const ObjectVectorSchema = z.object({ x: z.number(), y: z.number() })
 
 export type HandshakePacket = z.infer<typeof HandshakeSchema>
 export const HandshakeSchema = z.object({
@@ -17,7 +18,7 @@ export const SpawnPlayerSchema = z.object({
 
   peer_id: z.string(),
   entity_id: z.string(),
-  position: VectorSchema,
+  position: TupleVectorSchema,
 })
 
 export type DespawnPlayerPacket = z.infer<typeof DespawnPlayerSchema>
@@ -31,8 +32,8 @@ export const DespawnPlayerSchema = z.object({
 export type PlayerMotionInfo = z.infer<typeof PlayerMotionInfoSchema>
 export const PlayerMotionInfoSchema = z.object({
   entity_id: z.string(),
-  position: VectorSchema,
-  velocity: VectorSchema,
+  position: TupleVectorSchema,
+  velocity: TupleVectorSchema,
   flipped: z.boolean(),
 })
 
@@ -43,12 +44,6 @@ export const PlayerMotionSnapshotSchema = z.object({
   t: z.literal('PlayerMotionSnapshot'),
 
   motion_info: PlayerMotionInfoSchema.array(),
-})
-
-export type PhysicsSnapshotPacket = z.infer<typeof PhysicsSnapshotSchema>
-export const PhysicsSnapshotSchema = z.object({
-  t: z.literal('PhysicsSnapshot'),
-  // TODO
 })
 
 export type PlayerAnimationInfo = z.infer<typeof PlayerAnimationInfoSchema>
@@ -87,8 +82,8 @@ export type PlayerMotionPacket = z.infer<typeof PlayerMotionSchema>
 export const PlayerMotionSchema = z.object({
   t: z.literal('PlayerMotion'),
 
-  position: VectorSchema,
-  velocity: VectorSchema,
+  position: TupleVectorSchema,
+  velocity: TupleVectorSchema,
   flipped: z.boolean(),
 })
 
@@ -101,27 +96,28 @@ export const PlayerAnimationChangeSchema = z.object({
   animation: z.string(),
 })
 
+const EntitySnapshotSchema = z.object({
+  entityId: z.string(),
+  definition: SpawnableDefinitionSchema,
+  bodyInfo: z.array(
+    z.object({
+      bodyIndex: z.number(),
+      position: ObjectVectorSchema,
+      velocity: ObjectVectorSchema,
+      angularVelocity: z.number(),
+    }),
+  ),
+})
+
 export type PhysicsFullSnapshotPacket = z.infer<
   typeof PhysicsFullSnapshotSchema
 >
 export const PhysicsFullSnapshotSchema = z.object({
   t: z.literal('PhysicsFullSnapshot'),
+
   snapshot: z.object({
     tickNumber: z.number(),
-    entities: z.array(
-      z.object({
-        entityId: z.string(),
-        definition: SpawnableDefinitionSchema,
-        bodyInfo: z.array(
-          z.object({
-            bodyIndex: z.number(),
-            position: z.object({ x: z.number(), y: z.number() }),
-            velocity: z.object({ x: z.number(), y: z.number() }),
-            angularVelocity: z.number(),
-          }),
-        ),
-      }),
-    ),
+    entities: EntitySnapshotSchema.array(),
   }),
 })
 
@@ -130,36 +126,12 @@ export type PhysicsDeltaSnapshotPacket = z.infer<
 >
 export const PhysicsDeltaSnapshotSchema = z.object({
   t: z.literal('PhysicsDeltaSnapshot'),
+
   snapshot: z.object({
     tickNumber: z.number(),
-    newEntities: z.array(
-      z.object({
-        entityId: z.string(),
-        definition: SpawnableDefinitionSchema,
-        bodyInfo: z.array(
-          z.object({
-            bodyIndex: z.number(),
-            position: z.object({ x: z.number(), y: z.number() }),
-            velocity: z.object({ x: z.number(), y: z.number() }),
-            angularVelocity: z.number(),
-          }),
-        ),
-      }),
-    ),
-    bodyUpdates: z.array(
-      z.object({
-        entityId: z.string(),
-        bodyInfo: z.array(
-          z.object({
-            bodyIndex: z.number(),
-            position: z.object({ x: z.number(), y: z.number() }),
-            velocity: z.object({ x: z.number(), y: z.number() }),
-            angularVelocity: z.number(),
-          }),
-        ),
-      }),
-    ),
-    destroyedEntities: z.array(z.string()),
+    newEntities: EntitySnapshotSchema.array(),
+    bodyUpdates: EntitySnapshotSchema.array(),
+    destroyedEntities: z.string().array(),
   }),
 })
 
