@@ -1,11 +1,18 @@
 import { defineConfig } from 'vite'
+import { resolve } from 'import-meta-resolve'
+import { readFile } from 'node:fs/promises'
+import { fileURLToPath } from 'node:url'
 
 /** @returns {import('vite').Plugin} */
 const importMapPlugin = () => ({
   name: 'import-map',
-  transformIndexHtml: () => {
+  transformIndexHtml: async () => {
     const pkg = '@dreamlab.gg/core'
-    const version = '0.0.13' // TODO: Resolve version from package.json
+
+    const pkgPath = await resolve(`${pkg}/package.json`, import.meta.url)
+    const pkgJson = await readFile(fileURLToPath(pkgPath), 'utf8')
+
+    const { version } = JSON.parse(pkgJson)
     const resolved = `https://esm.sh/${pkg}@${version}/bundled`
 
     const map = {
