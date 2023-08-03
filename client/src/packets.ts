@@ -132,7 +132,7 @@ export const PhysicsDeltaSnapshotSchema = z.object({
   snapshot: z.object({
     tickNumber: z.number(),
     newEntities: EntitySnapshotSchema.array(),
-    bodyUpdates: EntitySnapshotSchema.array(),
+    bodyUpdates: EntitySnapshotSchema.omit({ definition: true }).array(),
     destroyedEntities: z.string().array(),
   }),
 })
