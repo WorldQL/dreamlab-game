@@ -15,6 +15,7 @@ import { ToClientPacketSchema } from './packets.js'
 import type {
   BodyInfo,
   CustomMessagePacket,
+  HandshakePacket,
   PlayerAnimationChangePacket,
   PlayerMotionPacket,
 } from './packets.js'
@@ -54,7 +55,12 @@ const updateBodies = (bodies: Body[], bodyInfo: BodyInfo[]) => {
 export const createNetwork = (
   ws: WebSocket | undefined,
   gameRef: Ref<Game<false> | undefined>,
-): NetClient => {
+): [NetClient, Promise<HandshakePacket>] => {
+  let handshakePromiseResolve: (value: HandshakePacket) => void
+  const handshakePromise: Promise<HandshakePacket> = new Promise(resolve => {
+    handshakePromiseResolve = resolve
+  })
+
   const listeners = new Map<string, Set<MessageListenerClient>>()
 
   let selfID: string | undefined
@@ -74,6 +80,7 @@ export const createNetwork = (
 
       if (packet.t === 'Handshake') {
         selfID = packet.peer_id
+        handshakePromiseResolve(packet)
         return
       }
 
@@ -209,7 +216,7 @@ export const createNetwork = (
     }
   })
 
-  return createNetClient({
+  const netClient = createNetClient({
     sendCustomMessage(channel, data) {
       const payload: CustomMessagePacket = {
         t: 'CustomMessage',
@@ -254,4 +261,6 @@ export const createNetwork = (
       ws?.send(JSON.stringify(payload))
     },
   })
+
+  return [netClient, handshakePromise]
 }

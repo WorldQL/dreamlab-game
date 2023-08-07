@@ -10,6 +10,7 @@ export const HandshakeSchema = z.object({
   t: z.literal('Handshake'),
 
   peer_id: z.string(),
+  level_id: z.string(),
 })
 
 export type SpawnPlayerPacket = z.infer<typeof SpawnPlayerSchema>

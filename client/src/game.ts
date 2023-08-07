@@ -1,4 +1,4 @@
-import { createGame, LevelSchema } from '@dreamlab.gg/core'
+import { createGame } from '@dreamlab.gg/core'
 import type { Game } from '@dreamlab.gg/core'
 import {
   createCursor,
@@ -9,7 +9,6 @@ import { ref } from '@dreamlab.gg/core/utils'
 import { getCharacterID, loadAnimations } from './animations.js'
 import { isDebug } from './debug.js'
 import { defaultInputMap as inputMap, emitter as inputs } from './inputs.js'
-import TestLevel from './levels/test.json' assert { type: 'json' }
 import { connect, createNetwork } from './network.js'
 
 export const init = async () => {
@@ -26,12 +25,13 @@ export const init = async () => {
   const height = width / (16 / 9)
 
   const gameRef = ref<Game<false> | undefined>(undefined)
+  const [netClient, handshake] = createNetwork(ws, gameRef)
   const game = await createGame({
     debug: isDebug(),
     headless: false,
     container,
     dimensions: { width, height },
-    network: createNetwork(ws, gameRef),
+    network: netClient,
     graphicsOptions: {
       backgroundAlpha: 0,
       antialias: true,
@@ -64,20 +64,21 @@ export const init = async () => {
   const characterID = getCharacterID()
   const animations = await loadAnimations(characterID)
   const player = createPlayer(inputs, animations)
-  await game.instantiate(player)
   game.render.camera.setTarget(player)
 
   const cursor = createCursor()
   await game.instantiate(cursor)
   // #endregion
 
-  // #region Test "Level"
-  await game.load(LevelSchema.parse(TestLevel))
+  if (ws) {
+    const handshakePacket = await handshake
+    const clientModule = await import(
+      `/levels/${handshakePacket.level_id}/client.js`
+    )
+    await clientModule.init(game)
+  } else {
+    // have a dummy level that's like "connect to an instance!!"
+  }
 
-  /* await game.spawn({
-    entityFn: 'createBouncyBall',
-    args: [50],
-    transform: { position: [-375, -300] },
-  }) */
-  // #endregion
+  await game.instantiate(player)
 }
