@@ -27,6 +27,7 @@ const importMapPlugin = () => ({
     const modules = JSON.parse(modulesJson)
     for (const module of modules) {
       map.imports[`${pkg}/${module}`] = resolved
+      map.imports[`${pkg}/dist/${module}`] = resolved
     }
 
     return [
