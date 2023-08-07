@@ -61,11 +61,6 @@ export const init = async () => {
   const inputsEntity = createInputs(inputs, inputMap)
   await game.instantiate(inputsEntity)
 
-  const characterID = getCharacterID()
-  const animations = await loadAnimations(characterID)
-  const player = createPlayer(inputs, animations)
-  game.render.camera.setTarget(player)
-
   const cursor = createCursor()
   await game.instantiate(cursor)
   // #endregion
@@ -75,10 +70,27 @@ export const init = async () => {
     const clientModule = await import(
       `/levels/${handshakePacket.level_id}/client.js`
     )
+
     await clientModule.init(game)
   } else {
+    if (import.meta.env.DEV) {
+      const url = new URL(window.location.href)
+      const level = url.searchParams.get('level')
+
+      if (level) {
+        const clientModule = await import(`/levels/${level}/client.js`)
+        await clientModule.init(game)
+      }
+    }
+
     // have a dummy level that's like "connect to an instance!!"
+    void 0 // temporarily make linter happy, remove when above is implemented
   }
 
+  const characterID = getCharacterID()
+  const animations = await loadAnimations(characterID)
+  const player = createPlayer(inputs, animations)
   await game.instantiate(player)
+
+  game.render.camera.setTarget(player)
 }
