@@ -44,6 +44,12 @@ export default defineConfig(async () => ({
 
   build: {
     rollupOptions: {
+      output: {
+        manualChunks: {
+          matter: ['matter-js'],
+        },
+      },
+
       external: (source, importer, isResolved) => {
         if (source.includes('@dreamlab.gg/core')) return true
       },
