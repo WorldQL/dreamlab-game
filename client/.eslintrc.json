@@ -9,7 +9,9 @@
   "parserOptions": {
     "project": "./tsconfig.eslint.json"
   },
-  "rules": {},
+  "rules": {
+    "jsdoc/no-bad-blocks": ["error", {"ignore": ["vite-ignore"]}]
+  },
   "ignorePatterns": ["**/dist/*", "vite-env.d.ts"],
   "env": {
     "jest": true

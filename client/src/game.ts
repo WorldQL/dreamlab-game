@@ -68,7 +68,7 @@ export const init = async () => {
   if (ws) {
     const handshakePacket = await handshake
     const clientModule = await import(
-      `/levels/${handshakePacket.level_id}/client.js`
+      /* @vite-ignore */ `/levels/${handshakePacket.level_id}/client.js`
     )
 
     await clientModule.init(game)
@@ -78,7 +78,10 @@ export const init = async () => {
       const level = url.searchParams.get('level')
 
       if (level) {
-        const clientModule = await import(`/levels/${level}/client.js`)
+        const clientModule = await import(
+          /* @vite-ignore */ `/levels/${level}/client.js`
+        )
+
         await clientModule.init(game)
       }
     }
