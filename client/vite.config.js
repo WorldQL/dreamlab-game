@@ -44,7 +44,9 @@ export default defineConfig(async () => ({
 
   build: {
     rollupOptions: {
-      external: ['@dreamlab.gg/core', /@dreamlab.gg\/core\/.*/g],
+      external: (source, importer, isResolved) => {
+        if (source.includes('@dreamlab.gg/core')) return true
+      },
     },
   },
 }))
