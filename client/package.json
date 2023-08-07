@@ -12,7 +12,7 @@
     "test": "npm run lint"
   },
   "devDependencies": {
-    "@dreamlab.gg/core": "^0.0.17",
+    "@dreamlab.gg/core": "^0.0.19",
     "@luludev/eslint-config": "^0.4.2",
     "@types/matter-js": "^0.18.5",
     "eslint": "^8.46.0",
@@ -24,6 +24,7 @@
   "dependencies": {
     "matter-js": "^0.19.0",
     "modern-normalize": "^2.0.0",
+    "type-fest": "^4.1.0",
     "zod": "^3.21.4"
   }
 }
