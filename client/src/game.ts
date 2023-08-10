@@ -1,12 +1,11 @@
 import { createGame } from '@dreamlab.gg/core'
 import {
   createCursor,
-  createInputs,
   createPlayer,
+  PlayerInput,
 } from '@dreamlab.gg/core/entities'
 import { getCharacterID, loadAnimations } from './animations.js'
 import { isDebug } from './debug.js'
-import { defaultInputMap as inputMap, emitter as inputs } from './inputs.js'
 import { connect, createNetwork } from './network.js'
 
 export const init = async () => {
@@ -39,7 +38,8 @@ export const init = async () => {
   }
 
   container.append(game.render.canvas)
-  inputs.addListener('toggle-debug', onToggleDebug)
+  game.inputs.registerInput('debug', 'KeyP')
+  game.inputs.addListener('debug', onToggleDebug)
   // #endregion
 
   // #region Automatic Resizing
@@ -52,9 +52,6 @@ export const init = async () => {
   // #endregion
 
   // #region Utility Entities
-  const inputsEntity = createInputs(inputs, inputMap)
-  await game.instantiate(inputsEntity)
-
   const cursor = createCursor()
   await game.instantiate(cursor)
   // #endregion
@@ -82,9 +79,13 @@ export const init = async () => {
     void 0 // temporarily make linter happy, remove when above is implemented
   }
 
+  // TODO: Actually allow rebinding keys
+  game.inputs.bindInput('Space', PlayerInput.Jump)
+  game.inputs.bindInput('KeyW', PlayerInput.Jump)
+
   const characterID = getCharacterID()
   const animations = await loadAnimations(characterID)
-  const player = createPlayer(inputs, animations)
+  const player = createPlayer(animations)
   await game.instantiate(player)
 
   game.render.camera.setTarget(player)
