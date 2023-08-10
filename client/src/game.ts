@@ -1,11 +1,9 @@
 import { createGame } from '@dreamlab.gg/core'
-import type { Game } from '@dreamlab.gg/core'
 import {
   createCursor,
   createInputs,
   createPlayer,
 } from '@dreamlab.gg/core/entities'
-import { ref } from '@dreamlab.gg/core/utils'
 import { getCharacterID, loadAnimations } from './animations.js'
 import { isDebug } from './debug.js'
 import { defaultInputMap as inputMap, emitter as inputs } from './inputs.js'
@@ -24,21 +22,17 @@ export const init = async () => {
   const width = 1_600
   const height = width / (16 / 9)
 
-  const gameRef = ref<Game<false> | undefined>(undefined)
-  const [netClient, handshake] = createNetwork(ws, gameRef)
   const game = await createGame({
     debug: isDebug(),
     headless: false,
     container,
     dimensions: { width, height },
-    network: netClient,
     graphicsOptions: {
       backgroundAlpha: 0,
       antialias: true,
     },
   })
 
-  gameRef.value = game
   const onToggleDebug = (pressed: boolean) => {
     if (!pressed) return
     game.debug.toggle()
@@ -66,12 +60,10 @@ export const init = async () => {
   // #endregion
 
   if (ws) {
-    const handshakePacket = await handshake
-    const clientModule = await import(
-      /* @vite-ignore */ `/levels/${handshakePacket.level_id}/client.js`
-    )
+    const [network, connected] = createNetwork(ws, game)
+    game.initNetwork(network)
 
-    await clientModule.init(game)
+    await connected
   } else {
     if (import.meta.env.DEV) {
       const url = new URL(window.location.href)

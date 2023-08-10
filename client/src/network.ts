@@ -2,12 +2,10 @@
 import type { Game } from '@dreamlab.gg/core'
 import { createNetPlayer } from '@dreamlab.gg/core/entities'
 import type { NetPlayer, PlayerAnimation } from '@dreamlab.gg/core/entities'
-import { createNetClient } from '@dreamlab.gg/core/network'
 import type {
+  BareNetClient,
   MessageListenerClient,
-  NetClient,
 } from '@dreamlab.gg/core/network'
-import type { Ref } from '@dreamlab.gg/core/utils'
 import Matter from 'matter-js'
 import type { Body } from 'matter-js'
 import { loadAnimations } from './animations.js'
@@ -18,7 +16,9 @@ import type {
   HandshakePacket,
   PlayerAnimationChangePacket,
   PlayerMotionPacket,
+  ToClientPacket,
 } from './packets.js'
+import { createSignal } from './signal.js'
 
 export const connect = async (): Promise<WebSocket | undefined> => {
   const url = new URL(window.location.href)
@@ -53,38 +53,21 @@ const updateBodies = (bodies: Body[], bodyInfo: BodyInfo[]) => {
 }
 
 export const createNetwork = (
-  ws: WebSocket | undefined,
-  gameRef: Ref<Game<false> | undefined>,
-): [NetClient, Promise<HandshakePacket>] => {
-  let handshakePromiseResolve: (value: HandshakePacket) => void
-  const handshakePromise: Promise<HandshakePacket> = new Promise(resolve => {
-    handshakePromiseResolve = resolve
-  })
-
+  ws: WebSocket,
+  game: Game<false>,
+): [network: BareNetClient, ready: Promise<void>] => {
   const listeners = new Map<string, Set<MessageListenerClient>>()
+
+  type QueuePacket = Exclude<ToClientPacket, HandshakePacket>
+  const queuedPackets: QueuePacket[] = []
 
   let selfID: string | undefined
   const players = new Map<string, NetPlayer>()
   let lastTickNumber = -1
 
-  ws?.addEventListener('message', async ev => {
-    if (typeof ev.data !== 'string') return
-
-    const game = gameRef.value
-    if (!game) return
-
+  const [sendReady, ready] = createSignal()
+  const handlePacket = async (packet: QueuePacket) => {
     try {
-      const result = ToClientPacketSchema.safeParse(JSON.parse(ev.data))
-      if (!result.success) throw result.error
-      const packet = result.data
-
-      if (packet.t === 'Handshake') {
-        selfID = packet.peer_id
-        handshakePromiseResolve(packet)
-        return
-      }
-
-      if (!selfID) return
       switch (packet.t) {
         case 'CustomMessage': {
           const { channel, data } = packet
@@ -207,16 +190,53 @@ export const createNetwork = (
         }
 
         default:
-          // console.warn(`unhandled packet: ${packet.t}`)
+          // @ts-expect-error default case
+          console.warn(`unhandled packet: ${packet.t}`)
           break
       }
     } catch (error) {
+      console.warn('error handling packet')
+      console.log(packet)
+      console.log(error)
+    }
+  }
+
+  ws.addEventListener('message', async ev => {
+    if (typeof ev.data !== 'string') return
+
+    try {
+      const result = ToClientPacketSchema.safeParse(JSON.parse(ev.data))
+      if (!result.success) throw result.error
+      const packet = result.data
+
+      if (packet.t === 'Handshake') {
+        const clientModule = await import(
+          /* @vite-ignore */ `/levels/${packet.level_id}/client.js`
+        )
+
+        await clientModule.init(game)
+        selfID = packet.peer_id
+        sendReady()
+
+        return
+      }
+
+      if (!selfID) {
+        queuedPackets.push(packet)
+        return
+      }
+
+      const queue = queuedPackets.splice(0, queuedPackets.length)
+      // eslint-disable-next-line no-await-in-loop
+      for (const pkt of queue) await handlePacket(pkt)
+      await handlePacket(packet)
+    } catch (error) {
       console.warn(`malformed packet: ${ev.data}`)
-      console.log({ error })
+      console.log(error)
     }
   })
 
-  const netClient = createNetClient({
+  const network: BareNetClient = {
     sendCustomMessage(channel, data) {
       const payload: CustomMessagePacket = {
         t: 'CustomMessage',
@@ -224,7 +244,7 @@ export const createNetwork = (
         data,
       }
 
-      ws?.send(JSON.stringify(payload))
+      ws.send(JSON.stringify(payload))
     },
 
     addCustomMessageListener(channel, listener) {
@@ -249,7 +269,7 @@ export const createNetwork = (
         flipped,
       }
 
-      ws?.send(JSON.stringify(payload))
+      ws.send(JSON.stringify(payload))
     },
 
     sendPlayerAnimation(animation) {
@@ -258,9 +278,9 @@ export const createNetwork = (
         animation,
       }
 
-      ws?.send(JSON.stringify(payload))
+      ws.send(JSON.stringify(payload))
     },
-  })
+  }
 
-  return [netClient, handshakePromise]
+  return [network, ready]
 }
