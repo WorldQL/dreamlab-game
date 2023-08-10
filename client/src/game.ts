@@ -7,6 +7,7 @@ import {
 import { getCharacterID, loadAnimations } from './animations.js'
 import { isDebug } from './debug.js'
 import { connect, createNetwork } from './network.js'
+import { loadScript } from './scripting.js'
 
 export const init = async () => {
   // #region Setup
@@ -66,13 +67,7 @@ export const init = async () => {
       const url = new URL(window.location.href)
       const level = url.searchParams.get('level')
 
-      if (level) {
-        const clientModule = await import(
-          /* @vite-ignore */ `/levels/${level}/client.js`
-        )
-
-        await clientModule.init(game)
-      }
+      if (level) await loadScript(level, game)
     }
 
     // have a dummy level that's like "connect to an instance!!"

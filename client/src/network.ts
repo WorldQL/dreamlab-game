@@ -18,6 +18,7 @@ import type {
   PlayerMotionPacket,
   ToClientPacket,
 } from './packets.js'
+import { loadScript } from './scripting.js'
 import { createSignal } from './signal.js'
 
 export const connect = async (): Promise<WebSocket | undefined> => {
@@ -210,11 +211,7 @@ export const createNetwork = (
       const packet = result.data
 
       if (packet.t === 'Handshake') {
-        const clientModule = await import(
-          /* @vite-ignore */ `/levels/${packet.level_id}/client.js`
-        )
-
-        await clientModule.init(game)
+        await loadScript(packet.level_id, game)
         selfID = packet.peer_id
         sendReady()
 
