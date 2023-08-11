@@ -1,6 +1,6 @@
 /* eslint-disable id-length */
 import type { Game } from '@dreamlab.gg/core'
-import { createNetPlayer } from '@dreamlab.gg/core/entities'
+import { createNetPlayer, createPlayer } from '@dreamlab.gg/core/entities'
 import type { NetPlayer, PlayerAnimation } from '@dreamlab.gg/core/entities'
 import type {
   BareNetClient,
@@ -9,7 +9,7 @@ import type {
 import { createSignal } from '@dreamlab.gg/core/utils'
 import Matter from 'matter-js'
 import type { Body } from 'matter-js'
-import { loadAnimations } from './animations.js'
+import { getCharacterID, loadAnimations } from './animations.js'
 import { ToClientPacketSchema } from './packets.js'
 import type {
   BodyInfo,
@@ -83,17 +83,21 @@ export const createNetwork = (
 
         case 'SpawnPlayer': {
           if (packet.peer_id === selfID) {
-            // TODO: spawn the local player based on this packet instead of waiting in game.ts,
-            // since the level should be loaded by the time we receive this
-            break
+            const characterID = getCharacterID()
+            const animations = await loadAnimations(characterID)
+            const player = createPlayer(animations)
+            await game.instantiate(player)
+
+            player.teleport(packet.position, true)
+            game.render.camera.setTarget(player)
+          } else {
+            // TODO: Load correct animations (requires character ID in SpawnPlayer packet)
+            const animations = await loadAnimations(undefined)
+            const netplayer = createNetPlayer(packet.entity_id, animations)
+
+            players.set(packet.entity_id, netplayer)
+            await game.instantiate(netplayer)
           }
-
-          // TODO: Load correct animations (requires character ID in SpawnPlayer packet)
-          const animations = await loadAnimations(undefined)
-          const netplayer = createNetPlayer(packet.entity_id, animations)
-
-          players.set(packet.entity_id, netplayer)
-          await game.instantiate(netplayer)
 
           break
         }

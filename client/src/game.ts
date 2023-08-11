@@ -1,10 +1,5 @@
 import { createGame } from '@dreamlab.gg/core'
-import {
-  createCursor,
-  createPlayer,
-  PlayerInput,
-} from '@dreamlab.gg/core/entities'
-import { getCharacterID, loadAnimations } from './animations.js'
+import { createCursor, PlayerInput } from '@dreamlab.gg/core/entities'
 import { isDebug } from './debug.js'
 import { connect, createNetwork } from './network.js'
 import { loadScript } from './scripting.js'
@@ -77,11 +72,4 @@ export const init = async () => {
   // TODO: Actually allow rebinding keys
   game.inputs.bindInput('Space', PlayerInput.Jump)
   game.inputs.bindInput('KeyW', PlayerInput.Jump)
-
-  const characterID = getCharacterID()
-  const animations = await loadAnimations(characterID)
-  const player = createPlayer(animations)
-  await game.instantiate(player)
-
-  game.render.camera.setTarget(player)
 }
