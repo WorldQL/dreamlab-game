@@ -1,11 +1,11 @@
 import type { Game } from '@dreamlab.gg/core'
 
 export const loadScript = async (
-  level: string,
+  world: string,
   game: Game<false>,
 ): Promise<void> => {
   const module: unknown = await import(
-    /* @vite-ignore */ `/levels/${level}/client.js`
+    /* @vite-ignore */ `/worlds/${world}/client.js`
   )
 
   if (module === undefined) return

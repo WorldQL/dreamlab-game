@@ -1,2 +1,5 @@
-/levels
+/worlds
+
+# eventually, make sure everyone's purged the /levels directory
+# so we can get rid of this:
 /levels

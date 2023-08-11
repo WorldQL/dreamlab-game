@@ -12,6 +12,6 @@ In this repository are two subprojects:
 ```shell
 $ cd client/
 # make sure the level scripts exist!
-client/ $ git clone 'git@github.com:WorldQL/dreamlab-levels.git' public/levels
+client/ $ git clone 'git@github.com:WorldQL/dreamlab-worlds.git' public/worlds
 client/ $ npm run dev # test the client locally
 ```

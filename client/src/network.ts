@@ -81,9 +81,13 @@ export const createNetwork = (
         }
 
         case 'SpawnPlayer': {
-          if (packet.peer_id === selfID) break
+          if (packet.peer_id === selfID) {
+            // TODO: spawn the local player based on this packet instead of waiting in game.ts,
+            // since the level should be loaded by the time we receive this
+            break
+          }
 
-          // TODO: Load correct animations
+          // TODO: Load correct animations (requires character ID in SpawnPlayer packet)
           const animations = await loadAnimations(undefined)
           const netplayer = createNetPlayer(packet.entity_id, animations)
 
