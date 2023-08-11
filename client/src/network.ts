@@ -15,6 +15,7 @@ import type {
   BodyInfo,
   CustomMessagePacket,
   HandshakePacket,
+  HandshakeReadyPacket,
   PlayerAnimationChangePacket,
   PlayerMotionPacket,
   ToClientPacket,
@@ -216,6 +217,10 @@ export const createNetwork = (
 
       if (packet.t === 'Handshake') {
         await loadScript(packet.level_id, game)
+
+        const payload: HandshakeReadyPacket = { t: 'HandshakeReady' }
+        ws.send(JSON.stringify(payload))
+
         selfID = packet.peer_id
         sendReady()
 

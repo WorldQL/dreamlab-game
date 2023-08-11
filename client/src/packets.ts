@@ -13,6 +13,11 @@ export const HandshakeSchema = z.object({
   level_id: z.string(),
 })
 
+export type HandshakeReadyPacket = z.infer<typeof HandshakeReadySchema>
+export const HandshakeReadySchema = z.object({
+  t: z.literal('HandshakeReady'),
+})
+
 export type SpawnPlayerPacket = z.infer<typeof SpawnPlayerSchema>
 export const SpawnPlayerSchema = z.object({
   t: z.literal('SpawnPlayer'),
@@ -148,6 +153,7 @@ export const ToClientPacketSchema = HandshakeSchema.or(SpawnPlayerSchema)
   .or(CustomMessageSchema)
 
 export type ToServerPacket = z.infer<typeof ToServerPacketSchema>
-export const ToServerPacketSchema = ChatMessageSchema.or(CustomMessageSchema)
+export const ToServerPacketSchema = HandshakeReadySchema.or(ChatMessageSchema)
+  .or(CustomMessageSchema)
   .or(PlayerMotionSchema)
   .or(PlayerAnimationChangeSchema)
