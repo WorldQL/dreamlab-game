@@ -6,6 +6,7 @@ import type {
   BareNetClient,
   MessageListenerClient,
 } from '@dreamlab.gg/core/network'
+import { createSignal } from '@dreamlab.gg/core/utils'
 import Matter from 'matter-js'
 import type { Body } from 'matter-js'
 import { loadAnimations } from './animations.js'
@@ -19,7 +20,6 @@ import type {
   ToClientPacket,
 } from './packets.js'
 import { loadScript } from './scripting.js'
-import { createSignal } from './signal.js'
 
 export const connect = async (): Promise<WebSocket | undefined> => {
   const url = new URL(window.location.href)
