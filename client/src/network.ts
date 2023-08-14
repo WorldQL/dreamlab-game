@@ -220,7 +220,7 @@ export const createNetwork = (
       const packet = result.data
 
       if (packet.t === 'Handshake') {
-        await loadScript(packet.level_id, game)
+        await loadScript(packet.world_id, game)
 
         const payload: HandshakeReadyPacket = { t: 'HandshakeReady' }
         ws.send(JSON.stringify(payload))

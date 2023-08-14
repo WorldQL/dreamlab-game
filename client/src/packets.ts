@@ -9,8 +9,9 @@ export type HandshakePacket = z.infer<typeof HandshakeSchema>
 export const HandshakeSchema = z.object({
   t: z.literal('Handshake'),
 
+  protocol_version: z.number(),
   peer_id: z.string(),
-  level_id: z.string(),
+  world_id: z.string(),
 })
 
 export type HandshakeReadyPacket = z.infer<typeof HandshakeReadySchema>
