@@ -12,19 +12,19 @@
     "test": "npm run lint"
   },
   "devDependencies": {
-    "@dreamlab.gg/core": "^0.0.23",
+    "@dreamlab.gg/core": "^0.0.24",
     "@luludev/eslint-config": "^0.4.2",
     "@types/matter-js": "^0.18.5",
-    "eslint": "^8.46.0",
+    "eslint": "^8.47.0",
     "import-meta-resolve": "^3.0.0",
-    "prettier": "^3.0.0",
+    "prettier": "^3.0.1",
     "typescript": "^5.1.6",
-    "vite": "^4.4.7"
+    "vite": "^4.4.9"
   },
   "dependencies": {
     "matter-js": "^0.19.0",
     "modern-normalize": "^2.0.0",
-    "type-fest": "^4.1.0",
+    "type-fest": "^4.2.0",
     "zod": "^3.21.4"
   }
 }
