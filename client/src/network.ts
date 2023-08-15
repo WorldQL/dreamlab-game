@@ -1,6 +1,6 @@
 /* eslint-disable id-length */
 import type { Game } from '@dreamlab.gg/core'
-import { createNetPlayer, createPlayer } from '@dreamlab.gg/core/entities'
+import { createNetPlayer } from '@dreamlab.gg/core/entities'
 import type { NetPlayer, PlayerAnimation } from '@dreamlab.gg/core/entities'
 import type {
   BareNetClient,
@@ -9,7 +9,7 @@ import type {
 import { createSignal } from '@dreamlab.gg/core/utils'
 import Matter from 'matter-js'
 import type { Body } from 'matter-js'
-import { getCharacterID, loadAnimations } from './animations.js'
+import { loadAnimations } from './animations.js'
 import { ToClientPacketSchema } from './packets.js'
 import type {
   BodyInfo,
@@ -20,7 +20,7 @@ import type {
   PlayerMotionPacket,
   ToClientPacket,
 } from './packets.js'
-import { loadScript } from './scripting.js'
+import { loadScript, spawnPlayer } from './scripting.js'
 
 export const connect = async (): Promise<WebSocket | undefined> => {
   const url = new URL(window.location.href)
@@ -83,13 +83,7 @@ export const createNetwork = (
 
         case 'SpawnPlayer': {
           if (packet.peer_id === selfID) {
-            const characterID = getCharacterID()
-            const animations = await loadAnimations(characterID)
-            const player = createPlayer(animations)
-            await game.instantiate(player)
-
-            player.teleport(packet.position, true)
-            game.render.camera.setTarget(player)
+            await spawnPlayer(game)
           } else {
             // TODO: Load correct animations (requires character ID in SpawnPlayer packet)
             const animations = await loadAnimations(undefined)

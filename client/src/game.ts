@@ -2,7 +2,7 @@ import { createGame } from '@dreamlab.gg/core'
 import { createCursor, PlayerInput } from '@dreamlab.gg/core/entities'
 import { isDebug } from './debug.js'
 import { connect, createNetwork } from './network.js'
-import { loadScript } from './scripting.js'
+import { loadScript, spawnPlayer } from './scripting.js'
 
 export const init = async () => {
   // #region Setup
@@ -62,7 +62,10 @@ export const init = async () => {
       const url = new URL(window.location.href)
       const level = url.searchParams.get('level')
 
-      if (level) await loadScript(level, game)
+      if (level) {
+        await loadScript(level, game)
+        await spawnPlayer(game)
+      }
     }
 
     // have a dummy level that's like "connect to an instance!!"
