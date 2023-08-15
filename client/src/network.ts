@@ -87,7 +87,11 @@ export const createNetwork = (
           } else {
             // TODO: Load correct animations (requires character ID in SpawnPlayer packet)
             const animations = await loadAnimations(undefined)
-            const netplayer = createNetPlayer(packet.entity_id, animations)
+            const netplayer = createNetPlayer(
+              packet.peer_id,
+              packet.entity_id,
+              animations,
+            )
 
             players.set(packet.entity_id, netplayer)
             await game.instantiate(netplayer)
