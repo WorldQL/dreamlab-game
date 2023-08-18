@@ -25,6 +25,7 @@ export const SpawnPlayerSchema = z.object({
 
   peer_id: z.string(),
   entity_id: z.string(),
+  character_id: z.optional(z.string()),
   position: TupleVectorSchema,
 })
 
@@ -92,6 +93,18 @@ export const PlayerMotionSchema = z.object({
   position: TupleVectorSchema,
   velocity: TupleVectorSchema,
   flipped: z.boolean(),
+  tick_number: z.number().int(),
+})
+
+export type PlayerInputsPacket = z.infer<typeof PlayerInputsPacketSchema>
+export const PlayerInputsPacketSchema = z.object({
+  t: z.literal('PlayerInputs'),
+
+  tick_number: z.number().int(),
+  jump: z.boolean(),
+  fall_through: z.boolean(),
+  left: z.boolean(),
+  right: z.boolean(),
 })
 
 export type PlayerAnimationChangePacket = z.infer<

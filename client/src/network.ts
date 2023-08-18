@@ -22,6 +22,25 @@ import type {
 } from './packets.js'
 import { loadScript, spawnPlayer } from './scripting.js'
 
+const PROTOCOL_VERSION = 2
+
+let fakeLatency = Number.parseFloat(
+  window.localStorage.getItem('@dreamlab/fakeLatency') ?? '0',
+)
+Object.defineProperty(window, 'dreamlabFakeLatency', {
+  get: () => fakeLatency,
+  set(v) {
+    if (typeof v === 'number') fakeLatency = v
+  },
+})
+const runAfterFakeLatency = async (f: () => Promise<void>) => {
+  if (fakeLatency !== 0) {
+    setTimeout(f, fakeLatency)
+  } else {
+    await f()
+  }
+}
+
 export const connect = async (): Promise<WebSocket | undefined> => {
   const url = new URL(window.location.href)
 
@@ -58,6 +77,11 @@ export const createNetwork = (
   ws: WebSocket,
   game: Game<false>,
 ): [network: BareNetClient, ready: Promise<void>] => {
+  const sendPacket = (packetObj: unknown) => {
+    const packet = JSON.stringify(packetObj)
+    void runAfterFakeLatency(async () => ws.send(packet))
+  }
+
   const listeners = new Map<string, Set<MessageListenerClient>>()
 
   type QueuePacket = Exclude<ToClientPacket, HandshakePacket>
@@ -65,7 +89,19 @@ export const createNetwork = (
 
   let selfID: string | undefined
   const players = new Map<string, NetPlayer>()
-  let lastTickNumber = -1
+  let lastServerTickNumber = -1
+  let clientTickNumber = -1
+
+  const updateTickNumber = (tickNumber: number) => {
+    lastServerTickNumber = tickNumber
+    if (clientTickNumber > lastServerTickNumber + 1) {
+      console.warn('Rewinding client tick number!')
+      /* TODO(Charlotte): if this turns out to be infrequent,
+         we should request a resync when this happens */
+    }
+
+    clientTickNumber = tickNumber
+  }
 
   const [sendReady, ready] = createSignal()
   const handlePacket = async (packet: QueuePacket) => {
@@ -83,10 +119,10 @@ export const createNetwork = (
 
         case 'SpawnPlayer': {
           if (packet.peer_id === selfID) {
+            // TODO: apply character ID from server packet (instead of window.location) ?
             await spawnPlayer(game)
           } else {
-            // TODO: Load correct animations (requires character ID in SpawnPlayer packet)
-            const animations = await loadAnimations(undefined)
+            const animations = await loadAnimations(packet.character_id)
             const netplayer = createNetPlayer(
               packet.peer_id,
               packet.entity_id,
@@ -140,8 +176,8 @@ export const createNetwork = (
         case 'PhysicsFullSnapshot': {
           const { entities, tickNumber } = packet.snapshot
 
-          if (tickNumber <= lastTickNumber) break
-          lastTickNumber = tickNumber
+          if (tickNumber <= lastServerTickNumber) break
+          updateTickNumber(tickNumber)
 
           const jobs = entities.map(async entityInfo => {
             const definition = {
@@ -149,7 +185,11 @@ export const createNetwork = (
               uid: entityInfo.entityId,
             }
 
-            const entity = await game.spawn(definition)
+            // the server may broadcast a PhysicsFullSnapshot at any time
+            const existingEntity = game.lookup(entityInfo.entityId)
+            const entity = existingEntity
+              ? existingEntity
+              : await game.spawn(definition)
             if (entity === undefined) return
 
             const bodies = game.physics.getBodies(entity)
@@ -164,8 +204,8 @@ export const createNetwork = (
           const { bodyUpdates, destroyedEntities, newEntities, tickNumber } =
             packet.snapshot
 
-          if (tickNumber <= lastTickNumber) break
-          lastTickNumber = tickNumber
+          if (tickNumber <= lastServerTickNumber) break
+          updateTickNumber(tickNumber)
 
           const spawnJobs = newEntities.map(async entityInfo => {
             const definition = {
@@ -217,31 +257,44 @@ export const createNetwork = (
       if (!result.success) throw result.error
       const packet = result.data
 
-      if (packet.t === 'Handshake') {
-        await loadScript(packet.world_id, game)
+      await runAfterFakeLatency(async () => {
+        if (packet.t === 'Handshake') {
+          if (packet.protocol_version !== PROTOCOL_VERSION) {
+            console.warn(
+              `Connecting to a mismatched version! Client: ${PROTOCOL_VERSION} Server: ${packet.protocol_version}`,
+            )
+            // TODO(Charlotte): Probably just disconnect at this point
+          }
 
-        const payload: HandshakeReadyPacket = { t: 'HandshakeReady' }
-        ws.send(JSON.stringify(payload))
+          await loadScript(packet.world_id, game)
 
-        selfID = packet.peer_id
-        sendReady()
+          const payload: HandshakeReadyPacket = { t: 'HandshakeReady' }
+          sendPacket(payload)
 
-        return
-      }
+          selfID = packet.peer_id
+          sendReady()
 
-      if (!selfID) {
-        queuedPackets.push(packet)
-        return
-      }
+          return
+        }
 
-      const queue = queuedPackets.splice(0, queuedPackets.length)
-      // eslint-disable-next-line no-await-in-loop
-      for (const pkt of queue) await handlePacket(pkt)
-      await handlePacket(packet)
+        if (!selfID) {
+          queuedPackets.push(packet)
+          return
+        }
+
+        const queue = queuedPackets.splice(0, queuedPackets.length)
+        // eslint-disable-next-line no-await-in-loop
+        for (const pkt of queue) await handlePacket(pkt)
+        await handlePacket(packet)
+      })
     } catch (error) {
       console.warn(`malformed packet: ${ev.data}`)
       console.log(error)
     }
+  })
+
+  game.addTickListener(() => {
+    clientTickNumber += 1
   })
 
   const network: BareNetClient = {
@@ -252,7 +305,7 @@ export const createNetwork = (
         data,
       }
 
-      ws.send(JSON.stringify(payload))
+      sendPacket(payload)
     },
 
     addCustomMessageListener(channel, listener) {
@@ -275,10 +328,12 @@ export const createNetwork = (
         position: [position.x, position.y],
         velocity: [velocity.x, velocity.y],
         flipped,
+        tick_number: clientTickNumber,
       }
 
-      ws.send(JSON.stringify(payload))
+      sendPacket(payload)
     },
+    // TODO(Charlotte): sendPlayerInputs()
 
     sendPlayerAnimation(animation) {
       const payload: PlayerAnimationChangePacket = {
@@ -286,7 +341,7 @@ export const createNetwork = (
         animation,
       }
 
-      ws.send(JSON.stringify(payload))
+      sendPacket(payload)
     },
   }
 
