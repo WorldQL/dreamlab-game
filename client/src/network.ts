@@ -1,7 +1,10 @@
 /* eslint-disable id-length */
 import type { Game } from '@dreamlab.gg/core'
 import { createNetPlayer } from '@dreamlab.gg/core/entities'
-import type { NetPlayer, PlayerAnimation } from '@dreamlab.gg/core/entities'
+import type {
+  KnownPlayerAnimation,
+  NetPlayer,
+} from '@dreamlab.gg/core/entities'
 import type {
   BareNetClient,
   MessageListenerClient,
@@ -167,7 +170,7 @@ export const createNetwork = (
             if (!netplayer) continue
 
             // TODO: Maybe validate this string
-            netplayer.setAnimation(info.animation as PlayerAnimation)
+            netplayer.setAnimation(info.animation as KnownPlayerAnimation)
           }
 
           break
