@@ -68,7 +68,7 @@ const importMapPlugin = () => ({
       esmLink(pixi),
     ])
 
-    const coreBundled = `${corePkg}/bundled`
+    const coreBundled = `${corePkg}/dist/bundled`
     const map = {
       imports: {
         [matter]: matterPkg,
