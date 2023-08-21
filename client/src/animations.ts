@@ -1,7 +1,10 @@
 import {
-  loadAnimations as loadAnims,
-  loadSpritesheet,
+  loadPlayerAnimations,
+  loadPlayerSpritesheet,
+  PlayerAnimationBonesSchema,
 } from '@dreamlab.gg/core/textures'
+import type { BoneMap, Fallback } from '@dreamlab.gg/core/textures'
+import { typedFromEntries as fromEntries } from '@dreamlab.gg/core/utils'
 
 export const getCharacterID = () => {
   const params = new URLSearchParams(window.location.search)
@@ -10,7 +13,18 @@ export const getCharacterID = () => {
   return characterId ?? undefined
 }
 
+type Animation = (typeof animations)[number]
 const animations = ['idle', 'walk', 'jump'] as const
+
+const loadBones: BoneMap<Animation> = async animation => {
+  const url = `/animations/${animation}.meta.json`
+
+  const resp = await fetch(url)
+  const json = await resp.json()
+
+  return PlayerAnimationBonesSchema.parseAsync(json)
+}
+
 export const loadAnimations = async (characterID: string | undefined) => {
   const animationURL = (animation: string, fallback = false): string => {
     const stockURL = `/animations/${animation}.json` as const
@@ -21,14 +35,15 @@ export const loadAnimations = async (characterID: string | undefined) => {
     return `https://dreamlab-user-assets.s3.amazonaws.com/${characterID}/${animation}.json`
   }
 
-  const fallback = async (animation: string) => {
+  const fallback: Fallback<Animation> = async animation => {
     const url = animationURL(animation, true)
-    return loadSpritesheet(url)
+    return loadPlayerSpritesheet(url)
   }
 
-  const fallbackMap = Object.fromEntries(
+  const bones = fromEntries(animations.map(anim => [anim, loadBones] as const))
+  const fallbackMap = fromEntries(
     animations.map(anim => [anim, fallback] as const),
-  ) as Record<(typeof animations)[number], typeof fallback>
+  )
 
-  return loadAnims(animations, animationURL, fallbackMap)
+  return loadPlayerAnimations(animations, animationURL, bones, fallbackMap)
 }
