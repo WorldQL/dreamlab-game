@@ -20,6 +20,7 @@ import type {
   HandshakePacket,
   HandshakeReadyPacket,
   PlayerAnimationChangePacket,
+  PlayerInputsPacket,
   PlayerMotionPacket,
   ToClientPacket,
 } from './packets.js'
@@ -336,7 +337,19 @@ export const createNetwork = (
 
       sendPacket(payload)
     },
-    // TODO(Charlotte): sendPlayerInputs()
+
+    sendPlayerMotionInputs(jump, fallThrough, left, right) {
+      const payload: PlayerInputsPacket = {
+        t: 'PlayerInputs',
+        tick_number: clientTickNumber,
+        jump,
+        fall_through: fallThrough,
+        left,
+        right,
+      }
+
+      sendPacket(payload)
+    },
 
     sendPlayerAnimation(animation) {
       const payload: PlayerAnimationChangePacket = {
