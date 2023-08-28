@@ -27,5 +27,5 @@ export const spawnPlayer = async (game: Game<false>, position?: Vector) => {
   await game.instantiate(player)
 
   if (position) player.teleport(position, true)
-  game.render.camera.setTarget(player)
+  game.client.render.camera.setTarget(player)
 }

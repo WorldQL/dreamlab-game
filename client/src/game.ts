@@ -19,7 +19,7 @@ export const init = async () => {
 
   const game = await createGame({
     debug: isDebug(),
-    headless: false,
+    isServer: false,
     container,
     dimensions: { width, height },
     graphicsOptions: {
@@ -33,15 +33,15 @@ export const init = async () => {
     game.debug.toggle()
   }
 
-  container.append(game.render.canvas)
-  game.inputs.registerInput('debug', 'KeyP')
-  game.inputs.addListener('debug', onToggleDebug)
+  container.append(game.client.render.canvas)
+  game.client.inputs.registerInput('debug', 'KeyP')
+  game.client.inputs.addListener('debug', onToggleDebug)
   // #endregion
 
   // #region Automatic Resizing
   const ro = new ResizeObserver(() => {
     const renderScale = container.clientWidth / width
-    game.render.camera.rescale({ renderScale })
+    game.client.render.camera.rescale({ renderScale })
   })
 
   ro.observe(container)
@@ -73,6 +73,6 @@ export const init = async () => {
   }
 
   // TODO: Actually allow rebinding keys
-  game.inputs.bindInput('Space', PlayerInput.Jump)
-  game.inputs.bindInput('KeyW', PlayerInput.Jump)
+  game.client.inputs.bindInput('Space', PlayerInput.Jump)
+  game.client.inputs.bindInput('KeyW', PlayerInput.Jump)
 }
