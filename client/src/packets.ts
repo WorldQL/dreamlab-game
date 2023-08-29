@@ -105,6 +105,7 @@ export const PlayerInputsPacketSchema = z.object({
   fall_through: z.boolean(),
   left: z.boolean(),
   right: z.boolean(),
+  attack: z.boolean(),
 })
 
 export type PlayerAnimationChangePacket = z.infer<
