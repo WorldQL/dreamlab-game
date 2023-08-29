@@ -14,6 +14,10 @@ export const init = async () => {
     // TODO: Handle ws connect errors and alert user
   }
 
+  window.addEventListener("message", (ev) => {
+   window.localStorage.setItem('globalPassedPlayerData', ev.data);
+  });
+
   const width = 1_600
   const height = width / (16 / 9)
 
