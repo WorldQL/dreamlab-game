@@ -338,14 +338,15 @@ export const createNetwork = (
       sendPacket(payload)
     },
 
-    sendPlayerMotionInputs(jump, fallThrough, left, right) {
+    sendPlayerMotionInputs({ crouch, jump, walkLeft, walkRight }) {
       const payload: PlayerInputsPacket = {
         t: 'PlayerInputs',
         tick_number: clientTickNumber,
         jump,
-        fall_through: fallThrough,
-        left,
-        right,
+        fall_through: crouch,
+        left: walkLeft,
+        right: walkRight,
+        attack: false, // TODO: Send this once implemented in core
       }
 
       sendPacket(payload)
