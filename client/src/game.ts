@@ -1,5 +1,7 @@
 import { createGame } from '@dreamlab.gg/core'
 import { createCursor, PlayerInput } from '@dreamlab.gg/core/entities'
+import { TextureManager } from '@dreamlab.gg/core/textures'
+import {PlayerDataManager} from '@dreamlab.gg/core/entities'
 import { isDebug } from './debug.js'
 import { connect, createNetwork } from './network.js'
 import { loadScript, spawnPlayer } from './scripting.js'
@@ -13,8 +15,15 @@ export const init = async () => {
     window.localStorage.setItem('globalPassedPlayerData', ev.data)
   })
 
+  await TextureManager.loadTexture('https://dreamlab-user-assets.s3.us-east-1.amazonaws.com/path-in-s3/1693339947404.png');
+  await TextureManager.loadTexture('https://dreamlab-user-assets.s3.us-east-1.amazonaws.com/path-in-s3/1693261056400.png')
+  await TextureManager.loadTexture('https://dreamlab-user-assets.s3.us-east-1.amazonaws.com/path-in-s3/1693240114500.png')
+  PlayerDataManager.set('foo', 'bar')
+
+
   const ws = await connect()
   if (!ws) {
+    console.log('boohoo');
     // TODO: Handle ws connect errors and alert user
   }
 
