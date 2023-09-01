@@ -9,14 +9,14 @@ export const init = async () => {
   const container = document.querySelector<HTMLDivElement>('#app')
   if (!container) throw new Error('missing container')
 
+  window.addEventListener('message', ev => {
+    window.localStorage.setItem('globalPassedPlayerData', ev.data)
+  })
+
   const ws = await connect()
   if (!ws) {
     // TODO: Handle ws connect errors and alert user
   }
-
-  window.addEventListener("message", (ev) => {
-   window.localStorage.setItem('globalPassedPlayerData', ev.data);
-  });
 
   const width = 1_600
   const height = width / (16 / 9)
