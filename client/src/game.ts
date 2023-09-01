@@ -1,7 +1,10 @@
 import { createGame } from '@dreamlab.gg/core'
-import { createCursor, PlayerInput } from '@dreamlab.gg/core/entities'
-import { TextureManager } from '@dreamlab.gg/core/textures'
-import {PlayerDataManager} from '@dreamlab.gg/core/entities'
+import {
+  createCursor,
+  //  PlayerDataManager,
+  PlayerInput,
+} from '@dreamlab.gg/core/entities'
+// import { TextureManager } from '@dreamlab.gg/core/textures'
 import { isDebug } from './debug.js'
 import { connect, createNetwork } from './network.js'
 import { loadScript, spawnPlayer } from './scripting.js'
@@ -13,17 +16,21 @@ export const init = async () => {
 
   window.addEventListener('message', ev => {
     window.localStorage.setItem('globalPassedPlayerData', ev.data)
+    // PlayerDataManager.setAll(ev.data)
   })
 
-  await TextureManager.loadTexture('https://dreamlab-user-assets.s3.us-east-1.amazonaws.com/path-in-s3/1693339947404.png');
-  await TextureManager.loadTexture('https://dreamlab-user-assets.s3.us-east-1.amazonaws.com/path-in-s3/1693261056400.png')
-  await TextureManager.loadTexture('https://dreamlab-user-assets.s3.us-east-1.amazonaws.com/path-in-s3/1693240114500.png')
-  PlayerDataManager.set('foo', 'bar')
-
+  // await TextureManager.loadTexture(
+  //   'https://dreamlab-user-assets.s3.us-east-1.amazonaws.com/path-in-s3/1693339947404.png',
+  // )
+  // await TextureManager.loadTexture(
+  //   'https://dreamlab-user-assets.s3.us-east-1.amazonaws.com/path-in-s3/1693261056400.png',
+  // )
+  // await TextureManager.loadTexture(
+  //   'https://dreamlab-user-assets.s3.us-east-1.amazonaws.com/path-in-s3/1693240114500.png',
+  // )
 
   const ws = await connect()
   if (!ws) {
-    console.log('boohoo');
     // TODO: Handle ws connect errors and alert user
   }
 
