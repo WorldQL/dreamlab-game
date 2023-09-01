@@ -2,6 +2,8 @@
 import { SpawnableDefinitionSchema } from '@dreamlab.gg/core'
 import { z } from 'zod'
 
+export const PROTOCOL_VERSION = 3
+
 const TupleVectorSchema = z.tuple([z.number(), z.number()])
 const ObjectVectorSchema = z.object({ x: z.number(), y: z.number() })
 
@@ -137,6 +139,7 @@ export type PhysicsFullSnapshotPacket = z.infer<
 >
 export const PhysicsFullSnapshotSchema = z.object({
   t: z.literal('PhysicsFullSnapshot'),
+  lastClientTickNumber: z.number(),
 
   snapshot: z.object({
     tickNumber: z.number(),
@@ -149,6 +152,7 @@ export type PhysicsDeltaSnapshotPacket = z.infer<
 >
 export const PhysicsDeltaSnapshotSchema = z.object({
   t: z.literal('PhysicsDeltaSnapshot'),
+  lastClientTickNumber: z.number(),
 
   snapshot: z.object({
     tickNumber: z.number(),
