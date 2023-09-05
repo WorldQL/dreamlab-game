@@ -10,6 +10,7 @@ import type {
   MessageListenerClient,
 } from '@dreamlab.gg/core/network'
 import { createSignal } from '@dreamlab.gg/core/utils'
+import decodeJWT from 'jwt-decode'
 import Matter from 'matter-js'
 import type { Body } from 'matter-js'
 import { loadAnimations } from './animations.js'
@@ -44,26 +45,37 @@ const runAfterFakeLatency = async (f: () => Promise<void>) => {
 }
 
 export interface Params {
+  readonly token: string
+
   readonly instance: string
-  readonly nickname: string
   readonly playerID: string
+  readonly nickname: string
 }
 
 export const decodeParams = (): Params | undefined => {
   const url = new URL(window.location.href)
   const instance = url.searchParams.get('instance')
 
-  // TODO: Read from JWT and decode
-  const nickname = url.searchParams.get('nickname')
+  const token = url.searchParams.get('token')
+  if (!instance || !token) return undefined
 
-  let playerID = url.searchParams.get('player_id')
-  if (import.meta.env.DEV) {
-    playerID ??= 'player_id'
+  const jwt = decodeJWT(token)
+  if (jwt === null || jwt === undefined) return undefined
+  if (typeof jwt !== 'object') return undefined
+
+  if (!('player_id' in jwt)) return undefined
+  if (typeof jwt.player_id !== 'string') return undefined
+
+  if (!('nickname' in jwt)) return undefined
+  if (typeof jwt.nickname !== 'string') return undefined
+
+  return {
+    token,
+
+    instance,
+    playerID: jwt.player_id,
+    nickname: jwt.nickname,
   }
-
-  if (!instance || !nickname || !playerID) return undefined
-
-  return { instance, nickname, playerID }
 }
 
 export const connect = async (
@@ -75,8 +87,7 @@ export const connect = async (
   const serverURL = new URL(base)
   serverURL.pathname = '/api/connect'
   serverURL.searchParams.set('instance', params.instance)
-  serverURL.searchParams.set('nickname', params.nickname)
-  serverURL.searchParams.set('player_id', params.playerID)
+  serverURL.searchParams.set('token', params.token)
 
   return new Promise<WebSocket | undefined>(resolve => {
     const ws = new WebSocket(serverURL.toString())
