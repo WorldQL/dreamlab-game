@@ -1,5 +1,4 @@
 /* eslint-disable id-length */
-import { dataManager } from '@dreamlab.gg/core'
 import type { Game } from '@dreamlab.gg/core'
 import { createNetPlayer } from '@dreamlab.gg/core/entities'
 import type {
