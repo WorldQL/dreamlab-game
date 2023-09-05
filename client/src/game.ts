@@ -1,7 +1,7 @@
 import { createGame } from '@dreamlab.gg/core'
 import { createCursor, PlayerInput } from '@dreamlab.gg/core/entities'
 import { isDebug } from './debug.js'
-import { connect, createNetwork } from './network.js'
+import { connect, createNetwork, decodeParams } from './network.js'
 import { loadScript, spawnPlayer } from './scripting.js'
 
 export const init = async () => {
@@ -14,7 +14,8 @@ export const init = async () => {
     // PlayerDataManager.setAll(ev.data)
   })
 
-  const ws = await connect()
+  const params = decodeParams()
+  const ws = await connect(params)
   if (!ws) {
     // TODO: Handle ws connect errors and alert user
   }

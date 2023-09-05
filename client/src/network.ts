@@ -43,11 +43,17 @@ const runAfterFakeLatency = async (f: () => Promise<void>) => {
   }
 }
 
-export const connect = async (): Promise<WebSocket | undefined> => {
-  const url = new URL(window.location.href)
+export interface Params {
+  readonly instance: string
+  readonly nickname: string
+  readonly playerID: string
+}
 
-  const base = import.meta.env.VITE_WEBSOCKET_BASE
+export const decodeParams = (): Params | undefined => {
+  const url = new URL(window.location.href)
   const instance = url.searchParams.get('instance')
+
+  // TODO: Read from JWT and decode
   const nickname = url.searchParams.get('nickname')
 
   let playerID = url.searchParams.get('player_id')
@@ -55,13 +61,22 @@ export const connect = async (): Promise<WebSocket | undefined> => {
     playerID ??= 'player_id'
   }
 
-  if (!base || !instance || !nickname || !playerID) return undefined
+  if (!instance || !nickname || !playerID) return undefined
+
+  return { instance, nickname, playerID }
+}
+
+export const connect = async (
+  params: Params | undefined,
+): Promise<WebSocket | undefined> => {
+  const base = import.meta.env.VITE_WEBSOCKET_BASE
+  if (!base || !params) return undefined
 
   const serverURL = new URL(base)
   serverURL.pathname = '/api/connect'
-  serverURL.searchParams.set('instance', instance)
-  serverURL.searchParams.set('nickname', nickname)
-  serverURL.searchParams.set('player_id', playerID)
+  serverURL.searchParams.set('instance', params.instance)
+  serverURL.searchParams.set('nickname', params.nickname)
+  serverURL.searchParams.set('player_id', params.playerID)
 
   return new Promise<WebSocket | undefined>(resolve => {
     const ws = new WebSocket(serverURL.toString())
