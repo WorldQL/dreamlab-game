@@ -50,6 +50,7 @@ export const connect = async (): Promise<WebSocket | undefined> => {
   const base = import.meta.env.VITE_WEBSOCKET_BASE
   const instance = url.searchParams.get('instance')
   const nickname = url.searchParams.get('nickname')
+  const player_id = url.searchParams.get('player_id')
 
   if (!base || !instance || !nickname) return undefined
 
@@ -57,7 +58,7 @@ export const connect = async (): Promise<WebSocket | undefined> => {
   serverURL.pathname = '/api/connect'
   serverURL.searchParams.set('instance', instance)
   serverURL.searchParams.set('nickname', nickname)
-
+  serverURL.searchParams.set('player_id', player_id ?? 'default_player_id')
   return new Promise<WebSocket | undefined>(resolve => {
     const ws = new WebSocket(serverURL.toString())
 
@@ -65,6 +66,7 @@ export const connect = async (): Promise<WebSocket | undefined> => {
     ws.addEventListener('error', () => resolve(undefined))
   })
 }
+
 
 const updateBodies = (bodies: Body[], bodyInfo: BodyInfo[]) => {
   for (const [idx, body] of bodies.entries()) {
