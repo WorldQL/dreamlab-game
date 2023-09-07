@@ -8,9 +8,10 @@ import { join, parse, sep } from 'node:path'
 // #region Package Helpers
 /**
  * @param {string} pkg - Package name
+ * @param {string} [linkRoot] - npm link root
  * @returns {Promise<import('type-fest').PackageJson>}
  */
-const packageJson = async pkg => {
+const packageJson = async (pkg, linkRoot) => {
   const direct = async () => {
     const path = await resolve(`${pkg}/package.json`, import.meta.url)
     const json = await readFile(fileURLToPath(path), 'utf8')
@@ -37,17 +38,35 @@ const packageJson = async pkg => {
     return json
   }
 
+  const linked = async () => {
+    if (!linkRoot) throw new Error('cannot read linked')
+
+    const path = join(
+      fileURLToPath(import.meta.url),
+      '..',
+      'node_modules',
+      linkRoot,
+      'node_modules',
+      pkg,
+    )
+
+    const jsonPath = join(path, 'package.json')
+    const json = await readFile(jsonPath, 'utf8')
+
+    return json
+  }
+
   // @ts-ignore
-  const json = await Promise.any([direct(), indirect()])
+  const json = await Promise.any([direct(), indirect(), linked()])
   return JSON.parse(json)
 }
 
 /**
- *
  * @param {string} pkg - Package Name
+ * @param {string} [linkRoot] - npm link root
  */
-const esmLink = async pkg => {
-  const { version } = await packageJson(pkg)
+const esmLink = async (pkg, linkRoot) => {
+  const { version } = await packageJson(pkg, linkRoot)
   if (!version) throw new Error(`unknown version for package: ${pkg}`)
 
   return `https://esm.sh/${pkg}@${version}`
@@ -64,8 +83,8 @@ const importMapPlugin = () => ({
 
     const [corePkg, matterPkg, pixiPkg] = await Promise.all([
       esmLink(core),
-      esmLink(matter),
-      esmLink(pixi),
+      esmLink(matter, core),
+      esmLink(pixi, core),
     ])
 
     const coreBundled = `${corePkg}/dist/bundled`
