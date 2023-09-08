@@ -12,26 +12,26 @@ export const init = async () => {
   if (!container) throw new Error('missing container')
 
   window.addEventListener('message', async ev => {
-    const data = ev.data as any;
-    
+    const data = ev.data as any
+
     if (data?.user && data?.inputs) {
-      window.localStorage.setItem('globalPassedPlayerData', JSON.stringify(data));
-      PlayerDataManager.setAll(data);
-    
+      window.localStorage.setItem(
+        'globalPassedPlayerData',
+        JSON.stringify(data),
+      )
+      PlayerDataManager.setAll(data)
+
       if (Array.isArray(data.objects)) {
         const promises = data.objects
           .filter((obj: any) => obj?.imageTask?.imageURL)
-          .map(async (obj: any) => TextureManager.loadTexture(obj.imageTask.imageURL));
-    
-        await Promise.all(promises);
-    }
-    
-    }
-  });
-  
+          .map(async (obj: any) =>
+            TextureManager.loadTexture(obj.imageTask.imageURL),
+          )
 
-  
-
+        await Promise.all(promises)
+      }
+    }
+  })
 
   const params = decodeParams()
   const ws = await connect(params)
