@@ -1,5 +1,6 @@
 import { createGame } from '@dreamlab.gg/core'
 import { createCursor, PlayerInput } from '@dreamlab.gg/core/entities'
+import { PlayerDataManager, TextureManager } from '@dreamlab.gg/core/textures'
 import { isDebug } from './debug.js'
 import { connect, createNetwork, decodeParams } from './network.js'
 import { loadScript, spawnPlayer } from './scripting.js'
@@ -10,9 +11,24 @@ export const init = async () => {
   if (!container) throw new Error('missing container')
 
   window.addEventListener('message', ev => {
-    window.localStorage.setItem('globalPassedPlayerData', ev.data)
-    // PlayerDataManager.setAll(ev.data)
+    if (ev.data.user && ev.data.inputs) {
+      window.localStorage.setItem(
+        'globalPassedPlayerData',
+        JSON.stringify(ev.data),
+      )
+      PlayerDataManager.setAll(ev.data)
+    }
   })
+
+  await TextureManager.loadTexture(
+    'https://dreamlab-user-assets.s3.us-east-1.amazonaws.com/path-in-s3/1693339947404.png',
+  )
+  await TextureManager.loadTexture(
+    'https://dreamlab-user-assets.s3.us-east-1.amazonaws.com/path-in-s3/1693261056400.png',
+  )
+  await TextureManager.loadTexture(
+    'https://dreamlab-user-assets.s3.us-east-1.amazonaws.com/path-in-s3/1693240114500.png',
+  )
 
   const params = decodeParams()
   const ws = await connect(params)
