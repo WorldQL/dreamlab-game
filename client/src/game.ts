@@ -1,7 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { createGame } from '@dreamlab.gg/core'
 import { createCursor, PlayerInput } from '@dreamlab.gg/core/entities'
-import { PlayerDataManager, TextureManager } from '@dreamlab.gg/core/textures'
+import { PlayerDataManager } from '@dreamlab.gg/core/managers'
+import { TextureManager } from '@dreamlab.gg/core/textures'
 import { isDebug } from './debug.js'
 import { connect, createNetwork, decodeParams } from './network.js'
 import { loadScript, spawnPlayer } from './scripting.js'
