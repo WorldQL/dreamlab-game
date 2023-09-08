@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { createGame } from '@dreamlab.gg/core'
 import { createCursor, PlayerInput } from '@dreamlab.gg/core/entities'
 import { PlayerDataManager, TextureManager } from '@dreamlab.gg/core/textures'
@@ -10,25 +11,27 @@ export const init = async () => {
   const container = document.querySelector<HTMLDivElement>('#app')
   if (!container) throw new Error('missing container')
 
-  window.addEventListener('message', ev => {
-    if (ev.data.user && ev.data.inputs) {
-      window.localStorage.setItem(
-        'globalPassedPlayerData',
-        JSON.stringify(ev.data),
-      )
-      PlayerDataManager.setAll(ev.data)
+  window.addEventListener('message', async ev => {
+    const data = ev.data as any;
+    
+    if (data?.user && data?.inputs) {
+      window.localStorage.setItem('globalPassedPlayerData', JSON.stringify(data));
+      PlayerDataManager.setAll(data);
+    
+      if (Array.isArray(data.objects)) {
+        const promises = data.objects
+          .filter((obj: any) => obj?.imageTask?.imageURL)
+          .map(async (obj: any) => TextureManager.loadTexture(obj.imageTask.imageURL));
+    
+        await Promise.all(promises);
     }
-  })
+    
+    }
+  });
+  
 
-  await TextureManager.loadTexture(
-    'https://dreamlab-user-assets.s3.us-east-1.amazonaws.com/path-in-s3/1693339947404.png',
-  )
-  await TextureManager.loadTexture(
-    'https://dreamlab-user-assets.s3.us-east-1.amazonaws.com/path-in-s3/1693261056400.png',
-  )
-  await TextureManager.loadTexture(
-    'https://dreamlab-user-assets.s3.us-east-1.amazonaws.com/path-in-s3/1693240114500.png',
-  )
+  
+
 
   const params = decodeParams()
   const ws = await connect(params)
