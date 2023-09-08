@@ -23,9 +23,9 @@ export const init = async () => {
 
       if (Array.isArray(data.objects)) {
         const promises = data.objects
-          .filter((obj: any) => obj?.imageTask?.imageURL)
+          .filter((obj: any) => obj?.imageTasks[0]?.imageURL)
           .map(async (obj: any) =>
-            TextureManager.loadTexture(obj.imageTask.imageURL),
+            TextureManager.loadTexture(obj.imageTasks[0].imageURL),
           )
 
         await Promise.all(promises)
