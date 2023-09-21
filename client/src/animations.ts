@@ -14,7 +14,7 @@ export const getCharacterID = () => {
 }
 
 type Animation = (typeof animations)[number]
-const animations = ['idle', 'walk', 'jump', 'greatsword'] as const
+const animations = ['idle', 'walk', 'jump', 'greatsword', 'bow'] as const
 
 const loadBones: BoneMap<Animation> = async animation => {
   const url = `/animations/${animation}.meta.json`
