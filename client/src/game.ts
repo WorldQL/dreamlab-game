@@ -1,8 +1,5 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { createGame } from '@dreamlab.gg/core'
 import { createCursor, PlayerInput } from '@dreamlab.gg/core/entities'
-import { PlayerDataManager } from '@dreamlab.gg/core/managers'
-import { TextureManager } from '@dreamlab.gg/core/textures'
 import { isDebug } from './debug.js'
 import { connect, createNetwork, decodeParams } from './network.js'
 import { loadScript, spawnPlayer } from './scripting.js'
@@ -11,28 +8,6 @@ export const init = async () => {
   // #region Setup
   const container = document.querySelector<HTMLDivElement>('#app')
   if (!container) throw new Error('missing container')
-
-  window.addEventListener('message', async ev => {
-    const data = ev.data as any
-
-    if (data?.user && data?.inputs) {
-      window.localStorage.setItem(
-        'globalPassedPlayerData',
-        JSON.stringify(data),
-      )
-      PlayerDataManager.setAll(data)
-
-      if (Array.isArray(data.objects)) {
-        const promises = data.objects
-          .filter((obj: any) => obj?.imageTasks[0]?.imageURL)
-          .map(async (obj: any) =>
-            TextureManager.loadTexture(obj.imageTasks[0].imageURL),
-          )
-
-        await Promise.all(promises)
-      }
-    }
-  })
 
   const params = decodeParams()
   const ws = await connect(params)
