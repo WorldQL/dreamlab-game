@@ -28,6 +28,10 @@ export const init = async () => {
     isServer: false,
     container,
     dimensions: { width, height },
+    data: {
+      playerID: params?.playerID ?? 'unknown',
+      nickname: params?.nickname ?? 'Player',
+    },
     graphicsOptions: {
       backgroundAlpha: 0,
       antialias: true,
