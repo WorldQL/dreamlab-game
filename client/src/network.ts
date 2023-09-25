@@ -353,7 +353,7 @@ export const createNetwork = (
     }
   })
 
-  game.addTickListener(() => {
+  game.events.common.addListener('onPhysicsStep', () => {
     clientTickNumber += 1
   })
 
