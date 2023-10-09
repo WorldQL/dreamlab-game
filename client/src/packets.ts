@@ -2,7 +2,7 @@
 import { SpawnableDefinitionSchema } from '@dreamlab.gg/core'
 import { z } from 'zod'
 
-export const PROTOCOL_VERSION = 3
+export const PROTOCOL_VERSION = 4
 
 const TupleVectorSchema = z.tuple([z.number(), z.number()])
 const ObjectVectorSchema = z.object({ x: z.number(), y: z.number() })
@@ -162,6 +162,23 @@ export const PhysicsDeltaSnapshotSchema = z.object({
   }),
 })
 
+export type PhysicsGrantObjectControlPacket = z.infer<
+  typeof PhysicsGrantObjectControlSchema
+>
+export const PhysicsGrantObjectControlSchema = z.object({
+  t: z.literal('PhysicsGrantObjectControl'),
+  entity_id: z.string(),
+  expiry_tick: z.number(),
+})
+
+export type PhysicsRevokeObjectControlPacket = z.infer<
+  typeof PhysicsRevokeObjectControlSchema
+>
+export const PhysicsRevokeObjectControlSchema = z.object({
+  t: z.literal('PhysicsRevokeObjectControl'),
+  entity_id: z.string(),
+})
+
 export type ToClientPacket = z.infer<typeof ToClientPacketSchema>
 export const ToClientPacketSchema = HandshakeSchema.or(SpawnPlayerSchema)
   .or(DespawnPlayerSchema)
@@ -169,6 +186,8 @@ export const ToClientPacketSchema = HandshakeSchema.or(SpawnPlayerSchema)
   .or(PhysicsFullSnapshotSchema)
   .or(PhysicsDeltaSnapshotSchema)
   .or(PlayerAnimationSnapshotSchema)
+  .or(PhysicsGrantObjectControlSchema)
+  .or(PhysicsRevokeObjectControlSchema)
   .or(CustomMessageSchema)
 
 export type ToServerPacket = z.infer<typeof ToServerPacketSchema>
@@ -176,3 +195,5 @@ export const ToServerPacketSchema = HandshakeReadySchema.or(ChatMessageSchema)
   .or(CustomMessageSchema)
   .or(PlayerMotionSchema)
   .or(PlayerAnimationChangeSchema)
+// .or(PhysicsRequestObjectControlSchema) TODO
+// .or(PhysicsControlledObjectsSnapshotSchema)

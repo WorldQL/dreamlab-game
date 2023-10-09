@@ -28,4 +28,6 @@ export const spawnPlayer = async (game: Game<false>, position?: Vector) => {
 
   if (position) player.teleport(position, true)
   game.client.render.camera.setTarget(player)
+
+  return player
 }
