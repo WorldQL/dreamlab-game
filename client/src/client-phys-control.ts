@@ -16,8 +16,6 @@ export function createClientControlManager(
 
   return {
     onControlGrant(entityId, expiry) {
-      console.log('control granted', { entityId, expiry })
-
       const existingControl = controlledEntities.get(entityId)
       if (existingControl !== undefined) {
         controlledEntities.set(entityId, {
