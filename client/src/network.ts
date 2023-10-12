@@ -49,19 +49,21 @@ const runAfterFakeLatency = async (f: () => Promise<void>) => {
 }
 
 export interface Params {
-  readonly token: string
-
+  readonly server: string
   readonly instance: string
+
+  readonly token: string
   readonly playerID: string
   readonly nickname: string
 }
 
 export const decodeParams = (): Params | undefined => {
   const url = new URL(window.location.href)
-  const instance = url.searchParams.get('instance')
 
+  const server = url.searchParams.get('server')
+  const instance = url.searchParams.get('instance')
   const token = url.searchParams.get('token')
-  if (!instance || !token) return undefined
+  if (!server || !instance || !token) return undefined
 
   const jwt = decodeJWT(token)
   if (jwt === null || jwt === undefined) return undefined
@@ -74,9 +76,11 @@ export const decodeParams = (): Params | undefined => {
   if (typeof jwt.nickname !== 'string') return undefined
 
   return {
+    server,
+    instance,
+
     token,
 
-    instance,
     playerID: jwt.player_id,
     nickname: jwt.nickname,
   }
@@ -85,11 +89,10 @@ export const decodeParams = (): Params | undefined => {
 export const connect = async (
   params: Params | undefined,
 ): Promise<WebSocket | undefined> => {
-  const base = import.meta.env.VITE_WEBSOCKET_BASE
-  if (!base || !params) return undefined
+  if (!params) return undefined
 
-  const serverURL = new URL(base)
-  serverURL.pathname = '/api/connect'
+  const serverURL = new URL(params.server)
+  serverURL.pathname = `/api/v1/connect/${params.instance}`
   serverURL.searchParams.set('instance', params.instance)
   serverURL.searchParams.set('token', params.token)
 
