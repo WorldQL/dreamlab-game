@@ -1,10 +1,13 @@
 /* eslint-disable id-length */
+import { dataManager } from '@dreamlab.gg/core'
 import type { Game } from '@dreamlab.gg/core'
 import { createNetPlayer } from '@dreamlab.gg/core/entities'
 import type {
   KnownPlayerAnimation,
   NetPlayer,
+  Player,
 } from '@dreamlab.gg/core/entities'
+import { updateSyncedValue } from '@dreamlab.gg/core/network'
 import type {
   BareNetClient,
   MessageListenerClient,
@@ -14,6 +17,7 @@ import decodeJWT from 'jwt-decode'
 import Matter from 'matter-js'
 import type { Body } from 'matter-js'
 import { loadAnimations } from './animations.js'
+import { createClientControlManager } from './client-phys-control.js'
 import { PROTOCOL_VERSION, ToClientPacketSchema } from './packets.js'
 import type {
   BodyInfo,
@@ -34,6 +38,7 @@ Object.defineProperty(window, 'dreamlabFakeLatency', {
   get: () => fakeLatency,
   set(v) {
     if (typeof v === 'number') fakeLatency = v
+    window.localStorage.setItem('@dreamlab/fakeLatency', v)
   },
 })
 const runAfterFakeLatency = async (f: () => Promise<void>) => {
@@ -45,19 +50,21 @@ const runAfterFakeLatency = async (f: () => Promise<void>) => {
 }
 
 export interface Params {
-  readonly token: string
-
+  readonly server: string
   readonly instance: string
+
+  readonly token: string
   readonly playerID: string
   readonly nickname: string
 }
 
 export const decodeParams = (): Params | undefined => {
   const url = new URL(window.location.href)
-  const instance = url.searchParams.get('instance')
 
+  const server = url.searchParams.get('server')
+  const instance = url.searchParams.get('instance')
   const token = url.searchParams.get('token')
-  if (!instance || !token) return undefined
+  if (!server || !instance || !token) return undefined
 
   const jwt = decodeJWT(token)
   if (jwt === null || jwt === undefined) return undefined
@@ -70,9 +77,11 @@ export const decodeParams = (): Params | undefined => {
   if (typeof jwt.nickname !== 'string') return undefined
 
   return {
+    server,
+    instance,
+
     token,
 
-    instance,
     playerID: jwt.player_id,
     nickname: jwt.nickname,
   }
@@ -81,19 +90,19 @@ export const decodeParams = (): Params | undefined => {
 export const connect = async (
   params: Params | undefined,
 ): Promise<WebSocket | undefined> => {
-  const base = import.meta.env.VITE_WEBSOCKET_BASE
-  if (!base || !params) return undefined
+  if (!params) return undefined
 
-  const serverURL = new URL(base)
-  serverURL.pathname = '/api/connect'
+  const serverURL = new URL(params.server)
+  serverURL.pathname = `/api/v1/connect/${params.instance}`
   serverURL.searchParams.set('instance', params.instance)
   serverURL.searchParams.set('token', params.token)
 
   return new Promise<WebSocket | undefined>(resolve => {
     const ws = new WebSocket(serverURL.toString())
+    resolve(ws)
 
-    ws.addEventListener('open', () => resolve(ws))
-    ws.addEventListener('error', () => resolve(undefined))
+    // ws.addEventListener('open', () => resolve(ws))
+    // ws.addEventListener('error', () => resolve(undefined))
   })
 }
 
@@ -123,7 +132,10 @@ export const createNetwork = (
 
   let selfID: string | undefined
   const players = new Map<string, NetPlayer>()
+  let localPlayer: Player | undefined
   let clientTickNumber = 0
+
+  const clientControl = createClientControlManager(game)
 
   const runPhysicsCatchUp = (tickNumber: number, entityIds: string[]) => {
     if (tickNumber === -1 || tickNumber >= clientTickNumber) return
@@ -131,30 +143,25 @@ export const createNetwork = (
     const now = performance.now() / 1_000
 
     for (let i = tickNumber; i < clientTickNumber; i++) {
-      // TODO: rewind bodies outside of entityIds' bodies
-      Matter.Engine.update(game.physics.engine, 1_000 / 60)
-
-      /*
       for (const id of entityIds) {
         const entity = game.lookup(id)
         if (entity === undefined) continue
 
+        if (typeof entity.onPhysicsStep === 'function') {
+          const entityData = dataManager.getData(entity)
+          const ticksRemaining = clientTickNumber - i - 1
+          entity.onPhysicsStep(
+            {
+              delta: 1 / 60,
+              time: now - (1 / 60) * ticksRemaining,
+            },
+            entityData,
+          )
+        }
+
         const bodies = game.physics.getBodies(entity)
         for (const body of bodies) Matter.Body.update(body, 1_000 / 60, 1, 1)
-
-        if (typeof entity.onPhysicsStep !== 'function') continue
-
-        const entityData = dataManager.getData(entity)
-        const ticksRemaining = clientTickNumber - i - 1
-        entity.onPhysicsStep(
-          {
-            delta: 1 / 60,
-            time: now - (1 / 60) * ticksRemaining,
-          },
-          entityData,
-        )
       }
-      */
     }
   }
 
@@ -175,7 +182,7 @@ export const createNetwork = (
         case 'SpawnPlayer': {
           if (packet.peer_id === selfID) {
             // TODO: apply character ID from server packet (instead of window.location) ?
-            await spawnPlayer(game)
+            localPlayer = await spawnPlayer(game)
           } else {
             const animations = await loadAnimations(packet.character_id)
             const netplayer = createNetPlayer(
@@ -239,8 +246,17 @@ export const createNetwork = (
               uid: entityInfo.entityId,
             }
 
-            // the server may broadcast a PhysicsFullSnapshot at any time
+            // the server may broadcast a PhysicsFullSnapshot at any time,
+            // so entities can already be existing in the world
             const existingEntity = game.lookup(entityInfo.entityId)
+
+            // we can skip any incoming physics snapshot for an entity we are currently controlling
+            if (
+              existingEntity &&
+              clientControl.isControllingEntity(entityInfo.entityId, tickNumber)
+            )
+              return
+
             const entity = existingEntity
               ? existingEntity
               : await game.spawn(definition)
@@ -280,8 +296,12 @@ export const createNetwork = (
           const updateJobs = bodyUpdates.map(async entityInfo => {
             const entity = game.lookup(entityInfo.entityId)
             if (entity === undefined) return
-            affectedEntities.push(entity.uid)
+            if (
+              clientControl.isControllingEntity(entityInfo.entityId, tickNumber)
+            )
+              return
 
+            affectedEntities.push(entity.uid)
             const bodies = game.physics.getBodies(entity)
             updateBodies(bodies, entityInfo.bodyInfo)
           })
@@ -293,6 +313,23 @@ export const createNetwork = (
 
           await Promise.all([...spawnJobs, ...updateJobs, ...destroyJobs])
           runPhysicsCatchUp(tickNumber, affectedEntities)
+
+          break
+        }
+
+        case 'PhysicsGrantObjectControl': {
+          clientControl.onControlGrant(packet.entity_id, packet.expiry_tick)
+          break
+        }
+
+        case 'PhysicsRevokeObjectControl': {
+          clientControl.onControlRevoke(packet.entity_id)
+          break
+        }
+
+        case 'UpdateSyncedValue': {
+          const { entity_id, key, value } = packet
+          updateSyncedValue(game, entity_id, key, value)
 
           break
         }
@@ -354,6 +391,48 @@ export const createNetwork = (
   })
 
   game.events.common.addListener('onPhysicsStep', () => {
+    const snapshot = clientControl.calculateSnapshot(clientTickNumber)
+    if (snapshot !== undefined) {
+      sendPacket({
+        t: 'PhysicsControlledObjectsSnapshot',
+        tick_number: clientTickNumber,
+        snapshot,
+      })
+    }
+
+    // for now, we just request control over every replicated entity close to us:
+    if (localPlayer !== undefined) {
+      const entities = game.queryTags(
+        'fn',
+        tags =>
+          tags.includes('net/replicated') &&
+          !tags.includes('net/server-authoritative'),
+      )
+      for (const entity of entities) {
+        if (
+          clientControl.isControllingEntity(entity.uid, clientTickNumber + 30)
+        )
+          continue
+
+        const bodies = game.physics.getBodies(entity)
+        for (const body of bodies) {
+          if (body.isStatic) continue
+
+          // TODO(Charlotte): better bounds distance check. this does not account for size rn
+          const distanceSq = Matter.Vector.magnitudeSquared(
+            Matter.Vector.sub(body.position, localPlayer.position),
+          )
+
+          if (distanceSq < 400 * 400) {
+            sendPacket({
+              t: 'PhysicsRequestObjectControl',
+              entity_id: entity.uid,
+            })
+          }
+        }
+      }
+    }
+
     clientTickNumber += 1
   })
 
