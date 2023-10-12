@@ -9,11 +9,6 @@ export const init = async () => {
   const container = document.querySelector<HTMLDivElement>('#app')
   if (!container) throw new Error('missing container')
 
-  window.addEventListener('message', ev => {
-    window.localStorage.setItem('globalPassedPlayerData', ev.data)
-    // PlayerDataManager.setAll(ev.data)
-  })
-
   const params = decodeParams()
   const ws = await connect(params)
   if (!ws) {

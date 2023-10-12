@@ -10,7 +10,7 @@
     "project": "./tsconfig.eslint.json"
   },
   "rules": {
-    "jsdoc/no-bad-blocks": ["error", {"ignore": ["vite-ignore"]}]
+    "jsdoc/no-bad-blocks": ["error", { "ignore": ["vite-ignore"] }]
   },
   "ignorePatterns": ["**/dist/*", "vite-env.d.ts"],
   "env": {
