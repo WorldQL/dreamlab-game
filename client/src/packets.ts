@@ -179,6 +179,14 @@ export const PhysicsRevokeObjectControlSchema = z.object({
   entity_id: z.string(),
 })
 
+export type UpdateSyncedValuePacket = z.infer<typeof UpdateSyncedValueSchema>
+export const UpdateSyncedValueSchema = z.object({
+  t: z.literal('UpdateSyncedValue'),
+  entity_id: z.string(),
+  key: z.string(),
+  value: z.unknown(),
+})
+
 export type ToClientPacket = z.infer<typeof ToClientPacketSchema>
 export const ToClientPacketSchema = HandshakeSchema.or(SpawnPlayerSchema)
   .or(DespawnPlayerSchema)
@@ -188,6 +196,7 @@ export const ToClientPacketSchema = HandshakeSchema.or(SpawnPlayerSchema)
   .or(PlayerAnimationSnapshotSchema)
   .or(PhysicsGrantObjectControlSchema)
   .or(PhysicsRevokeObjectControlSchema)
+  .or(UpdateSyncedValueSchema)
   .or(CustomMessageSchema)
 
 export type ToServerPacket = z.infer<typeof ToServerPacketSchema>

@@ -7,6 +7,7 @@ import type {
   NetPlayer,
   Player,
 } from '@dreamlab.gg/core/entities'
+import { updateSyncedValue } from '@dreamlab.gg/core/network'
 import type {
   BareNetClient,
   MessageListenerClient,
@@ -323,6 +324,13 @@ export const createNetwork = (
 
         case 'PhysicsRevokeObjectControl': {
           clientControl.onControlRevoke(packet.entity_id)
+          break
+        }
+
+        case 'UpdateSyncedValue': {
+          const { entity_id, key, value } = packet
+          updateSyncedValue(game, entity_id, key, value)
+
           break
         }
 
