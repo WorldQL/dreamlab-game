@@ -17,6 +17,7 @@ type Animation = (typeof animations)[number]
 const animations = [
   'idle',
   'walk',
+  'jog',
   'jump',
   'greatsword',
   'bow',
