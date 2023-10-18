@@ -63,16 +63,6 @@ export const init = async () => {
 
     await connected
   } else {
-    if (import.meta.env.DEV) {
-      const url = new URL(window.location.href)
-      const level = url.searchParams.get('level')
-
-      if (level) {
-        await loadScript(level, game)
-        await spawnPlayer(game)
-      }
-    }
-
     // have a dummy level that's like "connect to an instance!!"
     void 0 // temporarily make linter happy, remove when above is implemented
   }
