@@ -67,7 +67,6 @@ export function createClientControlManager(
 
       if (snapshotEmpty) return undefined
 
-      console.log(snapshot)
       return snapshot
     },
   }
