@@ -2,6 +2,7 @@ import { createGame } from '@dreamlab.gg/core'
 import { createCursor, PlayerInput } from '@dreamlab.gg/core/entities'
 import { isDebug } from './debug.js'
 import { connect, createNetwork, decodeParams } from './network.js'
+import { loadScript, spawnPlayer } from './scripting.js'
 
 export const init = async () => {
   // #region Setup
@@ -68,7 +69,7 @@ export const init = async () => {
 
       if (level) {
         await loadScript(level, game)
-        await spawnPlayer(game)
+        await spawnPlayer(game, undefined, true)
       }
     }
 

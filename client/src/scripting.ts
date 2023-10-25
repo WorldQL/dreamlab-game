@@ -22,10 +22,14 @@ export const loadScript = async (
   }
 }
 
-export const spawnPlayer = async (game: Game<false>, position?: Vector) => {
+export const spawnPlayer = async (
+  game: Game<false>,
+  position?: Vector,
+  debug = false,
+) => {
   const characterID = getCharacterID()
   const animations = await loadAnimations(characterID)
-  const fetchedObjects = await getObjects()
+  const fetchedObjects = debug ? [] : await getObjects()
   const inventory = new PlayerInventory(game)
   inventory.setObjects(fetchedObjects)
   const player = createPlayer(animations, inventory)
