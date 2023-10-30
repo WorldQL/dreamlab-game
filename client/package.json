@@ -25,6 +25,7 @@
     "jwt-decode": "^3.1.2",
     "matter-js": "^0.19.0",
     "modern-normalize": "^2.0.0",
+    "pixi.js": "^7.3.2",
     "type-fest": "^4.4.0",
     "zod": "^3.22.4"
   }
