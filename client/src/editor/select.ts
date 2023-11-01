@@ -1,7 +1,8 @@
 import { createEntity } from '@dreamlab.gg/core'
 import type { SpawnableEntity } from '@dreamlab.gg/core'
-import { Vec } from '@dreamlab.gg/core/dist/math'
-import { drawBox } from '@dreamlab.gg/core/dist/utils'
+import { Vec } from '@dreamlab.gg/core/math'
+import type { Vector } from '@dreamlab.gg/core/math'
+import { drawBox } from '@dreamlab.gg/core/utils'
 import { Container, Graphics } from 'pixi.js'
 
 export const createEntitySelect = () => {
@@ -10,6 +11,11 @@ export const createEntitySelect = () => {
   const squareSize = 8
 
   let selected: SpawnableEntity | undefined
+  let moveOrigin: Vector | undefined
+
+  const onMouseUp = () => {
+    moveOrigin = undefined
+  }
 
   return createEntity({
     init({ game }) {
@@ -25,7 +31,27 @@ export const createEntitySelect = () => {
         selected = query.length > 0 ? query[0] : undefined
       }
 
+      const onMouseDown = (ev: MouseEvent) => {
+        const pos = camera.localToWorld({ x: ev.offsetX, y: ev.offsetY })
+        if (selected && selected.isPointInside(pos)) {
+          moveOrigin = Vec.sub(selected.transform.position, pos)
+        }
+      }
+
+      const onMouseMove = (ev: MouseEvent) => {
+        if (!selected || !moveOrigin) return
+
+        const pos = camera.localToWorld({ x: ev.offsetX, y: ev.offsetY })
+        const offset = Vec.add(pos, moveOrigin)
+
+        selected.transform.position.x = offset.x
+        selected.transform.position.y = offset.y
+      }
+
       container.addEventListener('click', onClick)
+      container.addEventListener('mousedown', onMouseDown)
+      container.addEventListener('mouseup', onMouseUp)
+      container.addEventListener('mousemove', onMouseMove)
 
       const group = new Container()
       group.sortableChildren = true
@@ -54,6 +80,8 @@ export const createEntitySelect = () => {
         bottomLeftGfx,
         bottomRightGfx,
         onClick,
+        onMouseDown,
+        onMouseMove,
       }
     },
 
@@ -61,8 +89,18 @@ export const createEntitySelect = () => {
       // No-op
     },
 
-    teardownRenderContext({ container, group, onClick }) {
+    teardownRenderContext({
+      container,
+      group,
+      onClick,
+      onMouseDown,
+      onMouseMove,
+    }) {
       container.removeEventListener('click', onClick)
+      container.removeEventListener('mousedown', onMouseDown)
+      container.removeEventListener('mouseup', onMouseUp)
+      container.removeEventListener('mousemove', onMouseMove)
+
       group.destroy({ children: true })
     },
 
