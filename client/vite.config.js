@@ -78,11 +78,13 @@ const importMapPlugin = () => ({
   name: 'import-map',
   transformIndexHtml: async () => {
     const core = '@dreamlab.gg/core'
+    const ui = '@dreamlab.gg/ui'
     const matter = 'matter-js'
     const pixi = 'pixi.js'
 
-    const [corePkg, matterPkg, pixiPkg] = await Promise.all([
+    const [corePkg, uiPkg, matterPkg, pixiPkg] = await Promise.all([
       esmLink(core),
+      esmLink(ui),
       esmLink(matter, core),
       esmLink(pixi, core),
     ])
@@ -93,17 +95,39 @@ const importMapPlugin = () => ({
         [matter]: matterPkg,
         [pixi]: pixiPkg,
         [core]: coreBundled,
+        [ui]: uiPkg,
       },
     }
 
-    const modulesPath = await resolve(`${core}/modules.json`, import.meta.url)
-    const modulesJson = await readFile(fileURLToPath(modulesPath), 'utf8')
+    //#region Core Modules
+    const coreModulesPath = await resolve(
+      `${core}/modules.json`,
+      import.meta.url,
+    )
 
-    const modules = JSON.parse(modulesJson)
-    for (const module of modules) {
+    const coreModulesJson = await readFile(
+      fileURLToPath(coreModulesPath),
+      'utf8',
+    )
+
+    const coreModules = JSON.parse(coreModulesJson)
+    for (const module of coreModules) {
       map.imports[`${core}/${module}`] = coreBundled
       map.imports[`${core}/dist/${module}`] = coreBundled
     }
+    //#endregion
+
+    //#region UI Modules
+    const uiModulesPath = await resolve(`${ui}/modules.json`, import.meta.url)
+    const uiModulesJson = await readFile(fileURLToPath(uiModulesPath), 'utf8')
+
+    const uiModules = JSON.parse(uiModulesJson)
+    for (const module of uiModules) {
+      const url = `${uiPkg}/dist/${module}?external=${core}`
+      map.imports[`${ui}/${module}`] = url
+      map.imports[`${ui}/dist/${module}`] = url
+    }
+    //#endregion
 
     return [
       {
