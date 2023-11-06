@@ -42,11 +42,12 @@ export const createEntitySelect = () => {
         const bounds = selected?.rectangleBounds()
         if (!selected || !bounds) return undefined
 
-        const distanceTest = handleSize * 1.5
+        const inverse = 1 / camera.scale
+        const distanceTest = handleSize * 1.5 * inverse
         const { width, height } = bounds
         const angle = toRadians(selected.transform.rotation)
 
-        // TODO: Correct for camera scale
+        // TODO: Ensure corrections for camera scale work
 
         const topLeft = Vec.rotateAbout(
           {
@@ -84,10 +85,15 @@ export const createEntitySelect = () => {
           selected.transform.position,
         )
 
+        const scaledStalkHeight = Math.min(
+          rotStalkHeight * inverse,
+          rotStalkHeight,
+        )
+
         const rotation = Vec.rotateAbout(
           {
             x: selected.transform.position.x,
-            y: selected.transform.position.y - height / 2 - rotStalkHeight,
+            y: selected.transform.position.y - height / 2 - scaledStalkHeight,
           },
           angle,
           selected.transform.position,
