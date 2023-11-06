@@ -325,7 +325,10 @@ export const createEntitySelect = () => {
       // #endregion
 
       // #region Rotation Handle
-      const scaledStalkHeight = rotStalkHeight * inverse
+      const scaledStalkHeight = Math.min(
+        rotStalkHeight * inverse,
+        rotStalkHeight,
+      )
 
       drawBox(
         rotStalkGfx,
