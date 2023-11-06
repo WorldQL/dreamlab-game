@@ -23,12 +23,18 @@ export const createEntitySelect = () => {
     },
 
     initRenderContext({ game }, { container, stage, camera }) {
+      const updateCursor = (point: Vector) => {
+        const style = selected && selected.isPointInside(point) ? 'pointer' : ''
+        container.style.cursor = style
+      }
+
       const onClick = (ev: MouseEvent) => {
         const pos = camera.localToWorld({ x: ev.offsetX, y: ev.offsetY })
         const query = game.queryPosition(pos)
 
         // TODO: Sort based on Z-index
         selected = query.length > 0 ? query[0] : undefined
+        updateCursor(pos)
       }
 
       const onMouseDown = (ev: MouseEvent) => {
@@ -39,9 +45,10 @@ export const createEntitySelect = () => {
       }
 
       const onMouseMove = (ev: MouseEvent) => {
-        if (!selected || !moveOrigin) return
-
         const pos = camera.localToWorld({ x: ev.offsetX, y: ev.offsetY })
+        updateCursor(pos)
+
+        if (!selected || !moveOrigin) return
         const offset = Vec.add(pos, moveOrigin)
 
         selected.transform.position.x = offset.x
