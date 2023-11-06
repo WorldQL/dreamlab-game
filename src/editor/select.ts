@@ -99,11 +99,22 @@ export const createEntitySelect = () => {
           selected.transform.position,
         )
 
-        if (distance(topLeft, point) <= distanceTest) return 'topLeft'
-        if (distance(topRight, point) <= distanceTest) return 'topRight'
-        if (distance(bottomLeft, point) <= distanceTest) return 'bottomLeft'
-        if (distance(bottomRight, point) <= distanceTest) return 'bottomRight'
-        if (distance(rotation, point) <= distanceTest) return 'rotation'
+        const distances: [number, Handle][] = [
+          [distance(topLeft, point), 'topLeft'],
+          [distance(topRight, point), 'topRight'],
+          [distance(bottomLeft, point), 'bottomLeft'],
+          [distance(bottomRight, point), 'bottomRight'],
+          [distance(rotation, point), 'rotation'],
+        ]
+
+        const filtered = distances.filter(
+          ([distance]) => distance <= distanceTest,
+        )
+
+        if (filtered.length === 0) return undefined
+        filtered.sort(([a], [b]) => a - b)
+
+        return filtered[0][1]
       }
 
       const updateCursor = (point: Vector) => {
