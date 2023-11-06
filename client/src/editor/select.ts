@@ -8,7 +8,7 @@ import { Container, Graphics } from 'pixi.js'
 export const createEntitySelect = () => {
   const colour = '#22a2ff'
   const strokeWidth = 2
-  const squareSize = 8
+  const squareSize = 10
 
   let selected: SpawnableEntity | undefined
   let moveOrigin: Vector | undefined
@@ -133,10 +133,10 @@ export const createEntitySelect = () => {
       const inverse = 1 / camera.scale
       const scaledWidth = strokeWidth * inverse
 
-      container.alpha = 1
-
       const pos = Vec.add(selected.transform.position, camera.offset)
-      boundsGfx.position = pos
+      container.alpha = 1
+      container.position = pos
+      container.angle = selected.transform.rotation
 
       const width = bounds.width + scaledWidth * 2
       const height = bounds.height + scaledWidth * 2
@@ -163,25 +163,31 @@ export const createEntitySelect = () => {
       drawBox(bottomLeftGfx, squaresSize, squaresRender)
       drawBox(bottomRightGfx, squaresSize, squaresRender)
 
-      topLeftGfx.position = Vec.add(pos, {
+      topLeftGfx.position = {
         x: bounds.width / 2 + scaledWidth / 2,
         y: -(bounds.height / 2 + scaledWidth / 2),
-      })
+      }
 
-      topRightGfx.position = Vec.add(pos, {
+      topRightGfx.position = {
         x: -(bounds.width / 2 + scaledWidth / 2),
         y: -(bounds.height / 2 + scaledWidth / 2),
-      })
+      }
 
-      bottomLeftGfx.position = Vec.add(pos, {
+      bottomLeftGfx.position = {
         x: bounds.width / 2 + scaledWidth / 2,
         y: bounds.height / 2 + scaledWidth / 2,
-      })
+      }
 
-      bottomRightGfx.position = Vec.add(pos, {
+      bottomRightGfx.position = {
         x: -(bounds.width / 2 + scaledWidth / 2),
         y: bounds.height / 2 + scaledWidth / 2,
-      })
+      }
+
+      const inverseRot = -selected.transform.rotation
+      topLeftGfx.angle = inverseRot
+      topRightGfx.angle = inverseRot
+      bottomLeftGfx.angle = inverseRot
+      bottomRightGfx.angle = inverseRot
     },
   })
 }
