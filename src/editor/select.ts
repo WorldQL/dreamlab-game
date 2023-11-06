@@ -3,7 +3,8 @@ import type { SpawnableEntity } from '@dreamlab.gg/core'
 import {
   angleBetween,
   distance,
-  snap as snapVector,
+  snap,
+  snapVector,
   toDegrees,
   toRadians,
   Vec,
@@ -12,7 +13,6 @@ import type { Vector } from '@dreamlab.gg/core/math'
 import { drawBox, drawCircle } from '@dreamlab.gg/core/utils'
 import { Container, Graphics } from 'pixi.js'
 
-// TODO: Handle holding shift for snapping to 15 degree (rotation) or 10 unit (translation) increments
 // TODO: Move cursor pointer handling to render loop
 
 type ActionData =
@@ -153,14 +153,18 @@ export const createEntitySelect = () => {
         updateCursor(pos)
 
         if (!selected || !action) return
+        const shift = game.client.inputs.getKey('ShiftLeft')
 
         if (action.type === 'rotate') {
           const radians = angleBetween(selected.transform.position, pos)
-          selected.transform.rotation = toDegrees(radians + Math.PI / 2)
+          const degrees = toDegrees(radians + Math.PI / 2)
+
+          const angle = shift ? snap(degrees, 15) : degrees
+          selected.transform.rotation = angle
         } else if (action.type === 'translate') {
           const offset = Vec.add(pos, action.origin)
-          const snap: number | undefined = undefined
-          const newPosition: Vector = snap ? snapVector(offset, snap) : offset
+          const newPosition = shift ? snapVector(offset, 10) : offset
+
           selected.transform.position.x = newPosition.x
           selected.transform.position.y = newPosition.y
         }
