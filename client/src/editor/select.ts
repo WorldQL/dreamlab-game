@@ -1,6 +1,6 @@
 import { createEntity } from '@dreamlab.gg/core'
 import type { SpawnableEntity } from '@dreamlab.gg/core'
-import { Vec } from '@dreamlab.gg/core/math'
+import { snap as snapVector, Vec } from '@dreamlab.gg/core/math'
 // import { angleBetween, toDegrees } from '@dreamlab.gg/core/math'
 import type { Vector } from '@dreamlab.gg/core/math'
 import { drawBox } from '@dreamlab.gg/core/utils'
@@ -56,14 +56,8 @@ export const createEntitySelect = () => {
         // selected.transform.rotation = toDegrees(radians + Math.PI / 2)
 
         const offset = Vec.add(pos, moveOrigin)
-
         const snap: number | undefined = undefined
-        const newPosition: Vector = snap
-          ? {
-              x: Math.round(offset.x / 10) * 10,
-              y: Math.round(offset.y / 10) * 10,
-            }
-          : offset
+        const newPosition: Vector = snap ? snapVector(offset, snap) : offset
 
         selected.transform.position.x = newPosition.x
         selected.transform.position.y = newPosition.y
