@@ -13,8 +13,6 @@ import type { Vector } from '@dreamlab.gg/core/math'
 import { drawBox, drawCircle } from '@dreamlab.gg/core/utils'
 import { Container, Graphics } from 'pixi.js'
 
-// TODO: Move cursor pointer handling to render loop
-
 type ActionData =
   | { type: 'clear' }
   | { type: 'rotate' }
@@ -47,6 +45,8 @@ export const createEntitySelect = () => {
         const distanceTest = handleSize * 1.5
         const { width, height } = bounds
         const angle = toRadians(selected.transform.rotation)
+
+        // TODO: Correct for camera scale
 
         const topLeft = Vec.rotateAbout(
           {
@@ -148,8 +148,9 @@ export const createEntitySelect = () => {
         }
       }
 
-      const onMouseMove = (ev: MouseEvent) => {
-        const pos = camera.localToWorld({ x: ev.offsetX, y: ev.offsetY })
+      const onMouseMove = () => {
+        const pos = game.client.inputs.getCursor()
+        if (!pos) return
         updateCursor(pos)
 
         if (!selected || !action) return
@@ -173,7 +174,7 @@ export const createEntitySelect = () => {
       canvas.addEventListener('click', onClick)
       canvas.addEventListener('mousedown', onMouseDown)
       canvas.addEventListener('mouseup', onMouseUp)
-      canvas.addEventListener('mousemove', onMouseMove)
+      // canvas.addEventListener('mousemove', onMouseMove)
 
       const container = new Container()
       container.sortableChildren = true
@@ -222,12 +223,12 @@ export const createEntitySelect = () => {
       container,
       onClick,
       onMouseDown,
-      onMouseMove,
+      // onMouseMove,
     }) {
       canvas.removeEventListener('click', onClick)
       canvas.removeEventListener('mousedown', onMouseDown)
       canvas.removeEventListener('mouseup', onMouseUp)
-      canvas.removeEventListener('mousemove', onMouseMove)
+      // canvas.removeEventListener('mousemove', onMouseMove)
 
       container.destroy({ children: true })
     },
@@ -245,8 +246,11 @@ export const createEntitySelect = () => {
         bottomRightGfx,
         rotStalkGfx,
         rotHandleGfx,
+        onMouseMove,
       },
     ) {
+      onMouseMove()
+
       const bounds = selected?.rectangleBounds()
       if (!selected || !bounds) {
         container.alpha = 0
