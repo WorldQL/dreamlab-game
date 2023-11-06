@@ -115,6 +115,7 @@ export const createEntitySelect = () => {
         const query = game.queryPosition(pos)
 
         // TODO: Sort based on Z-index
+        const prev = selected
         selected =
           action?.type === 'clear'
             ? selected
@@ -123,6 +124,11 @@ export const createEntitySelect = () => {
             : isHandle(pos)
             ? selected
             : undefined
+
+        if (selected !== prev) {
+          if (prev) game.physics.resume(prev)
+          if (selected) game.physics.suspend(selected)
+        }
 
         updateCursor(pos)
         if (action?.type === 'clear') action = undefined
