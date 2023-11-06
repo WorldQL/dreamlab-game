@@ -22,10 +22,10 @@ export const createEntitySelect = () => {
       return { debug: game.debug }
     },
 
-    initRenderContext({ game }, { container, stage, camera }) {
+    initRenderContext({ game }, { canvas, stage, camera }) {
       const updateCursor = (point: Vector) => {
         const style = selected && selected.isPointInside(point) ? 'pointer' : ''
-        container.style.cursor = style
+        canvas.style.cursor = style
       }
 
       const onClick = (ev: MouseEvent) => {
@@ -55,14 +55,14 @@ export const createEntitySelect = () => {
         selected.transform.position.y = offset.y
       }
 
-      container.addEventListener('click', onClick)
-      container.addEventListener('mousedown', onMouseDown)
-      container.addEventListener('mouseup', onMouseUp)
-      container.addEventListener('mousemove', onMouseMove)
+      canvas.addEventListener('click', onClick)
+      canvas.addEventListener('mousedown', onMouseDown)
+      canvas.addEventListener('mouseup', onMouseUp)
+      canvas.addEventListener('mousemove', onMouseMove)
 
-      const group = new Container()
-      group.sortableChildren = true
-      group.zIndex = 999_999_999 // always render on top
+      const container = new Container()
+      container.sortableChildren = true
+      container.zIndex = 999_999_999 // always render on top
 
       const boundsGfx = new Graphics()
       const topLeftGfx = new Graphics()
@@ -70,17 +70,17 @@ export const createEntitySelect = () => {
       const bottomLeftGfx = new Graphics()
       const bottomRightGfx = new Graphics()
 
-      stage.addChild(group)
-      group.addChild(boundsGfx)
-      group.addChild(topLeftGfx)
-      group.addChild(topRightGfx)
-      group.addChild(bottomLeftGfx)
-      group.addChild(bottomRightGfx)
+      stage.addChild(container)
+      container.addChild(boundsGfx)
+      container.addChild(topLeftGfx)
+      container.addChild(topRightGfx)
+      container.addChild(bottomLeftGfx)
+      container.addChild(bottomRightGfx)
 
       return {
-        container,
+        canvas,
         camera,
-        group,
+        container,
         boundsGfx,
         topLeftGfx,
         topRightGfx,
@@ -97,18 +97,18 @@ export const createEntitySelect = () => {
     },
 
     teardownRenderContext({
+      canvas,
       container,
-      group,
       onClick,
       onMouseDown,
       onMouseMove,
     }) {
-      container.removeEventListener('click', onClick)
-      container.removeEventListener('mousedown', onMouseDown)
-      container.removeEventListener('mouseup', onMouseUp)
-      container.removeEventListener('mousemove', onMouseMove)
+      canvas.removeEventListener('click', onClick)
+      canvas.removeEventListener('mousedown', onMouseDown)
+      canvas.removeEventListener('mouseup', onMouseUp)
+      canvas.removeEventListener('mousemove', onMouseMove)
 
-      group.destroy({ children: true })
+      container.destroy({ children: true })
     },
 
     onRenderFrame(
@@ -116,7 +116,7 @@ export const createEntitySelect = () => {
       __,
       {
         camera,
-        group,
+        container,
         boundsGfx,
         topLeftGfx,
         topRightGfx,
@@ -126,14 +126,14 @@ export const createEntitySelect = () => {
     ) {
       const bounds = selected?.rectangleBounds()
       if (!selected || !bounds) {
-        group.alpha = 0
+        container.alpha = 0
         return
       }
 
       const inverse = 1 / camera.scale
       const scaledWidth = strokeWidth * inverse
 
-      group.alpha = 1
+      container.alpha = 1
 
       const pos = Vec.add(selected.transform.position, camera.offset)
       boundsGfx.position = pos
