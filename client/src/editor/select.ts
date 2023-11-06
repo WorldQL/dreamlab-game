@@ -36,6 +36,9 @@ export const createEntitySelect = () => {
         // TODO: Sort based on Z-index
         selected = query.length > 0 ? query[0] : undefined
         updateCursor(pos)
+
+        // @ts-expect-error global assign in dev
+        if (import.meta.env.DEV) window.entity = selected
       }
 
       const onMouseDown = (ev: MouseEvent) => {
