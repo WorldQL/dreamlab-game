@@ -1,6 +1,7 @@
 import { createEntity } from '@dreamlab.gg/core'
 import type { SpawnableEntity } from '@dreamlab.gg/core'
 import { Vec } from '@dreamlab.gg/core/math'
+// import { angleBetween, toDegrees } from '@dreamlab.gg/core/math'
 import type { Vector } from '@dreamlab.gg/core/math'
 import { drawBox } from '@dreamlab.gg/core/utils'
 import { Container, Graphics } from 'pixi.js'
@@ -49,6 +50,11 @@ export const createEntitySelect = () => {
         updateCursor(pos)
 
         if (!selected || !moveOrigin) return
+
+        // Rotation code
+        // const radians = angleBetween(selected.transform.position, pos)
+        // selected.transform.rotation = toDegrees(radians + Math.PI / 2)
+
         const offset = Vec.add(pos, moveOrigin)
 
         const snap: number | undefined = undefined
