@@ -1,17 +1,4 @@
-# dreamlab-app
+# dreamlab-game
 
-Dreamlab's game implementation. Depends on `dreamlab-core`.
-
-In this repository are two subprojects:
-
-- `client` - Contains frontend canvas code
-- `server` -
-
-## Setup
-
-```shell
-$ cd client/
-# make sure the level scripts exist!
-client/ $ git clone 'git@github.com:WorldQL/dreamlab-worlds.git' public/worlds
-client/ $ npm run dev # test the client locally
-```
+HTML5 App that runs the Dreamlab game experience.
+Depends on [@dreamlab.gg/core](https://github.com/WorldQL/dreamlab-core) for the engine code.
