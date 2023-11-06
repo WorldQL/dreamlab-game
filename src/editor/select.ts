@@ -1,21 +1,36 @@
 import { createEntity } from '@dreamlab.gg/core'
 import type { SpawnableEntity } from '@dreamlab.gg/core'
-import { distance, snap as snapVector, Vec } from '@dreamlab.gg/core/math'
-// import { angleBetween, toDegrees } from '@dreamlab.gg/core/math'
+import {
+  angleBetween,
+  distance,
+  snap as snapVector,
+  toDegrees,
+  toRadians,
+  Vec,
+} from '@dreamlab.gg/core/math'
 import type { Vector } from '@dreamlab.gg/core/math'
-import { drawBox } from '@dreamlab.gg/core/utils'
+import { drawBox, drawCircle } from '@dreamlab.gg/core/utils'
 import { Container, Graphics } from 'pixi.js'
+
+// TODO: Handle holding shift for snapping to 15 degree (rotation) or 10 unit (translation) increments
+// TODO: Move cursor pointer handling to render loop
+
+type ActionData =
+  | { type: 'clear' }
+  | { type: 'rotate' }
+  | { type: 'translate'; origin: Vector }
 
 export const createEntitySelect = () => {
   const colour = '#22a2ff'
   const strokeWidth = 2
   const handleSize = 10
+  const rotStalkHeight = 30
 
   let selected: SpawnableEntity | undefined
-  let moveOrigin: Vector | undefined
+  let action: ActionData | undefined
 
   const onMouseUp = () => {
-    moveOrigin = undefined
+    if (action !== undefined) action = { type: 'clear' }
   }
 
   return createEntity({
@@ -24,45 +39,73 @@ export const createEntitySelect = () => {
     },
 
     initRenderContext({ game }, { canvas, stage, camera }) {
-      type Handle = `${'bottom' | 'top'}${'Left' | 'Right'}`
+      type Handle = 'rotation' | `${'bottom' | 'top'}${'Left' | 'Right'}`
       const isHandle = (point: Vector): Handle | undefined => {
         const bounds = selected?.rectangleBounds()
         if (!selected || !bounds) return undefined
 
         const distanceTest = handleSize * 1.5
         const { width, height } = bounds
+        const angle = toRadians(selected.transform.rotation)
 
-        // TODO: Account for rotation
-        const topLeft: Vector = {
-          x: selected.transform.position.x - width / 2 - strokeWidth / 2,
-          y: selected.transform.position.y - height / 2 - strokeWidth / 2,
-        }
+        const topLeft = Vec.rotateAbout(
+          {
+            x: selected.transform.position.x - width / 2 - strokeWidth / 2,
+            y: selected.transform.position.y - height / 2 - strokeWidth / 2,
+          },
+          angle,
+          selected.transform.position,
+        )
 
-        const topRight: Vector = {
-          x: selected.transform.position.x + width / 2 + strokeWidth / 2,
-          y: selected.transform.position.y - height / 2 - strokeWidth / 2,
-        }
+        const topRight = Vec.rotateAbout(
+          {
+            x: selected.transform.position.x + width / 2 + strokeWidth / 2,
+            y: selected.transform.position.y - height / 2 - strokeWidth / 2,
+          },
+          angle,
+          selected.transform.position,
+        )
 
-        const bottomLeft: Vector = {
-          x: selected.transform.position.x - width / 2 - strokeWidth / 2,
-          y: selected.transform.position.y + height / 2 + strokeWidth / 2,
-        }
+        const bottomLeft = Vec.rotateAbout(
+          {
+            x: selected.transform.position.x - width / 2 - strokeWidth / 2,
+            y: selected.transform.position.y + height / 2 + strokeWidth / 2,
+          },
+          angle,
+          selected.transform.position,
+        )
 
-        const bottomRight: Vector = {
-          x: selected.transform.position.x + width / 2 + strokeWidth / 2,
-          y: selected.transform.position.y + height / 2 + strokeWidth / 2,
-        }
+        const bottomRight = Vec.rotateAbout(
+          {
+            x: selected.transform.position.x + width / 2 + strokeWidth / 2,
+            y: selected.transform.position.y + height / 2 + strokeWidth / 2,
+          },
+          angle,
+          selected.transform.position,
+        )
+
+        const rotation = Vec.rotateAbout(
+          {
+            x: selected.transform.position.x,
+            y: selected.transform.position.y - height / 2 - rotStalkHeight,
+          },
+          angle,
+          selected.transform.position,
+        )
 
         if (distance(topLeft, point) <= distanceTest) return 'topLeft'
         if (distance(topRight, point) <= distanceTest) return 'topRight'
         if (distance(bottomLeft, point) <= distanceTest) return 'bottomLeft'
         if (distance(bottomRight, point) <= distanceTest) return 'bottomRight'
+        if (distance(rotation, point) <= distanceTest) return 'rotation'
       }
 
       const updateCursor = (point: Vector) => {
         const validHover =
           selected &&
-          (selected.isPointInside(point) || isHandle(point) !== undefined)
+          (selected.isPointInside(point) ||
+            isHandle(point) !== undefined ||
+            (action !== undefined && action.type !== 'clear'))
 
         canvas.style.cursor = validHover ? 'pointer' : ''
       }
@@ -72,8 +115,17 @@ export const createEntitySelect = () => {
         const query = game.queryPosition(pos)
 
         // TODO: Sort based on Z-index
-        selected = query.length > 0 ? query[0] : undefined
+        selected =
+          action?.type === 'clear'
+            ? selected
+            : query.length > 0
+            ? query[0]
+            : isHandle(pos)
+            ? selected
+            : undefined
+
         updateCursor(pos)
+        if (action?.type === 'clear') action = undefined
 
         // @ts-expect-error global assign in dev
         if (import.meta.env.DEV) window.entity = selected
@@ -81,8 +133,18 @@ export const createEntitySelect = () => {
 
       const onMouseDown = (ev: MouseEvent) => {
         const pos = camera.localToWorld({ x: ev.offsetX, y: ev.offsetY })
-        if (selected && selected.isPointInside(pos)) {
-          moveOrigin = Vec.sub(selected.transform.position, pos)
+        if (!selected) return
+
+        const handle = isHandle(pos)
+        if (handle === 'rotation') {
+          action = { type: 'rotate' }
+        } else if (handle) {
+          // TODO: Scale
+        } else if (selected.isPointInside(pos)) {
+          action = {
+            type: 'translate',
+            origin: Vec.sub(selected.transform.position, pos),
+          }
         }
       }
 
@@ -90,18 +152,18 @@ export const createEntitySelect = () => {
         const pos = camera.localToWorld({ x: ev.offsetX, y: ev.offsetY })
         updateCursor(pos)
 
-        if (!selected || !moveOrigin) return
+        if (!selected || !action) return
 
-        // Rotation code
-        // const radians = angleBetween(selected.transform.position, pos)
-        // selected.transform.rotation = toDegrees(radians + Math.PI / 2)
-
-        const offset = Vec.add(pos, moveOrigin)
-        const snap: number | undefined = undefined
-        const newPosition: Vector = snap ? snapVector(offset, snap) : offset
-
-        selected.transform.position.x = newPosition.x
-        selected.transform.position.y = newPosition.y
+        if (action.type === 'rotate') {
+          const radians = angleBetween(selected.transform.position, pos)
+          selected.transform.rotation = toDegrees(radians + Math.PI / 2)
+        } else if (action.type === 'translate') {
+          const offset = Vec.add(pos, action.origin)
+          const snap: number | undefined = undefined
+          const newPosition: Vector = snap ? snapVector(offset, snap) : offset
+          selected.transform.position.x = newPosition.x
+          selected.transform.position.y = newPosition.y
+        }
       }
 
       canvas.addEventListener('click', onClick)
@@ -118,6 +180,8 @@ export const createEntitySelect = () => {
       const topRightGfx = new Graphics()
       const bottomLeftGfx = new Graphics()
       const bottomRightGfx = new Graphics()
+      const rotStalkGfx = new Graphics()
+      const rotHandleGfx = new Graphics()
 
       stage.addChild(container)
       container.addChild(boundsGfx)
@@ -125,6 +189,8 @@ export const createEntitySelect = () => {
       container.addChild(topRightGfx)
       container.addChild(bottomLeftGfx)
       container.addChild(bottomRightGfx)
+      container.addChild(rotStalkGfx)
+      container.addChild(rotHandleGfx)
 
       return {
         canvas,
@@ -135,6 +201,8 @@ export const createEntitySelect = () => {
         topRightGfx,
         bottomLeftGfx,
         bottomRightGfx,
+        rotStalkGfx,
+        rotHandleGfx,
         onClick,
         onMouseDown,
         onMouseMove,
@@ -171,6 +239,8 @@ export const createEntitySelect = () => {
         topRightGfx,
         bottomLeftGfx,
         bottomRightGfx,
+        rotStalkGfx,
+        rotHandleGfx,
       },
     ) {
       const bounds = selected?.rectangleBounds()
@@ -195,17 +265,17 @@ export const createEntitySelect = () => {
         { stroke: colour, strokeWidth: scaledWidth },
       )
 
-      // #region Scale Handles
-      const handlesSize = {
-        width: handleSize * inverse,
-        height: handleSize * inverse,
-      }
-
       const handlesRender = {
         stroke: colour,
         strokeWidth: scaledWidth,
         fill: 'white',
         fillAlpha: 1,
+      }
+
+      // #region Scale Handles
+      const handlesSize = {
+        width: handleSize * inverse,
+        height: handleSize * inverse,
       }
 
       drawBox(topLeftGfx, handlesSize, handlesRender)
@@ -238,6 +308,28 @@ export const createEntitySelect = () => {
       topRightGfx.angle = inverseRot
       bottomLeftGfx.angle = inverseRot
       bottomRightGfx.angle = inverseRot
+      // #endregion
+
+      // #region Rotation Handle
+      const scaledStalkHeight = rotStalkHeight * inverse
+
+      drawBox(
+        rotStalkGfx,
+        {
+          width: scaledWidth,
+          height: scaledStalkHeight,
+        },
+        { fill: colour, fillAlpha: 1, strokeAlpha: 0 },
+      )
+
+      drawCircle(
+        rotHandleGfx,
+        { radius: (handleSize / 1.75) * inverse },
+        handlesRender,
+      )
+
+      rotStalkGfx.position.y = -height / 2 - scaledStalkHeight / 2
+      rotHandleGfx.position.y = -height / 2 - scaledStalkHeight
       // #endregion
     },
   })
