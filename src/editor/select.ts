@@ -1,6 +1,6 @@
 import { createEntity } from '@dreamlab.gg/core'
 import type { SpawnableEntity } from '@dreamlab.gg/core'
-import { snap as snapVector, Vec } from '@dreamlab.gg/core/math'
+import { distance, snap as snapVector, Vec } from '@dreamlab.gg/core/math'
 // import { angleBetween, toDegrees } from '@dreamlab.gg/core/math'
 import type { Vector } from '@dreamlab.gg/core/math'
 import { drawBox } from '@dreamlab.gg/core/utils'
@@ -24,9 +24,47 @@ export const createEntitySelect = () => {
     },
 
     initRenderContext({ game }, { canvas, stage, camera }) {
+      type Handle = `${'bottom' | 'top'}${'Left' | 'Right'}`
+      const isHandle = (point: Vector): Handle | undefined => {
+        const bounds = selected?.rectangleBounds()
+        if (!selected || !bounds) return undefined
+
+        const distanceTest = handleSize * 1.5
+        const { width, height } = bounds
+
+        // TODO: Account for rotation
+        const topLeft: Vector = {
+          x: selected.transform.position.x - width / 2 - strokeWidth / 2,
+          y: selected.transform.position.y - height / 2 - strokeWidth / 2,
+        }
+
+        const topRight: Vector = {
+          x: selected.transform.position.x + width / 2 + strokeWidth / 2,
+          y: selected.transform.position.y - height / 2 - strokeWidth / 2,
+        }
+
+        const bottomLeft: Vector = {
+          x: selected.transform.position.x - width / 2 - strokeWidth / 2,
+          y: selected.transform.position.y + height / 2 + strokeWidth / 2,
+        }
+
+        const bottomRight: Vector = {
+          x: selected.transform.position.x + width / 2 + strokeWidth / 2,
+          y: selected.transform.position.y + height / 2 + strokeWidth / 2,
+        }
+
+        if (distance(topLeft, point) <= distanceTest) return 'topLeft'
+        if (distance(topRight, point) <= distanceTest) return 'topRight'
+        if (distance(bottomLeft, point) <= distanceTest) return 'bottomLeft'
+        if (distance(bottomRight, point) <= distanceTest) return 'bottomRight'
+      }
+
       const updateCursor = (point: Vector) => {
-        const style = selected && selected.isPointInside(point) ? 'pointer' : ''
-        canvas.style.cursor = style
+        const validHover =
+          selected &&
+          (selected.isPointInside(point) || isHandle(point) !== undefined)
+
+        canvas.style.cursor = validHover ? 'pointer' : ''
       }
 
       const onClick = (ev: MouseEvent) => {
