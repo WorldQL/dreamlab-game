@@ -9,7 +9,7 @@ import { Container, Graphics } from 'pixi.js'
 export const createEntitySelect = () => {
   const colour = '#22a2ff'
   const strokeWidth = 2
-  const squareSize = 10
+  const handleSize = 10
 
   let selected: SpawnableEntity | undefined
   let moveOrigin: Vector | undefined
@@ -195,22 +195,23 @@ export const createEntitySelect = () => {
         { stroke: colour, strokeWidth: scaledWidth },
       )
 
-      const squaresSize = {
-        width: squareSize * inverse,
-        height: squareSize * inverse,
+      // #region Scale Handles
+      const handlesSize = {
+        width: handleSize * inverse,
+        height: handleSize * inverse,
       }
 
-      const squaresRender = {
+      const handlesRender = {
         stroke: colour,
         strokeWidth: scaledWidth,
         fill: 'white',
         fillAlpha: 1,
       }
 
-      drawBox(topLeftGfx, squaresSize, squaresRender)
-      drawBox(topRightGfx, squaresSize, squaresRender)
-      drawBox(bottomLeftGfx, squaresSize, squaresRender)
-      drawBox(bottomRightGfx, squaresSize, squaresRender)
+      drawBox(topLeftGfx, handlesSize, handlesRender)
+      drawBox(topRightGfx, handlesSize, handlesRender)
+      drawBox(bottomLeftGfx, handlesSize, handlesRender)
+      drawBox(bottomRightGfx, handlesSize, handlesRender)
 
       topLeftGfx.position = {
         x: bounds.width / 2 + scaledWidth / 2,
@@ -237,6 +238,7 @@ export const createEntitySelect = () => {
       topRightGfx.angle = inverseRot
       bottomLeftGfx.angle = inverseRot
       bottomRightGfx.angle = inverseRot
+      // #endregion
     },
   })
 }
