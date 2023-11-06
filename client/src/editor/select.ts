@@ -51,8 +51,16 @@ export const createEntitySelect = () => {
         if (!selected || !moveOrigin) return
         const offset = Vec.add(pos, moveOrigin)
 
-        selected.transform.position.x = offset.x
-        selected.transform.position.y = offset.y
+        const snap: number | undefined = undefined
+        const newPosition: Vector = snap
+          ? {
+              x: Math.round(offset.x / 10) * 10,
+              y: Math.round(offset.y / 10) * 10,
+            }
+          : offset
+
+        selected.transform.position.x = newPosition.x
+        selected.transform.position.y = newPosition.y
       }
 
       canvas.addEventListener('click', onClick)
