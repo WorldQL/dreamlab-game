@@ -13,7 +13,7 @@ import type {
   MessageListenerClient,
 } from '@dreamlab.gg/core/network'
 import { createSignal } from '@dreamlab.gg/core/utils'
-import decodeJWT from 'jwt-decode'
+import { jwtDecode as decodeJWT } from 'jwt-decode'
 import Matter from 'matter-js'
 import type { Body } from 'matter-js'
 import { loadAnimations } from './animations.js'
