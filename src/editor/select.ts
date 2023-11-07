@@ -207,8 +207,8 @@ export const createEntitySelect = () => {
 
             const edge = Vec.sub(rotated, selected.transform.position)
             const abs = absolute(edge)
-            const width = abs.x * 2
-            const height = abs.y * 2
+            const width = Math.max(abs.x * 2, 1)
+            const height = Math.max(abs.y * 2, 1)
 
             const size = Math.max(width, height)
             const bounds: Bounds = shift
