@@ -77,7 +77,7 @@ export const init = async () => {
 
       if (level) {
         await loadScript(level, game)
-        await spawnPlayer(game, undefined, true)
+        await spawnPlayer(game, undefined)
       }
     }
 

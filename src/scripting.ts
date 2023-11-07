@@ -1,5 +1,4 @@
 import type { Game } from '@dreamlab.gg/core'
-import { PlayerInventory } from '@dreamlab.gg/core/dist/managers'
 import { createPlayer } from '@dreamlab.gg/core/entities'
 import type { Vector } from '@dreamlab.gg/core/math'
 import { getCharacterID, loadAnimations } from './animations.js'
@@ -21,23 +20,11 @@ export const loadScript = async (
   }
 }
 
-export const spawnPlayer = async (
-  game: Game<false>,
-  position?: Vector,
-  _debug = false,
-) => {
+export const spawnPlayer = async (game: Game<false>, position?: Vector) => {
   const characterID = getCharacterID()
   const animations = await loadAnimations(characterID)
 
-  // const tryGetObjects: () => Promise<ObjectItem[]> = async () =>
-  //   new Promise(resolve => {
-  //     setTimeout(() => resolve([]), 1_000)
-  //     getObjects().then(v => resolve(v))
-  //   })
-  // const fetchedObjects = debug ? [] : await tryGetObjects()
-  const inventory = new PlayerInventory(game)
-  // inventory.setObjects(fetchedObjects)
-  const player = createPlayer(animations, inventory)
+  const player = createPlayer(animations)
   await game.instantiate(player)
 
   if (position) player.teleport(position, true)
