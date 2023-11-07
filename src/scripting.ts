@@ -1,10 +1,8 @@
 import type { Game } from '@dreamlab.gg/core'
-import type { ObjectItem } from '@dreamlab.gg/core/dist/managers'
 import { PlayerInventory } from '@dreamlab.gg/core/dist/managers'
 import { createPlayer } from '@dreamlab.gg/core/entities'
 import type { Vector } from '@dreamlab.gg/core/math'
 import { getCharacterID, loadAnimations } from './animations.js'
-import { getObjects } from './playerData.js'
 
 export const loadScript = async (
   world: string,
@@ -26,19 +24,19 @@ export const loadScript = async (
 export const spawnPlayer = async (
   game: Game<false>,
   position?: Vector,
-  debug = false,
+  _debug = false,
 ) => {
   const characterID = getCharacterID()
   const animations = await loadAnimations(characterID)
 
-  const tryGetObjects: () => Promise<ObjectItem[]> = () =>
-    new Promise(resolve => {
-      setTimeout(() => resolve([]), 1000)
-      getObjects().then(v => resolve(v))
-    })
-  const fetchedObjects = debug ? [] : await tryGetObjects()
+  // const tryGetObjects: () => Promise<ObjectItem[]> = async () =>
+  //   new Promise(resolve => {
+  //     setTimeout(() => resolve([]), 1_000)
+  //     getObjects().then(v => resolve(v))
+  //   })
+  // const fetchedObjects = debug ? [] : await tryGetObjects()
   const inventory = new PlayerInventory(game)
-  inventory.setObjects(fetchedObjects)
+  // inventory.setObjects(fetchedObjects)
   const player = createPlayer(animations, inventory)
   await game.instantiate(player)
 
