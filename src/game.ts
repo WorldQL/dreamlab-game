@@ -35,6 +35,9 @@ export const init = async () => {
     },
   })
 
+  // @ts-expect-error global assign in dev
+  if (import.meta.env.DEV) window.game = game
+
   const onToggleDebug = (pressed: boolean) => {
     if (!pressed) return
     game.debug.toggle()
