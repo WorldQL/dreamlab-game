@@ -1,6 +1,5 @@
 import { createGame } from '@dreamlab.gg/core'
 import { createCursor, PlayerInput } from '@dreamlab.gg/core/entities'
-import { calculatePolygons, v } from '@dreamlab.gg/core/math'
 import { isDebug } from './debug.js'
 import { createEditor } from './editor/editor.js'
 import { connect, createNetwork, decodeParams } from './network.js'
@@ -89,31 +88,4 @@ export const init = async () => {
   // TODO: Actually allow rebinding keys
   game.client.inputs.bindInput('Space', PlayerInput.Jump)
   game.client.inputs.bindInput('KeyW', PlayerInput.Jump)
-
-  // await game.spawn({
-  //   entity: '@dreamlab/BouncyBall',
-  //   args: {
-  //     radius: 50,
-  //     spriteSource:
-  //       'https://cdn.discordapp.com/attachments/441805394323439648/1169068510828306513/Screenshot_20231031_201958_sysui.png?ex=65540ee5&is=654199e5&hm=e3c933515e660a65821214cb5bce8e2ca180fa304b701111ca265f592fc19341&',
-  //   },
-  //   transform: { rotation: 0, position: [0, 0] },
-  // })
-
-  const [center, polygons] = calculatePolygons([
-    v([100, 100]),
-    v([100, 200]),
-    v([300, 100]),
-    v([300, 200]),
-
-    v([200, 180]),
-    v([200, 20]),
-    v([160, 80]),
-  ])
-
-  await game.spawn({
-    entity: '@dreamlab/ComplexSolid',
-    args: { polygon: polygons },
-    transform: { position: center },
-  })
 }
