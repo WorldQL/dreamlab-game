@@ -1,5 +1,6 @@
 import { createEntity } from '@dreamlab.gg/core'
 import type { SpawnableEntity } from '@dreamlab.gg/core'
+import type { EventHandler } from '@dreamlab.gg/core/events'
 import {
   absolute,
   angleBetween,
@@ -13,8 +14,6 @@ import {
 import type { Bounds, Vector } from '@dreamlab.gg/core/math'
 import { drawBox, drawCircle } from '@dreamlab.gg/core/utils'
 import { Container, Graphics } from 'pixi.js'
-
-// TODO: Listen to onDestroy and clear selected if needed
 
 type ActionData =
   | { type: 'clear' }
@@ -35,9 +34,15 @@ export const createEntitySelect = () => {
     if (action !== undefined) action = { type: 'clear' }
   }
 
+  const onDestroy: EventHandler<'onDestroy'> = entity => {
+    if (entity === selected) selected = undefined
+  }
+
   return createEntity({
     init({ game }) {
-      return { debug: game.debug }
+      game.events.common.addListener('onDestroy', onDestroy)
+
+      return { game, debug: game.debug }
     },
 
     initRenderContext({ game }, { canvas, stage, camera }) {
@@ -284,8 +289,8 @@ export const createEntitySelect = () => {
       }
     },
 
-    teardown(_) {
-      // No-op
+    teardown({ game }) {
+      game.events.common.removeListener('onDestroy', onDestroy)
     },
 
     teardownRenderContext({
