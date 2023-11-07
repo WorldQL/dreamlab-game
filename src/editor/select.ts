@@ -1,6 +1,7 @@
 import { createEntity } from '@dreamlab.gg/core'
 import type { SpawnableEntity } from '@dreamlab.gg/core'
 import {
+  absolute,
   angleBetween,
   distance,
   snap,
@@ -9,13 +10,14 @@ import {
   toRadians,
   Vec,
 } from '@dreamlab.gg/core/math'
-import type { Vector } from '@dreamlab.gg/core/math'
+import type { Bounds, Vector } from '@dreamlab.gg/core/math'
 import { drawBox, drawCircle } from '@dreamlab.gg/core/utils'
 import { Container, Graphics } from 'pixi.js'
 
 type ActionData =
   | { type: 'clear' }
   | { type: 'rotate' }
+  | { type: 'scale'; origin: Vector }
   | { type: 'translate'; origin: Vector }
 
 export const createEntitySelect = () => {
@@ -162,7 +164,10 @@ export const createEntitySelect = () => {
         if (handle === 'rotation') {
           action = { type: 'rotate' }
         } else if (handle) {
-          // TODO: Scale
+          action = {
+            type: 'scale',
+            origin: pos,
+          }
         } else if (selected.isPointInside(pos)) {
           action = {
             type: 'translate',
@@ -179,18 +184,56 @@ export const createEntitySelect = () => {
         if (!selected || !action) return
         const shift = game.client.inputs.getKey('ShiftLeft')
 
-        if (action.type === 'rotate') {
-          const radians = angleBetween(selected.transform.position, pos)
-          const degrees = toDegrees(radians + Math.PI / 2)
+        switch (action.type) {
+          case 'rotate': {
+            const radians = angleBetween(selected.transform.position, pos)
+            const degrees = toDegrees(radians + Math.PI / 2)
 
-          const angle = shift ? snap(degrees, 15) : degrees
-          selected.transform.rotation = angle
-        } else if (action.type === 'translate') {
-          const offset = Vec.add(pos, action.origin)
-          const newPosition = shift ? snapVector(offset, 10) : offset
+            const angle = shift ? snap(degrees, 15) : degrees
+            selected.transform.rotation = angle
 
-          selected.transform.position.x = newPosition.x
-          selected.transform.position.y = newPosition.y
+            break
+          }
+
+          case 'scale': {
+            // TODO: Account for mouse offset
+
+            const radians = toRadians(0 - selected.transform.rotation)
+            const rotated = Vec.rotateAbout(
+              pos,
+              radians,
+              selected.transform.position,
+            )
+
+            const edge = Vec.sub(rotated, selected.transform.position)
+            const abs = absolute(edge)
+            const width = abs.x * 2
+            const height = abs.y * 2
+
+            const size = Math.max(width, height)
+            const bounds: Bounds = shift
+              ? { width: size, height: size }
+              : { width, height }
+
+            game.resize(selected, bounds)
+
+            break
+          }
+
+          case 'translate': {
+            const offset = Vec.add(pos, action.origin)
+            const newPosition = shift ? snapVector(offset, 10) : offset
+
+            selected.transform.position.x = newPosition.x
+            selected.transform.position.y = newPosition.y
+
+            break
+          }
+
+          case 'clear': {
+            // No-op
+            break
+          }
         }
       }
 
