@@ -14,6 +14,8 @@ import type { Bounds, Vector } from '@dreamlab.gg/core/math'
 import { drawBox, drawCircle } from '@dreamlab.gg/core/utils'
 import { Container, Graphics } from 'pixi.js'
 
+// TODO: Listen to onDestroy and clear selected if needed
+
 type ActionData =
   | { type: 'clear' }
   | { type: 'rotate' }
@@ -133,7 +135,9 @@ export const createEntitySelect = () => {
         const pos = camera.localToWorld({ x: ev.offsetX, y: ev.offsetY })
         const query = game.queryPosition(pos)
 
-        // TODO: Sort based on Z-index
+        // Sort based on z-index
+        query.sort((a, b) => b.transform.zIndex - a.transform.zIndex)
+
         const prev = selected
         selected =
           action?.type === 'clear'
