@@ -1,4 +1,5 @@
 import type { Game } from '@dreamlab.gg/core'
+import type { ObjectItem } from '@dreamlab.gg/core/dist/managers'
 import { PlayerInventory } from '@dreamlab.gg/core/dist/managers'
 import { createPlayer } from '@dreamlab.gg/core/entities'
 import type { Vector } from '@dreamlab.gg/core/math'
@@ -29,7 +30,13 @@ export const spawnPlayer = async (
 ) => {
   const characterID = getCharacterID()
   const animations = await loadAnimations(characterID)
-  const fetchedObjects = debug ? [] : await getObjects()
+
+  const tryGetObjects: () => Promise<ObjectItem[]> = () =>
+    new Promise(resolve => {
+      setTimeout(() => resolve([]), 1000)
+      getObjects().then(v => resolve(v))
+    })
+  const fetchedObjects = debug ? [] : await tryGetObjects()
   const inventory = new PlayerInventory(game)
   inventory.setObjects(fetchedObjects)
   const player = createPlayer(animations, inventory)
