@@ -4,12 +4,16 @@ import type { Vector } from '@dreamlab.gg/core/math'
 import { getCharacterID, loadAnimations } from './animations.js'
 
 export const loadScript = async (
+  baseURL: string | undefined,
   world: string,
   game: Game<false>,
 ): Promise<void> => {
-  const module: unknown = await import(
-    /* @vite-ignore */ `/worlds/${world}/client.js`
-  )
+  const scriptURL =
+    baseURL === undefined
+      ? `/worlds/${world}/client.js`
+      : `${baseURL}/worlds/${world}/client.js`
+
+  const module: unknown = await import(/* @vite-ignore */ scriptURL)
 
   if (module === undefined) return
   if (module === null) return

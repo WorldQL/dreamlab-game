@@ -2,7 +2,7 @@
 import { SpawnableDefinitionSchema } from '@dreamlab.gg/core'
 import { z } from 'zod'
 
-export const PROTOCOL_VERSION = 4
+export const PROTOCOL_VERSION = 5
 
 const TupleVectorSchema = z.tuple([z.number(), z.number()])
 const ObjectVectorSchema = z.object({ x: z.number(), y: z.number() })
@@ -14,6 +14,8 @@ export const HandshakeSchema = z.object({
   protocol_version: z.number(),
   peer_id: z.string(),
   world_id: z.string(),
+  edit_mode: z.boolean(),
+  custom_world_script_url_base: z.string().optional(),
 })
 
 export type HandshakeReadyPacket = z.infer<typeof HandshakeReadySchema>

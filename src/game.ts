@@ -59,10 +59,6 @@ export const init = async () => {
   // #region Utility Entities
   const cursor = createCursor()
   await game.instantiate(cursor)
-
-  // TODO: Conditionally enable editor
-  const editor = createEditor()
-  await game.instantiate(editor)
   // #endregion
 
   if (ws) {
@@ -76,7 +72,10 @@ export const init = async () => {
       const level = url.searchParams.get('level')
 
       if (level) {
-        await loadScript(level, game)
+        const editor = createEditor()
+        await game.instantiate(editor)
+
+        await loadScript(undefined, level, game)
         await spawnPlayer(game, undefined)
       }
     }

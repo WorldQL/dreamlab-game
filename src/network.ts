@@ -30,6 +30,7 @@ import type {
   ToClientPacket,
 } from './packets.js'
 import { loadScript, spawnPlayer } from './scripting.js'
+import { createEditor } from './editor/editor.js'
 
 let fakeLatency = Number.parseFloat(
   window.localStorage.getItem('@dreamlab/fakeLatency') ?? '0',
@@ -363,7 +364,16 @@ export const createNetwork = (
             // TODO(Charlotte): Probably just disconnect at this point
           }
 
-          await loadScript(packet.world_id, game)
+          if (packet.edit_mode) {
+            const editor = createEditor()
+            game.instantiate(editor)
+          }
+
+          await loadScript(
+            packet.custom_world_script_url_base,
+            packet.world_id,
+            game,
+          )
 
           const payload: HandshakeReadyPacket = { t: 'HandshakeReady' }
           sendPacket(payload)
