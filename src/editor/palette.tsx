@@ -1,5 +1,6 @@
 import type { Game } from '@dreamlab.gg/core'
 import { renderUI as render, useRegistered } from '@dreamlab.gg/ui/react'
+import { useMemo } from 'https://esm.sh/react@18.2.0'
 import type { FC } from 'https://esm.sh/react@18.2.0'
 import type { CSSProperties } from 'react'
 
@@ -26,12 +27,16 @@ const cssPalette: CSSProperties = {
 
 const Palette: FC = () => {
   const registered = useRegistered()
+  const spawnable = useMemo(
+    () => registered.filter(([, fn]) => fn.hasDefaults),
+    [registered],
+  )
 
   return (
     <div style={cssPalette}>
       <h1>Spawn Object</h1>
 
-      {registered.map(([name]) => (
+      {spawnable.map(([name]) => (
         <button key={name}>{name}</button>
       ))}
     </div>
