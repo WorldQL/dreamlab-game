@@ -46,7 +46,15 @@ export const createEditor = () => {
     },
 
     initRenderContext({ game }, _render) {
-      const { unmount } = renderUI(game)
+      const { container, unmount } = renderUI(game)
+      container.style.display = 'none'
+
+      deferUntilPlayer(game, player => {
+        player.events.addListener('onToggleNoclip', noclip => {
+          container.style.display = noclip ? '' : 'none'
+        })
+      })
+
       return { unmount }
     },
 
