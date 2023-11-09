@@ -39,7 +39,7 @@ export const createEditor = () => {
     },
 
     initRenderContext({ game }, _render) {
-      const { container, unmount } = renderUI(game)
+      const { container, unmount } = renderUI(game, selector)
       container.style.display = 'none'
 
       deferUntilPlayer(game, player => {

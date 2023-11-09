@@ -8,6 +8,7 @@ import {
 import { useCallback, useMemo } from 'https://esm.sh/react@18.2.0'
 import type { FC } from 'https://esm.sh/react@18.2.0'
 import type { CSSProperties } from 'react'
+import type { Selector } from './select'
 
 const cssPalette: CSSProperties = {
   '--palette-margin': '1rem',
@@ -30,7 +31,7 @@ const cssPalette: CSSProperties = {
   flexDirection: 'column',
 }
 
-const Palette: FC = () => {
+const Palette: FC<{ readonly selector: Selector }> = ({ selector }) => {
   const game = useGame()
   const player = usePlayer()
 
@@ -41,10 +42,10 @@ const Palette: FC = () => {
   )
 
   const spawn = useCallback(
-    (entity: string) => {
+    async (entity: string) => {
       if (!player) return
 
-      void game.spawn({
+      const spawned = await game.spawn({
         entity,
         args: {},
         transform: {
@@ -52,8 +53,10 @@ const Palette: FC = () => {
           zIndex: 100, // Spawn in front of player
         },
       })
+
+      selector.select(spawned)
     },
-    [game, player],
+    [game, player, selector],
   )
 
   return (
@@ -61,7 +64,7 @@ const Palette: FC = () => {
       <h1>Spawn Object</h1>
 
       {spawnable.map(([name]) => (
-        <button key={name} type='button' onClick={() => spawn(name)}>
+        <button key={name} type='button' onClick={async () => spawn(name)}>
           {name}
         </button>
       ))}
@@ -69,6 +72,6 @@ const Palette: FC = () => {
   )
 }
 
-export const renderUI = (game: Game<false>) => {
-  return render(game, <Palette />)
+export const renderUI = (game: Game<false>, selector: Selector) => {
+  return render(game, <Palette selector={selector} />)
 }

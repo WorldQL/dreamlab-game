@@ -44,7 +44,7 @@ interface Render {
   onMouseMove(): void
 }
 
-interface Selector extends Entity<Data, Render> {
+export interface Selector extends Entity<Data, Render> {
   select(entity: SpawnableEntity | undefined): void
   deselect(): void
 }
