@@ -8,12 +8,10 @@ export const loadScript = async (
   world: string,
   game: Game<false>,
 ): Promise<void> => {
-  const scriptURL =
+  const module: unknown =
     baseURL === undefined
-      ? `/worlds/${world}/client.js`
-      : `${baseURL}/client.js`
-
-  const module: unknown = await import(/* @vite-ignore */ scriptURL)
+      ? await import(/* @vite-ignore */ `/worlds/${world}/client.js`)
+      : await import(/* @vite-ignore */ `${baseURL}/client.js`)
 
   if (module === undefined) return
   if (module === null) return
