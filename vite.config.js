@@ -149,6 +149,7 @@ export default defineConfig(async () => ({
         if (source.includes('pixi.js')) return true
         if (source.includes('@pixi/')) return true
         if (source.includes('@dreamlab.gg/core')) return true
+        if (source.includes('@dreamlab.gg/ui')) return true
       },
     },
   },
