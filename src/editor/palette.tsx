@@ -1,6 +1,11 @@
 import type { Game } from '@dreamlab.gg/core'
-import { renderUI as render, useRegistered } from '@dreamlab.gg/ui/react'
-import { useMemo } from 'https://esm.sh/react@18.2.0'
+import {
+  renderUI as render,
+  useGame,
+  usePlayer,
+  useRegistered,
+} from '@dreamlab.gg/ui/react'
+import { useCallback, useMemo } from 'https://esm.sh/react@18.2.0'
 import type { FC } from 'https://esm.sh/react@18.2.0'
 import type { CSSProperties } from 'react'
 
@@ -26,10 +31,29 @@ const cssPalette: CSSProperties = {
 }
 
 const Palette: FC = () => {
+  const game = useGame()
+  const player = usePlayer()
+
   const registered = useRegistered()
   const spawnable = useMemo(
     () => registered.filter(([, fn]) => fn.hasDefaults),
     [registered],
+  )
+
+  const spawn = useCallback(
+    (entity: string) => {
+      if (!player) return
+
+      void game.spawn({
+        entity,
+        args: {},
+        transform: {
+          position: player.position,
+          zIndex: 100, // Spawn in front of player
+        },
+      })
+    },
+    [game, player],
   )
 
   return (
@@ -37,7 +61,9 @@ const Palette: FC = () => {
       <h1>Spawn Object</h1>
 
       {spawnable.map(([name]) => (
-        <button key={name}>{name}</button>
+        <button key={name} type='button' onClick={() => spawn(name)}>
+          {name}
+        </button>
       ))}
     </div>
   )
