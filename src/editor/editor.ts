@@ -1,6 +1,6 @@
 import type { SpawnableEntity } from '@dreamlab.gg/core'
 import { createEntity } from '@dreamlab.gg/core'
-import { ref } from '@dreamlab.gg/core/utils'
+import { deferUntilPlayer, ref } from '@dreamlab.gg/core/utils'
 import { renderUI } from './palette'
 import { createEntitySelect } from './select'
 
@@ -29,6 +29,18 @@ export const createEditor = () => {
       const inputs = game.client?.inputs
       inputs?.registerInput(EditorInputs.TogglePhysics, 'KeyK')
       inputs?.addListener(EditorInputs.TogglePhysics, togglePhysics)
+
+      deferUntilPlayer(game, player => {
+        player.events.addListener('onToggleNoclip', noclip => {
+          enabled.value = noclip
+
+          // Deselect if we leave noclip
+          if (!noclip) {
+            if (selected.value) game.physics.resume(selected.value)
+            selected.value = undefined
+          }
+        })
+      })
 
       return { game, togglePhysics }
     },
