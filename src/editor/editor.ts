@@ -3,7 +3,8 @@ import { ref } from '@dreamlab.gg/core/utils'
 import { createEntitySelect } from './select'
 
 enum EditorInputs {
-  Toggle = '@editor/Toggle',
+  TogglePalette = '@editor/TogglePalette',
+  TogglePhysics = '@editor/TogglePhysics',
 }
 
 export const createEditor = () => {
@@ -15,7 +16,7 @@ export const createEditor = () => {
     async init({ game }) {
       await game.instantiate(selector)
 
-      const toggleEditor = (pressed: boolean) => {
+      const togglePhysics = (pressed: boolean) => {
         if (!pressed) return
 
         if (game.physics.running) game.physics.suspend()
@@ -23,10 +24,10 @@ export const createEditor = () => {
       }
 
       const inputs = game.client?.inputs
-      inputs?.registerInput(EditorInputs.Toggle, 'KeyK')
-      inputs?.addListener(EditorInputs.Toggle, toggleEditor)
+      inputs?.registerInput(EditorInputs.TogglePhysics, 'KeyK')
+      inputs?.addListener(EditorInputs.TogglePhysics, togglePhysics)
 
-      return { game, toggleEditor }
+      return { game, togglePhysics }
     },
 
     initRenderContext(_init, _render) {
@@ -34,9 +35,9 @@ export const createEditor = () => {
       return {}
     },
 
-    async teardown({ game, toggleEditor }) {
+    async teardown({ game, togglePhysics }) {
       const inputs = game.client?.inputs
-      inputs?.removeListener(EditorInputs.Toggle, toggleEditor)
+      inputs?.removeListener(EditorInputs.TogglePhysics, togglePhysics)
 
       await game.destroy(selector)
     },
