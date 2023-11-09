@@ -1,4 +1,3 @@
-import type { SpawnableEntity } from '@dreamlab.gg/core'
 import { createEntity } from '@dreamlab.gg/core'
 import { deferUntilPlayer, ref } from '@dreamlab.gg/core/utils'
 import { renderUI } from './palette'
@@ -11,8 +10,7 @@ enum EditorInputs {
 
 export const createEditor = () => {
   const enabled = ref<boolean>(false)
-  const selected = ref<SpawnableEntity | undefined>(undefined)
-  const selector = createEntitySelect(enabled, selected)
+  const selector = createEntitySelect(enabled)
   // TODO: Implement the rest of the editor
 
   return createEntity({
@@ -33,12 +31,7 @@ export const createEditor = () => {
       deferUntilPlayer(game, player => {
         player.events.addListener('onToggleNoclip', noclip => {
           enabled.value = noclip
-
-          // Deselect if we leave noclip
-          if (!noclip) {
-            if (selected.value) game.physics.resume(selected.value)
-            selected.value = undefined
-          }
+          if (!noclip) selector.deselect()
         })
       })
 

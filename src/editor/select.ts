@@ -1,5 +1,6 @@
-import { createEntity } from '@dreamlab.gg/core'
-import type { SpawnableEntity } from '@dreamlab.gg/core'
+import { createEntity, dataManager } from '@dreamlab.gg/core'
+import type { Entity, Game, SpawnableEntity } from '@dreamlab.gg/core'
+import type { Camera } from '@dreamlab.gg/core/entities'
 import type { EventHandler } from '@dreamlab.gg/core/events'
 import {
   absolute,
@@ -12,7 +13,7 @@ import {
   Vec,
 } from '@dreamlab.gg/core/math'
 import type { Bounds, Vector } from '@dreamlab.gg/core/math'
-import type { Ref } from '@dreamlab.gg/core/utils'
+import type { Debug, Ref } from '@dreamlab.gg/core/utils'
 import { drawBox, drawCircle } from '@dreamlab.gg/core/utils'
 import { Container, Graphics } from 'pixi.js'
 
@@ -22,15 +23,39 @@ type ActionData =
   | { type: 'scale'; origin: Vector }
   | { type: 'translate'; origin: Vector }
 
-export const createEntitySelect = (
-  editorEnabled: Ref<boolean>,
-  selected: Ref<SpawnableEntity | undefined>,
-) => {
+interface Data {
+  game: Game<boolean>
+  debug: Debug
+}
+
+interface Render {
+  canvas: HTMLCanvasElement
+  camera: Camera
+  container: Container
+  boundsGfx: Graphics
+  topLeftGfx: Graphics
+  topRightGfx: Graphics
+  bottomLeftGfx: Graphics
+  bottomRightGfx: Graphics
+  rotStalkGfx: Graphics
+  rotHandleGfx: Graphics
+  onClick(ev: MouseEvent): void
+  onMouseDown(ev: MouseEvent): void
+  onMouseMove(): void
+}
+
+interface Selector extends Entity<Data, Render> {
+  select(entity: SpawnableEntity | undefined): void
+  deselect(): void
+}
+
+export const createEntitySelect = (editorEnabled: Ref<boolean>) => {
   const colour = '#22a2ff'
   const strokeWidth = 2
   const handleSize = 10
   const rotStalkHeight = 30
 
+  let selected: SpawnableEntity | undefined
   let action: ActionData | undefined
 
   const onMouseUp = () => {
@@ -38,10 +63,26 @@ export const createEntitySelect = (
   }
 
   const onDestroy: EventHandler<'onDestroy'> = entity => {
-    if (entity === selected.value) selected.value = undefined
+    if (entity === selected) selected = undefined
   }
 
-  return createEntity({
+  return createEntity<Selector, Data, Render>({
+    select(entity) {
+      const { game } = dataManager.getData(this)
+
+      const prev = selected
+      selected = entity
+
+      if (selected !== prev) {
+        if (prev) game.physics.resume(prev)
+        if (selected) game.physics.suspend(selected)
+      }
+    },
+
+    deselect() {
+      this.select(undefined)
+    },
+
     init({ game }) {
       game.events.common.addListener('onDestroy', onDestroy)
 
@@ -51,51 +92,50 @@ export const createEntitySelect = (
     initRenderContext({ game }, { canvas, stage, camera }) {
       type Handle = 'rotation' | `${'bottom' | 'top'}${'Left' | 'Right'}`
       const isHandle = (point: Vector): Handle | undefined => {
-        const bounds = selected.value?.rectangleBounds()
-        if (!selected.value || !bounds) return undefined
-        const entity = selected.value
+        const bounds = selected?.rectangleBounds()
+        if (!selected || !bounds) return undefined
 
         const inverse = 1 / camera.scale
         const distanceTest = handleSize * 1.5 * inverse
         const { width, height } = bounds
-        const angle = toRadians(entity.transform.rotation)
+        const angle = toRadians(selected.transform.rotation)
 
         // TODO: Ensure corrections for camera scale work
 
         const topLeft = Vec.rotateAbout(
           {
-            x: entity.transform.position.x - width / 2 - strokeWidth / 2,
-            y: entity.transform.position.y - height / 2 - strokeWidth / 2,
+            x: selected.transform.position.x - width / 2 - strokeWidth / 2,
+            y: selected.transform.position.y - height / 2 - strokeWidth / 2,
           },
           angle,
-          entity.transform.position,
+          selected.transform.position,
         )
 
         const topRight = Vec.rotateAbout(
           {
-            x: entity.transform.position.x + width / 2 + strokeWidth / 2,
-            y: entity.transform.position.y - height / 2 - strokeWidth / 2,
+            x: selected.transform.position.x + width / 2 + strokeWidth / 2,
+            y: selected.transform.position.y - height / 2 - strokeWidth / 2,
           },
           angle,
-          entity.transform.position,
+          selected.transform.position,
         )
 
         const bottomLeft = Vec.rotateAbout(
           {
-            x: entity.transform.position.x - width / 2 - strokeWidth / 2,
-            y: entity.transform.position.y + height / 2 + strokeWidth / 2,
+            x: selected.transform.position.x - width / 2 - strokeWidth / 2,
+            y: selected.transform.position.y + height / 2 + strokeWidth / 2,
           },
           angle,
-          entity.transform.position,
+          selected.transform.position,
         )
 
         const bottomRight = Vec.rotateAbout(
           {
-            x: entity.transform.position.x + width / 2 + strokeWidth / 2,
-            y: entity.transform.position.y + height / 2 + strokeWidth / 2,
+            x: selected.transform.position.x + width / 2 + strokeWidth / 2,
+            y: selected.transform.position.y + height / 2 + strokeWidth / 2,
           },
           angle,
-          entity.transform.position,
+          selected.transform.position,
         )
 
         const scaledStalkHeight = Math.min(
@@ -105,11 +145,11 @@ export const createEntitySelect = (
 
         const rotation = Vec.rotateAbout(
           {
-            x: entity.transform.position.x,
-            y: entity.transform.position.y - height / 2 - scaledStalkHeight,
+            x: selected.transform.position.x,
+            y: selected.transform.position.y - height / 2 - scaledStalkHeight,
           },
           angle,
-          entity.transform.position,
+          selected.transform.position,
         )
 
         const distances: [number, Handle][] = [
@@ -132,8 +172,8 @@ export const createEntitySelect = (
 
       const updateCursor = (point: Vector) => {
         const validHover =
-          selected.value &&
-          (selected.value.isPointInside(point) ||
+          selected &&
+          (selected.isPointInside(point) ||
             isHandle(point) !== undefined ||
             (action !== undefined && action.type !== 'clear'))
 
@@ -148,22 +188,18 @@ export const createEntitySelect = (
         // Sort based on z-index
         query.sort((a, b) => b.transform.zIndex - a.transform.zIndex)
 
-        const prev = selected.value
-        selected.value =
+        const newSelection =
           action?.type === 'clear'
-            ? selected.value
+            ? selected
             : query.length > 0
             ? query[0]
             : isHandle(pos)
-            ? selected.value
+            ? selected
             : undefined
 
-        if (selected.value !== prev) {
-          if (prev) game.physics.resume(prev)
-          if (selected.value) game.physics.suspend(selected.value)
-        }
-
+        this.select(newSelection)
         updateCursor(pos)
+
         if (action?.type === 'clear') action = undefined
 
         // @ts-expect-error global assign in dev
@@ -173,7 +209,7 @@ export const createEntitySelect = (
       const onMouseDown = (ev: MouseEvent) => {
         if (!editorEnabled.value) return
         const pos = camera.localToWorld({ x: ev.offsetX, y: ev.offsetY })
-        if (!selected.value) return
+        if (!selected) return
 
         const handle = isHandle(pos)
         if (handle === 'rotation') {
@@ -183,10 +219,10 @@ export const createEntitySelect = (
             type: 'scale',
             origin: pos,
           }
-        } else if (selected.value.isPointInside(pos)) {
+        } else if (selected.isPointInside(pos)) {
           action = {
             type: 'translate',
-            origin: Vec.sub(selected.value.transform.position, pos),
+            origin: Vec.sub(selected.transform.position, pos),
           }
         }
       }
@@ -196,17 +232,16 @@ export const createEntitySelect = (
         if (!pos) return
         updateCursor(pos)
 
-        if (!selected.value || !action) return
-        const entity = selected.value
+        if (!selected || !action) return
         const shift = game.client.inputs.getKey('ShiftLeft')
 
         switch (action.type) {
           case 'rotate': {
-            const radians = angleBetween(entity.transform.position, pos)
+            const radians = angleBetween(selected.transform.position, pos)
             const degrees = toDegrees(radians + Math.PI / 2)
 
             const angle = shift ? snap(degrees, 15) : degrees
-            entity.transform.rotation = angle
+            selected.transform.rotation = angle
 
             break
           }
@@ -214,14 +249,14 @@ export const createEntitySelect = (
           case 'scale': {
             // TODO: Account for mouse offset
 
-            const radians = toRadians(0 - entity.transform.rotation)
+            const radians = toRadians(0 - selected.transform.rotation)
             const rotated = Vec.rotateAbout(
               pos,
               radians,
-              entity.transform.position,
+              selected.transform.position,
             )
 
-            const edge = Vec.sub(rotated, entity.transform.position)
+            const edge = Vec.sub(rotated, selected.transform.position)
             const abs = absolute(edge)
             const width = Math.max(abs.x * 2, 1)
             const height = Math.max(abs.y * 2, 1)
@@ -231,7 +266,7 @@ export const createEntitySelect = (
               ? { width: size, height: size }
               : { width, height }
 
-            game.resize(entity, bounds)
+            game.resize(selected, bounds)
 
             break
           }
@@ -240,8 +275,8 @@ export const createEntitySelect = (
             const offset = Vec.add(pos, action.origin)
             const newPosition = shift ? snapVector(offset, 10) : offset
 
-            entity.transform.position.x = newPosition.x
-            entity.transform.position.y = newPosition.y
+            selected.transform.position.x = newPosition.x
+            selected.transform.position.y = newPosition.y
 
             break
           }
@@ -333,13 +368,13 @@ export const createEntitySelect = (
     ) {
       onMouseMove()
 
-      const bounds = selected.value?.rectangleBounds()
-      if (!selected.value || !bounds) {
+      const bounds = selected?.rectangleBounds()
+      if (!selected || !bounds) {
         container.alpha = 0
         return
       }
 
-      const entity = selected.value
+      const entity = selected
       const inverse = 1 / camera.scale
       const scaledWidth = strokeWidth * inverse
 
