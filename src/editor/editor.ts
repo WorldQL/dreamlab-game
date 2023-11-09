@@ -32,7 +32,7 @@ export const createEditor = () => {
     },
 
     initRenderContext({ game }, _render) {
-      const unmount = renderUI(game)
+      const { unmount } = renderUI(game)
       return { unmount }
     },
 
