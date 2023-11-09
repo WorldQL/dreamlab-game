@@ -1,5 +1,6 @@
 import { createEntity } from '@dreamlab.gg/core'
 import { ref } from '@dreamlab.gg/core/utils'
+import { renderUI } from './palette'
 import { createEntitySelect } from './select'
 
 enum EditorInputs {
@@ -30,9 +31,9 @@ export const createEditor = () => {
       return { game, togglePhysics }
     },
 
-    initRenderContext(_init, _render) {
-      // No-op
-      return {}
+    initRenderContext({ game }, _render) {
+      const unmount = renderUI(game)
+      return { unmount }
     },
 
     async teardown({ game, togglePhysics }) {
@@ -42,8 +43,8 @@ export const createEditor = () => {
       await game.destroy(selector)
     },
 
-    teardownRenderContext() {
-      // No-op
+    teardownRenderContext({ unmount }) {
+      unmount()
     },
   })
 }
