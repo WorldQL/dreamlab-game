@@ -142,7 +142,7 @@ export const createEntitySelect = (
 
       const onClick = (ev: MouseEvent) => {
         const pos = camera.localToWorld({ x: ev.offsetX, y: ev.offsetY })
-        const query = game.queryPosition(pos)
+        const query = game.queryPosition(pos).filter(entity => !entity.preview)
 
         // Sort based on z-index
         query.sort((a, b) => b.transform.zIndex - a.transform.zIndex)
