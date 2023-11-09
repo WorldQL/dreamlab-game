@@ -15,7 +15,7 @@ export const HandshakeSchema = z.object({
   peer_id: z.string(),
   world_id: z.string(),
   edit_mode: z.boolean(),
-  custom_world_script_url_base: z.string().optional(),
+  world_script_url_base: z.string().optional().nullable(),
 })
 
 export type HandshakeReadyPacket = z.infer<typeof HandshakeReadySchema>

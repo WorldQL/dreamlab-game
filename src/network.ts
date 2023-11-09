@@ -370,7 +370,9 @@ export const createNetwork = (
           }
 
           await loadScript(
-            packet.custom_world_script_url_base,
+            packet.world_script_url_base
+              ? packet.world_script_url_base
+              : undefined,
             packet.world_id,
             game,
           )
