@@ -1,11 +1,12 @@
 import type { Game } from '@dreamlab.gg/core'
-import { createBouncyBall } from '@dreamlab.gg/core/dist/entities'
-import { renderUI as render } from '@dreamlab.gg/ui/react'
+import { renderUI as render, useRegistered } from '@dreamlab.gg/ui/react'
 import type { FC } from 'https://esm.sh/react@18.2.0'
 import type { CSSProperties } from 'react'
 
 const cssPalette: CSSProperties = {
   '--palette-margin': '1rem',
+  pointerEvents: 'all',
+  userSelect: 'auto',
 
   width: 'max-content',
   minWidth: '24rem',
@@ -17,13 +18,26 @@ const cssPalette: CSSProperties = {
 
   padding: '1rem',
   borderRadius: '.5rem',
-  background: 'red',
+  background: 'grey',
+
+  display: 'flex',
+  flexDirection: 'column',
 }
 
 const Palette: FC = () => {
-  return <div style={cssPalette}>palette</div>
+  const registered = useRegistered()
+
+  return (
+    <div style={cssPalette}>
+      <h1>Spawn Object</h1>
+
+      {registered.map(([name]) => (
+        <button key={name}>{name}</button>
+      ))}
+    </div>
+  )
 }
 
-export const renderUI = (game: Game<false>): (() => void) => {
+export const renderUI = (game: Game<false>) => {
   return render(game, <Palette />)
 }
