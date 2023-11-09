@@ -11,7 +11,7 @@ export const loadScript = async (
   const scriptURL =
     baseURL === undefined
       ? `/worlds/${world}/client.js`
-      : `${baseURL}/worlds/${world}/client.js`
+      : `${baseURL}/client.js`
 
   const module: unknown = await import(/* @vite-ignore */ scriptURL)
 
