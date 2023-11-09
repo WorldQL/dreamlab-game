@@ -1,3 +1,4 @@
+import type { SpawnableEntity } from '@dreamlab.gg/core'
 import { createEntity } from '@dreamlab.gg/core'
 import { ref } from '@dreamlab.gg/core/utils'
 import { renderUI } from './palette'
@@ -10,7 +11,8 @@ enum EditorInputs {
 
 export const createEditor = () => {
   const enabled = ref<boolean>(false)
-  const selector = createEntitySelect(enabled)
+  const selected = ref<SpawnableEntity | undefined>(undefined)
+  const selector = createEntitySelect(enabled, selected)
   // TODO: Implement the rest of the editor
 
   return createEntity({

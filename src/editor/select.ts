@@ -22,13 +22,15 @@ type ActionData =
   | { type: 'scale'; origin: Vector }
   | { type: 'translate'; origin: Vector }
 
-export const createEntitySelect = (editorEnabled: Ref<boolean>) => {
+export const createEntitySelect = (
+  editorEnabled: Ref<boolean>,
+  selected: Ref<SpawnableEntity | undefined>,
+) => {
   const colour = '#22a2ff'
   const strokeWidth = 2
   const handleSize = 10
   const rotStalkHeight = 30
 
-  let selected: SpawnableEntity | undefined
   let action: ActionData | undefined
 
   const onMouseUp = () => {
@@ -36,7 +38,7 @@ export const createEntitySelect = (editorEnabled: Ref<boolean>) => {
   }
 
   const onDestroy: EventHandler<'onDestroy'> = entity => {
-    if (entity === selected) selected = undefined
+    if (entity === selected.value) selected.value = undefined
   }
 
   return createEntity({
@@ -49,50 +51,51 @@ export const createEntitySelect = (editorEnabled: Ref<boolean>) => {
     initRenderContext({ game }, { canvas, stage, camera }) {
       type Handle = 'rotation' | `${'bottom' | 'top'}${'Left' | 'Right'}`
       const isHandle = (point: Vector): Handle | undefined => {
-        const bounds = selected?.rectangleBounds()
-        if (!selected || !bounds) return undefined
+        const bounds = selected.value?.rectangleBounds()
+        if (!selected.value || !bounds) return undefined
+        const entity = selected.value
 
         const inverse = 1 / camera.scale
         const distanceTest = handleSize * 1.5 * inverse
         const { width, height } = bounds
-        const angle = toRadians(selected.transform.rotation)
+        const angle = toRadians(entity.transform.rotation)
 
         // TODO: Ensure corrections for camera scale work
 
         const topLeft = Vec.rotateAbout(
           {
-            x: selected.transform.position.x - width / 2 - strokeWidth / 2,
-            y: selected.transform.position.y - height / 2 - strokeWidth / 2,
+            x: entity.transform.position.x - width / 2 - strokeWidth / 2,
+            y: entity.transform.position.y - height / 2 - strokeWidth / 2,
           },
           angle,
-          selected.transform.position,
+          entity.transform.position,
         )
 
         const topRight = Vec.rotateAbout(
           {
-            x: selected.transform.position.x + width / 2 + strokeWidth / 2,
-            y: selected.transform.position.y - height / 2 - strokeWidth / 2,
+            x: entity.transform.position.x + width / 2 + strokeWidth / 2,
+            y: entity.transform.position.y - height / 2 - strokeWidth / 2,
           },
           angle,
-          selected.transform.position,
+          entity.transform.position,
         )
 
         const bottomLeft = Vec.rotateAbout(
           {
-            x: selected.transform.position.x - width / 2 - strokeWidth / 2,
-            y: selected.transform.position.y + height / 2 + strokeWidth / 2,
+            x: entity.transform.position.x - width / 2 - strokeWidth / 2,
+            y: entity.transform.position.y + height / 2 + strokeWidth / 2,
           },
           angle,
-          selected.transform.position,
+          entity.transform.position,
         )
 
         const bottomRight = Vec.rotateAbout(
           {
-            x: selected.transform.position.x + width / 2 + strokeWidth / 2,
-            y: selected.transform.position.y + height / 2 + strokeWidth / 2,
+            x: entity.transform.position.x + width / 2 + strokeWidth / 2,
+            y: entity.transform.position.y + height / 2 + strokeWidth / 2,
           },
           angle,
-          selected.transform.position,
+          entity.transform.position,
         )
 
         const scaledStalkHeight = Math.min(
@@ -102,11 +105,11 @@ export const createEntitySelect = (editorEnabled: Ref<boolean>) => {
 
         const rotation = Vec.rotateAbout(
           {
-            x: selected.transform.position.x,
-            y: selected.transform.position.y - height / 2 - scaledStalkHeight,
+            x: entity.transform.position.x,
+            y: entity.transform.position.y - height / 2 - scaledStalkHeight,
           },
           angle,
-          selected.transform.position,
+          entity.transform.position,
         )
 
         const distances: [number, Handle][] = [
@@ -129,8 +132,8 @@ export const createEntitySelect = (editorEnabled: Ref<boolean>) => {
 
       const updateCursor = (point: Vector) => {
         const validHover =
-          selected &&
-          (selected.isPointInside(point) ||
+          selected.value &&
+          (selected.value.isPointInside(point) ||
             isHandle(point) !== undefined ||
             (action !== undefined && action.type !== 'clear'))
 
@@ -144,19 +147,19 @@ export const createEntitySelect = (editorEnabled: Ref<boolean>) => {
         // Sort based on z-index
         query.sort((a, b) => b.transform.zIndex - a.transform.zIndex)
 
-        const prev = selected
-        selected =
+        const prev = selected.value
+        selected.value =
           action?.type === 'clear'
-            ? selected
+            ? selected.value
             : query.length > 0
             ? query[0]
             : isHandle(pos)
-            ? selected
+            ? selected.value
             : undefined
 
-        if (selected !== prev) {
+        if (selected.value !== prev) {
           if (prev) game.physics.resume(prev)
-          if (selected) game.physics.suspend(selected)
+          if (selected.value) game.physics.suspend(selected.value)
         }
 
         updateCursor(pos)
@@ -168,7 +171,7 @@ export const createEntitySelect = (editorEnabled: Ref<boolean>) => {
 
       const onMouseDown = (ev: MouseEvent) => {
         const pos = camera.localToWorld({ x: ev.offsetX, y: ev.offsetY })
-        if (!selected) return
+        if (!selected.value) return
 
         const handle = isHandle(pos)
         if (handle === 'rotation') {
@@ -178,10 +181,10 @@ export const createEntitySelect = (editorEnabled: Ref<boolean>) => {
             type: 'scale',
             origin: pos,
           }
-        } else if (selected.isPointInside(pos)) {
+        } else if (selected.value.isPointInside(pos)) {
           action = {
             type: 'translate',
-            origin: Vec.sub(selected.transform.position, pos),
+            origin: Vec.sub(selected.value.transform.position, pos),
           }
         }
       }
@@ -191,16 +194,17 @@ export const createEntitySelect = (editorEnabled: Ref<boolean>) => {
         if (!pos) return
         updateCursor(pos)
 
-        if (!selected || !action) return
+        if (!selected.value || !action) return
+        const entity = selected.value
         const shift = game.client.inputs.getKey('ShiftLeft')
 
         switch (action.type) {
           case 'rotate': {
-            const radians = angleBetween(selected.transform.position, pos)
+            const radians = angleBetween(entity.transform.position, pos)
             const degrees = toDegrees(radians + Math.PI / 2)
 
             const angle = shift ? snap(degrees, 15) : degrees
-            selected.transform.rotation = angle
+            entity.transform.rotation = angle
 
             break
           }
@@ -208,14 +212,14 @@ export const createEntitySelect = (editorEnabled: Ref<boolean>) => {
           case 'scale': {
             // TODO: Account for mouse offset
 
-            const radians = toRadians(0 - selected.transform.rotation)
+            const radians = toRadians(0 - entity.transform.rotation)
             const rotated = Vec.rotateAbout(
               pos,
               radians,
-              selected.transform.position,
+              entity.transform.position,
             )
 
-            const edge = Vec.sub(rotated, selected.transform.position)
+            const edge = Vec.sub(rotated, entity.transform.position)
             const abs = absolute(edge)
             const width = Math.max(abs.x * 2, 1)
             const height = Math.max(abs.y * 2, 1)
@@ -225,7 +229,7 @@ export const createEntitySelect = (editorEnabled: Ref<boolean>) => {
               ? { width: size, height: size }
               : { width, height }
 
-            game.resize(selected, bounds)
+            game.resize(entity, bounds)
 
             break
           }
@@ -234,8 +238,8 @@ export const createEntitySelect = (editorEnabled: Ref<boolean>) => {
             const offset = Vec.add(pos, action.origin)
             const newPosition = shift ? snapVector(offset, 10) : offset
 
-            selected.transform.position.x = newPosition.x
-            selected.transform.position.y = newPosition.y
+            entity.transform.position.x = newPosition.x
+            entity.transform.position.y = newPosition.y
 
             break
           }
@@ -327,19 +331,20 @@ export const createEntitySelect = (editorEnabled: Ref<boolean>) => {
     ) {
       onMouseMove()
 
-      const bounds = selected?.rectangleBounds()
-      if (!selected || !bounds) {
+      const bounds = selected.value?.rectangleBounds()
+      if (!selected.value || !bounds) {
         container.alpha = 0
         return
       }
 
+      const entity = selected.value
       const inverse = 1 / camera.scale
       const scaledWidth = strokeWidth * inverse
 
-      const pos = Vec.add(selected.transform.position, camera.offset)
+      const pos = Vec.add(entity.transform.position, camera.offset)
       container.alpha = 1
       container.position = pos
-      container.angle = selected.transform.rotation
+      container.angle = entity.transform.rotation
 
       const width = bounds.width + scaledWidth * 2
       const height = bounds.height + scaledWidth * 2
@@ -387,7 +392,7 @@ export const createEntitySelect = (editorEnabled: Ref<boolean>) => {
         y: bounds.height / 2 + scaledWidth / 2,
       }
 
-      const inverseRot = -selected.transform.rotation
+      const inverseRot = -entity.transform.rotation
       topLeftGfx.angle = inverseRot
       topRightGfx.angle = inverseRot
       bottomLeftGfx.angle = inverseRot
