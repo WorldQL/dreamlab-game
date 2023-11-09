@@ -12,6 +12,7 @@ import {
   Vec,
 } from '@dreamlab.gg/core/math'
 import type { Bounds, Vector } from '@dreamlab.gg/core/math'
+import type { Ref } from '@dreamlab.gg/core/utils'
 import { drawBox, drawCircle } from '@dreamlab.gg/core/utils'
 import { Container, Graphics } from 'pixi.js'
 
@@ -21,7 +22,7 @@ type ActionData =
   | { type: 'scale'; origin: Vector }
   | { type: 'translate'; origin: Vector }
 
-export const createEntitySelect = () => {
+export const createEntitySelect = (editorEnabled: Ref<boolean>) => {
   const colour = '#22a2ff'
   const strokeWidth = 2
   const handleSize = 10

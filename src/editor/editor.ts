@@ -1,4 +1,5 @@
 import { createEntity } from '@dreamlab.gg/core'
+import { ref } from '@dreamlab.gg/core/utils'
 import { createEntitySelect } from './select'
 
 enum EditorInputs {
@@ -6,7 +7,8 @@ enum EditorInputs {
 }
 
 export const createEditor = () => {
-  const selector = createEntitySelect()
+  const enabled = ref<boolean>(false)
+  const selector = createEntitySelect(enabled)
   // TODO: Implement the rest of the editor
 
   return createEntity({
