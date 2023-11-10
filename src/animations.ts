@@ -22,6 +22,7 @@ const animations = [
   'greatsword',
   'bow',
   'punch',
+  'shoot',
 ] as const
 
 const loadBones: BoneMap<Animation> = async animation => {
