@@ -6,6 +6,7 @@ import { createKeybinds } from './keybinds/entity.js'
 import { bindInput, loadBindings } from './keybinds/persist.js'
 import { connect, createNetwork, decodeParams } from './network.js'
 import { loadScript, spawnPlayer } from './scripting.js'
+import { setupScriptEditor } from './editor/script-editor.js'
 
 export const init = async () => {
   // #region Setup
@@ -76,6 +77,11 @@ export const init = async () => {
       if (level) {
         const editor = createEditor()
         await game.instantiate(editor)
+        setupScriptEditor(
+          'http://localhost:8002',
+          '00000000-0000-0000-0000-000000000000',
+          'test',
+        )
 
         await loadScript(undefined, level, game)
         // TODO: Spawn level

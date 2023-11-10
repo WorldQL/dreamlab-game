@@ -1,5 +1,6 @@
 import { createEntity } from '@dreamlab.gg/core'
 import { deferUntilPlayer, ref } from '@dreamlab.gg/core/utils'
+import { renderEditorUI } from './editor-ui'
 import { createEntitySelect } from './select'
 import { renderUI } from './ui'
 
@@ -50,7 +51,8 @@ export const createEditor = () => {
     },
 
     initRenderContext({ game }, _render) {
-      const { container, unmount } = renderUI(game, selector)
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      const { container, unmount } = renderEditorUI(game, selector)
       container.style.display = 'none'
 
       deferUntilPlayer(game, player => {

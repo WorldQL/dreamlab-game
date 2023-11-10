@@ -17,6 +17,7 @@
     "@luludev/eslint-config": "^0.5.1",
     "@types/matter-js": "^0.19.3",
     "@types/react": "^18.2.37",
+    "@types/react-dom": "^18.2.15",
     "eslint": "^8.53.0",
     "import-meta-resolve": "^4.0.0",
     "prettier": "^3.0.3",
@@ -25,10 +26,14 @@
     "vite": "^4.5.0"
   },
   "dependencies": {
+    "@monaco-editor/react": "^4.6.0",
     "jwt-decode": "^4.0.0",
     "matter-js": "^0.19.0",
     "modern-normalize": "^2.0.0",
+    "monaco": "^1.201704190613.0",
+    "monaco-editor": "^0.44.0",
     "pixi.js": "^7.3.2",
+    "react-dom": "^18.2.0",
     "type-fest": "^4.6.0",
     "zod": "^3.22.4"
   }
