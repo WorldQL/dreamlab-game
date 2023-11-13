@@ -36,7 +36,13 @@ export const createEditor = () => {
       deferUntilPlayer(game, player => {
         player.events.addListener('onToggleNoclip', noclip => {
           enabled.value = noclip
-          if (!noclip) selector.deselect()
+
+          if (noclip) {
+            inputs?.disable('editor')
+          } else {
+            inputs?.enable('editor')
+            selector.deselect()
+          }
         })
       })
 
