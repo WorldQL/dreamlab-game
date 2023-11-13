@@ -25,7 +25,12 @@ export const createEditor = () => {
       }
 
       const inputs = game.client?.inputs
-      inputs?.registerInput(EditorInputs.TogglePhysics, 'KeyK')
+      inputs?.registerInput(
+        EditorInputs.TogglePhysics,
+        'Toggle Physics',
+        'KeyK',
+      )
+
       inputs?.addListener(EditorInputs.TogglePhysics, togglePhysics)
 
       deferUntilPlayer(game, player => {

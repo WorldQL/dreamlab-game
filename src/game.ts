@@ -43,7 +43,7 @@ export const init = async () => {
   }
 
   container.append(game.client.render.canvas)
-  game.client.inputs.registerInput('debug', 'KeyP')
+  game.client.inputs.registerInput('debug', 'Toggle Debug', 'KeyP')
   game.client.inputs.addListener('debug', onToggleDebug)
   // #endregion
 
