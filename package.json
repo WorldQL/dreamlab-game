@@ -20,6 +20,7 @@
     "eslint": "^8.53.0",
     "import-meta-resolve": "^4.0.0",
     "prettier": "^3.0.3",
+    "styled-components": "^6.1.1",
     "typescript": "^5.2.2",
     "vite": "^4.5.0"
   },

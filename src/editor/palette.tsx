@@ -7,29 +7,33 @@ import {
 } from '@dreamlab.gg/ui/react'
 import { useCallback, useMemo } from 'https://esm.sh/react@18.2.0'
 import type { FC } from 'https://esm.sh/react@18.2.0'
-import type { CSSProperties } from 'react'
+import {
+  styled,
+  StyleSheetManager,
+} from 'https://esm.sh/styled-components@6.1.1'
 import type { Selector } from './select'
 
-const cssPalette: CSSProperties = {
-  '--palette-margin': '1rem',
-  pointerEvents: 'all',
-  userSelect: 'auto',
+const Container = styled.div`
+  --palette-margin: 1rem;
 
-  width: 'max-content',
-  minWidth: '24rem',
+  pointer-events: auto;
+  user-select: auto;
 
-  position: 'fixed',
-  top: 'var(--palette-margin)',
-  right: 'var(--palette-margin)',
-  bottom: 'var(--palette-margin)',
+  width: max-content;
+  min-width: 24rem;
 
-  padding: '1rem',
-  borderRadius: '.5rem',
-  background: 'grey',
+  position: fixed;
+  top: var(--palette-margin);
+  right: var(--palette-margin);
+  bottom: var(--palette-margin);
 
-  display: 'flex',
-  flexDirection: 'column',
-}
+  padding: 1rem;
+  border-radius: 0.5rem;
+  background: grey;
+
+  display: flex;
+  flex-direction: column;
+`
 
 const Palette: FC<{ readonly selector: Selector }> = ({ selector }) => {
   const game = useGame()
@@ -60,7 +64,7 @@ const Palette: FC<{ readonly selector: Selector }> = ({ selector }) => {
   )
 
   return (
-    <div style={cssPalette}>
+    <Container>
       <h1>Spawn Object</h1>
 
       {spawnable.map(([name]) => (
@@ -68,10 +72,20 @@ const Palette: FC<{ readonly selector: Selector }> = ({ selector }) => {
           {name}
         </button>
       ))}
-    </div>
+    </Container>
   )
 }
 
 export const renderUI = (game: Game<false>, selector: Selector) => {
-  return render(game, <Palette selector={selector} />)
+  const styles = document.createElement('style')
+  const ui = render(
+    game,
+    <StyleSheetManager target={styles}>
+      <Palette selector={selector} />
+    </StyleSheetManager>,
+    { interactable: false },
+  )
+
+  ui.root.append(styles)
+  return ui
 }
