@@ -1,5 +1,6 @@
 import type { InputCode } from '@dreamlab.gg/core/input'
 import { useGame } from '@dreamlab.gg/ui/react'
+import { useCallback } from 'https://esm.sh/react@18.2.0'
 import type { FC } from 'https://esm.sh/react@18.2.0'
 import { styled } from 'https://esm.sh/styled-components@6.1.1'
 
@@ -8,10 +9,12 @@ const Name = styled.p`
   margin-right: 1rem;
 `
 
-const InputKey = styled.div`
+const InputKey = styled.div<{ readonly active: boolean }>`
   font-family: 'Fira Code', ui-monospace, monospace;
   padding: 0.375rem 0.5rem;
-  border: 1px solid #a3a3a3;
+  outline-style: solid;
+  outline-color: ${props => (props.active ? '#888' : '#a3a3a4')};
+  outline-width: ${props => (props.active ? '2px' : '1px')};
   border-radius: 0.375rem;
   background-color: white;
   cursor: pointer;
@@ -23,9 +26,12 @@ interface Props {
   readonly id: string
   readonly name: string
   readonly keys: readonly InputCode[]
+
+  readonly active: 'primary' | 'secondary' | undefined
+  onClick(ev: React.MouseEvent, id: string, type: 'primary' | 'secondary'): void
 }
 
-export const Input: FC<Props> = ({ name, keys }) => {
+export const Input: FC<Props> = ({ id, name, keys, active, onClick }) => {
   const game = useGame()
   const inputs = game.client.inputs
 
@@ -35,11 +41,30 @@ export const Input: FC<Props> = ({ name, keys }) => {
   const keyPrimary = inputs.getKeyName(primary)
   const keySecondary = secondary ? inputs.getKeyName(secondary) : '-'
 
+  const onContextMenu = useCallback((ev: React.MouseEvent) => {
+    ev.preventDefault()
+    return false
+  }, [])
+
   return (
     <>
       <Name>{name}</Name>
-      <InputKey>{keyPrimary}</InputKey>
-      <InputKey>{keySecondary}</InputKey>
+
+      <InputKey
+        onMouseDown={ev => onClick(ev, id, 'primary')}
+        active={active === 'primary'}
+        onContextMenu={onContextMenu}
+      >
+        {keyPrimary}
+      </InputKey>
+
+      <InputKey
+        onMouseDown={ev => onClick(ev, id, 'secondary')}
+        active={active === 'secondary'}
+        onContextMenu={onContextMenu}
+      >
+        {keySecondary}
+      </InputKey>
     </>
   )
 }

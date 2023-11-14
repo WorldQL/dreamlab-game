@@ -33,7 +33,7 @@ const Control = styled.div<{ readonly visible: boolean }>`
 
 const KeybindUI: FC = () => {
   const game = useGame()
-  const [visible, setVisible] = useState<boolean>(true)
+  const [visible, setVisible] = useState<boolean>(false)
   const toggle = useCallback(() => setVisible(prev => !prev), [setVisible])
 
   useEffect(() => {

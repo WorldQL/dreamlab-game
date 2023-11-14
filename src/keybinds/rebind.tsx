@@ -1,5 +1,7 @@
-import { useRegisteredInputs } from '@dreamlab.gg/ui/react'
-import { useCallback } from 'https://esm.sh/react@18.2.0'
+import type { InputCode } from '@dreamlab.gg/core/dist/input'
+import { InputCodeSchema } from '@dreamlab.gg/core/dist/input'
+import { useGame, useRegisteredInputs } from '@dreamlab.gg/ui/react'
+import { useCallback, useEffect, useState } from 'https://esm.sh/react@18.2.0'
 import type { FC } from 'https://esm.sh/react@18.2.0'
 import { styled } from 'https://esm.sh/styled-components@6.1.1'
 import { Input } from './input'
@@ -7,6 +9,7 @@ import { Input } from './input'
 const Container = styled.div<{ readonly visible: boolean }>`
   user-select: auto;
   pointer-events: auto;
+  z-index: 1000;
 
   position: fixed;
   top: 0;
@@ -33,7 +36,6 @@ const Container = styled.div<{ readonly visible: boolean }>`
 
 const Header = styled.div`
   display: flex;
-  margin-bottom: 0.5rem;
 `
 
 const H1 = styled.h1`
@@ -56,6 +58,8 @@ const InputGrid = styled.div`
   align-items: center;
   row-gap: 0.5rem;
   column-gap: 0.5rem;
+  overflow-y: overlay;
+  padding: 0.5rem 0;
 `
 
 interface Props {
@@ -64,8 +68,82 @@ interface Props {
 }
 
 export const Rebind: FC<Props> = ({ visible, setVisible }) => {
+  const game = useGame()
   const inputs = useRegisteredInputs()
   const close = useCallback(() => setVisible(false), [setVisible])
+
+  const [rebinding, setRebinding] = useState<
+    [id: string, name: 'primary' | 'secondary'] | undefined
+  >(undefined)
+
+  const onKeyPress = useCallback(
+    (ev: KeyboardEvent) => {
+      if (!rebinding) return
+
+      const input = inputs.find(([id]) => id === rebinding[0])
+      if (!input) return
+
+      const [id, _name, keys] = input
+      const primary = keys[0]!
+      const secondary: InputCode | undefined = keys[1]
+      const prev = rebinding[1] === 'primary' ? primary : secondary
+
+      if (ev.code === 'Escape') {
+        game.client.inputs.bindInput(prev, undefined)
+        setRebinding(undefined)
+        return
+      }
+
+      const result = InputCodeSchema.safeParse(ev.code)
+      if (!result.success) return
+
+      const code = result.data
+      if (code === prev) {
+        setRebinding(undefined)
+      }
+
+      game.client.inputs.bindInput(prev, undefined)
+      game.client.inputs.bindInput(code, id)
+      setRebinding(undefined)
+    },
+    [inputs, rebinding, setRebinding],
+  )
+
+  const onClick = useCallback(
+    (ev: React.MouseEvent, id: string, type: 'primary' | 'secondary') => {
+      if (rebinding && rebinding[0] === id && type === rebinding[1]) {
+        const input = inputs.find(([id]) => id === rebinding[0])
+        if (!input) return
+
+        const [id, _name, keys] = input
+        const primary = keys[0]!
+        const secondary: InputCode | undefined = keys[1]
+        const prev = rebinding[1] === 'primary' ? primary : secondary
+
+        const code =
+          ev.button === 0
+            ? 'MouseLeft'
+            : ev.button === 1
+            ? 'MouseMiddle'
+            : 'MouseRight'
+
+        game.client.inputs.bindInput(prev, undefined)
+        game.client.inputs.bindInput(code, id)
+        setRebinding(undefined)
+      } else {
+        setRebinding([id, type])
+      }
+    },
+    [rebinding, setRebinding],
+  )
+
+  useEffect(() => {
+    window.addEventListener('keydown', onKeyPress)
+
+    return () => {
+      window.removeEventListener('keydown', onKeyPress)
+    }
+  })
 
   return (
     <Container visible={visible}>
@@ -91,7 +169,14 @@ export const Rebind: FC<Props> = ({ visible, setVisible }) => {
 
       <InputGrid>
         {inputs.map(([id, name, keys]) => (
-          <Input key={id} id={id} name={name} keys={keys} />
+          <Input
+            key={id}
+            id={id}
+            name={name}
+            keys={keys}
+            onClick={onClick}
+            active={rebinding && rebinding[0] === id ? rebinding[1] : undefined}
+          />
         ))}
       </InputGrid>
     </Container>
