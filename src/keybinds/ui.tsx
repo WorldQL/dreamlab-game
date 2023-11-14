@@ -1,6 +1,6 @@
 import type { Game } from '@dreamlab.gg/core'
-import { renderUI as render } from '@dreamlab.gg/ui/react'
-import { useCallback, useState } from 'https://esm.sh/react@18.2.0'
+import { renderUI as render, useGame } from '@dreamlab.gg/ui/react'
+import { useCallback, useEffect, useState } from 'https://esm.sh/react@18.2.0'
 import type { FC } from 'https://esm.sh/react@18.2.0'
 import {
   styled,
@@ -32,8 +32,14 @@ const Control = styled.div<{ readonly visible: boolean }>`
 `
 
 const KeybindUI: FC = () => {
+  const game = useGame()
   const [visible, setVisible] = useState<boolean>(true)
   const toggle = useCallback(() => setVisible(prev => !prev), [setVisible])
+
+  useEffect(() => {
+    if (visible) game.client.inputs.disable('all', '@dreamlab/Rebind')
+    else game.client.inputs.enable('all', '@dreamlab/Rebind')
+  }, [visible])
 
   return (
     <>
