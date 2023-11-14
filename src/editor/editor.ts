@@ -38,9 +38,9 @@ export const createEditor = () => {
           enabled.value = noclip
 
           if (noclip) {
-            inputs?.disable('editor')
+            inputs?.disable('mouse', 'editor')
           } else {
-            inputs?.enable('editor')
+            inputs?.enable('mouse', 'editor')
             selector.deselect()
           }
         })
