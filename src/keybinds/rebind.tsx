@@ -2,8 +2,9 @@ import { useRegisteredInputs } from '@dreamlab.gg/ui/react'
 import { useCallback } from 'https://esm.sh/react@18.2.0'
 import type { FC } from 'https://esm.sh/react@18.2.0'
 import { styled } from 'https://esm.sh/styled-components@6.1.1'
+import { Input } from './input'
 
-const Container = styled.div`
+const Container = styled.div<{ readonly visible: boolean }>`
   user-select: auto;
   pointer-events: auto;
 
@@ -24,6 +25,10 @@ const Container = styled.div`
   box-shadow:
     0 4px 6px -1px rgb(0 0 0 / 0.3),
     0 2px 4px -2px rgb(0 0 0 / 0.3);
+
+  transition: opacity 0.2s ease;
+  opacity: ${props => (props.visible ? '1' : '0')};
+  pointer-events: ${props => (props.visible ? 'auto' : 'none')};
 `
 
 const Header = styled.div`
@@ -45,16 +50,25 @@ const CloseIcon = styled.div`
   cursor: pointer;
 `
 
+const InputGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(3, max-content);
+  align-items: center;
+  row-gap: 0.5rem;
+  column-gap: 0.5rem;
+`
+
 interface Props {
+  readonly visible: boolean
   setVisible: React.Dispatch<React.SetStateAction<boolean>>
 }
 
-export const Rebind: FC<Props> = ({ setVisible }) => {
+export const Rebind: FC<Props> = ({ visible, setVisible }) => {
   const inputs = useRegisteredInputs()
   const close = useCallback(() => setVisible(false), [setVisible])
 
   return (
-    <Container>
+    <Container visible={visible}>
       <Header>
         <H1>Rebind Inputs</H1>
         <CloseIcon onClick={close}>
@@ -75,11 +89,11 @@ export const Rebind: FC<Props> = ({ setVisible }) => {
         </CloseIcon>
       </Header>
 
-      <div>
+      <InputGrid>
         {inputs.map(([id, name, keys]) => (
-          <div key={id}>{name}</div>
+          <Input key={id} id={id} name={name} keys={keys} />
         ))}
-      </div>
+      </InputGrid>
     </Container>
   )
 }
