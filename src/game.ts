@@ -2,6 +2,7 @@ import { createGame } from '@dreamlab.gg/core'
 import { createCursor, PlayerInput } from '@dreamlab.gg/core/entities'
 import { isDebug } from './debug.js'
 import { createEditor } from './editor/editor.js'
+import { createKeybinds } from './keybinds/entity.js'
 import { connect, createNetwork, decodeParams } from './network.js'
 import { loadScript, spawnPlayer } from './scripting.js'
 
@@ -83,6 +84,9 @@ export const init = async () => {
     // have a dummy level that's like "connect to an instance!!"
     void 0 // temporarily make linter happy, remove when above is implemented
   }
+
+  const keybinds = createKeybinds()
+  await game.instantiate(keybinds)
 
   // TODO: Actually allow rebinding keys
   game.client.inputs.bindInput('Space', PlayerInput.Jump)
