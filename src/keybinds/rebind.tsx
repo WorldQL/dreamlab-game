@@ -1,24 +1,37 @@
-import type { InputCode } from '@dreamlab.gg/core/dist/input'
-import { InputCodeSchema } from '@dreamlab.gg/core/dist/input'
-import { useGame, useRegisteredInputs } from '@dreamlab.gg/ui/react'
+import type { InputCode } from '@dreamlab.gg/core/input'
+import { inputCodes, InputCodeSchema } from '@dreamlab.gg/core/input'
+import {
+  useForceUpdate,
+  useGame,
+  useRegisteredInputs,
+} from '@dreamlab.gg/ui/react'
 import { useCallback, useEffect, useState } from 'https://esm.sh/react@18.2.0'
 import type { FC } from 'https://esm.sh/react@18.2.0'
 import { styled } from 'https://esm.sh/styled-components@6.1.1'
 import { Input } from './input'
 
-const Container = styled.div<{ readonly visible: boolean }>`
-  user-select: auto;
-  pointer-events: auto;
-  z-index: 1000;
-
+const Container = styled.div`
   position: fixed;
   top: 0;
   left: 0;
   bottom: 0;
   right: 0;
+  z-index: 1000;
 
-  padding: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   margin: 2rem;
+`
+
+const Popup = styled.div<{ readonly visible: boolean }>`
+  user-select: auto;
+  pointer-events: auto;
+
+  width: 100%;
+  max-height: 100%;
+  max-width: 28rem;
+  padding: 1rem;
   border-radius: 1rem;
 
   display: flex;
@@ -62,6 +75,25 @@ const InputGrid = styled.div`
   padding: 0.5rem 0;
 `
 
+const ResetButton = styled.button`
+  margin-top: 0.75rem;
+  display: inline-block;
+  appearance: button;
+  border: 0;
+  background-color: #3c7aff;
+  color: white;
+  font-family: 'Inter';
+  cursor: pointer;
+  font-size: 1rem;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  transition: background-color 0.1s ease;
+
+  &:hover {
+    background-color: #2660dd;
+  }
+`
+
 interface Props {
   readonly visible: boolean
   setVisible: React.Dispatch<React.SetStateAction<boolean>>
@@ -70,6 +102,7 @@ interface Props {
 export const Rebind: FC<Props> = ({ visible, setVisible }) => {
   const game = useGame()
   const inputs = useRegisteredInputs()
+  const forceUpdate = useForceUpdate()
   const close = useCallback(() => setVisible(false), [setVisible])
 
   const [rebinding, setRebinding] = useState<
@@ -137,6 +170,15 @@ export const Rebind: FC<Props> = ({ visible, setVisible }) => {
     [rebinding, setRebinding],
   )
 
+  const onReset = useCallback(() => {
+    // Unbind all keys
+    for (const key of inputCodes) {
+      game.client.inputs.bindInput(key, undefined)
+    }
+
+    forceUpdate()
+  }, [forceUpdate])
+
   useEffect(() => {
     window.addEventListener('keydown', onKeyPress)
 
@@ -146,39 +188,47 @@ export const Rebind: FC<Props> = ({ visible, setVisible }) => {
   })
 
   return (
-    <Container visible={visible}>
-      <Header>
-        <H1>Rebind Inputs</H1>
-        <CloseIcon onClick={close}>
-          <svg
-            xmlns='http://www.w3.org/2000/svg'
-            fill='none'
-            viewBox='0 0 24 24'
-            strokeWidth={1.5}
-            stroke='currentColor'
-            className='w-6 h-6'
-          >
-            <path
-              strokeLinecap='round'
-              strokeLinejoin='round'
-              d='M6 18L18 6M6 6l12 12'
-            />
-          </svg>
-        </CloseIcon>
-      </Header>
+    <Container>
+      <Popup visible={visible}>
+        <Header>
+          <H1>Rebind Inputs</H1>
+          <CloseIcon onClick={close}>
+            <svg
+              xmlns='http://www.w3.org/2000/svg'
+              fill='none'
+              viewBox='0 0 24 24'
+              strokeWidth={1.5}
+              stroke='currentColor'
+              className='w-6 h-6'
+            >
+              <path
+                strokeLinecap='round'
+                strokeLinejoin='round'
+                d='M6 18L18 6M6 6l12 12'
+              />
+            </svg>
+          </CloseIcon>
+        </Header>
 
-      <InputGrid>
-        {inputs.map(([id, name, keys]) => (
-          <Input
-            key={id}
-            id={id}
-            name={name}
-            keys={keys}
-            onClick={onClick}
-            active={rebinding && rebinding[0] === id ? rebinding[1] : undefined}
-          />
-        ))}
-      </InputGrid>
+        <InputGrid>
+          {inputs.map(([id, name, keys]) => (
+            <Input
+              key={id}
+              id={id}
+              name={name}
+              keys={keys}
+              onClick={onClick}
+              active={
+                rebinding && rebinding[0] === id ? rebinding[1] : undefined
+              }
+            />
+          ))}
+        </InputGrid>
+
+        <ResetButton type='button' onClick={onReset}>
+          Reset
+        </ResetButton>
+      </Popup>
     </Container>
   )
 }
