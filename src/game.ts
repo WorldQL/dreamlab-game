@@ -3,6 +3,7 @@ import { createCursor, PlayerInput } from '@dreamlab.gg/core/entities'
 import { isDebug } from './debug.js'
 import { createEditor } from './editor/editor.js'
 import { createKeybinds } from './keybinds/entity.js'
+import { bindInput, loadBindings } from './keybinds/persist.js'
 import { connect, createNetwork, decodeParams } from './network.js'
 import { loadScript, spawnPlayer } from './scripting.js'
 
@@ -85,10 +86,15 @@ export const init = async () => {
     void 0 // temporarily make linter happy, remove when above is implemented
   }
 
+  loadBindings(game)
+  const defaultJumpBindingKey = '@dreamlab/Input/DefaultJumpBound'
+  if (localStorage.getItem(defaultJumpBindingKey) === null) {
+    localStorage.setItem(defaultJumpBindingKey, 'true')
+
+    bindInput(game, 'Space', PlayerInput.Jump)
+    bindInput(game, 'KeyW', PlayerInput.Jump)
+  }
+
   const keybinds = createKeybinds()
   await game.instantiate(keybinds)
-
-  // TODO: Actually allow rebinding keys
-  game.client.inputs.bindInput('Space', PlayerInput.Jump)
-  game.client.inputs.bindInput('KeyW', PlayerInput.Jump)
 }

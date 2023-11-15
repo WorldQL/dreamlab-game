@@ -9,6 +9,7 @@ import { useCallback, useEffect, useState } from 'https://esm.sh/react@18.2.0'
 import type { FC } from 'https://esm.sh/react@18.2.0'
 import { styled } from 'https://esm.sh/styled-components@6.1.1'
 import { Input } from './input'
+import { bindInput } from './persist'
 
 const Container = styled.div`
   position: fixed;
@@ -122,7 +123,7 @@ export const Rebind: FC<Props> = ({ visible, setVisible }) => {
       const prev = rebinding[1] === 'primary' ? primary : secondary
 
       if (ev.code === 'Escape') {
-        game.client.inputs.bindInput(prev, undefined)
+        bindInput(game, prev, undefined)
         setRebinding(undefined)
         return
       }
@@ -135,8 +136,8 @@ export const Rebind: FC<Props> = ({ visible, setVisible }) => {
         setRebinding(undefined)
       }
 
-      game.client.inputs.bindInput(prev, undefined)
-      game.client.inputs.bindInput(code, id)
+      bindInput(game, prev, undefined)
+      bindInput(game, code, id)
       setRebinding(undefined)
     },
     [inputs, rebinding, setRebinding],
@@ -160,8 +161,8 @@ export const Rebind: FC<Props> = ({ visible, setVisible }) => {
             ? 'MouseMiddle'
             : 'MouseRight'
 
-        game.client.inputs.bindInput(prev, undefined)
-        game.client.inputs.bindInput(code, id)
+        bindInput(game, prev, undefined)
+        bindInput(game, code, id)
         setRebinding(undefined)
       } else {
         setRebinding([id, type])
@@ -173,7 +174,7 @@ export const Rebind: FC<Props> = ({ visible, setVisible }) => {
   const onReset = useCallback(() => {
     // Unbind all keys
     for (const key of inputCodes) {
-      game.client.inputs.bindInput(key, undefined)
+      bindInput(game, key, undefined)
     }
 
     forceUpdate()
