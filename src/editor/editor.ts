@@ -1,7 +1,7 @@
 import { createEntity } from '@dreamlab.gg/core'
 import { deferUntilPlayer, ref } from '@dreamlab.gg/core/utils'
-import { renderUI } from './palette'
 import { createEntitySelect } from './select'
+import { renderUI } from './ui'
 
 enum EditorInputs {
   TogglePalette = '@editor/TogglePalette',
