@@ -9,7 +9,7 @@ export const Container = styled.div`
   z-index: 500;
 
   width: max-content;
-  min-width: 20rem;
+  min-width: 22rem;
 
   padding: 1rem;
   border-radius: 0.5rem;

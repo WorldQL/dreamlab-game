@@ -19,6 +19,8 @@ const SpawnableList = styled.div`
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  overflow-y: overlay;
+  padding: 0.5rem 0;
 `
 
 export const Palette: FC<{ readonly selector: Selector }> = ({ selector }) => {
