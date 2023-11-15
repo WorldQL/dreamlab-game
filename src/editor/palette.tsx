@@ -6,28 +6,19 @@ import {
 import { useCallback, useMemo } from 'https://esm.sh/react@18.2.0'
 import type { FC } from 'https://esm.sh/react@18.2.0'
 import { styled } from 'https://esm.sh/styled-components@6.1.1'
+import { Button, Container } from './components'
 import type { Selector } from './select'
 
-const Container = styled.div`
-  --palette-margin: 1rem;
+const PaletteContainer = styled(Container)`
+  top: var(--margin);
+  right: var(--margin);
+  bottom: var(--margin);
+`
 
-  pointer-events: auto;
-  user-select: auto;
-
-  width: max-content;
-  min-width: 24rem;
-
-  position: fixed;
-  top: var(--palette-margin);
-  right: var(--palette-margin);
-  bottom: var(--palette-margin);
-
-  padding: 1rem;
-  border-radius: 0.5rem;
-  background: grey;
-
+const SpawnableList = styled.div`
   display: flex;
   flex-direction: column;
+  gap: 0.5rem;
 `
 
 export const Palette: FC<{ readonly selector: Selector }> = ({ selector }) => {
@@ -59,14 +50,16 @@ export const Palette: FC<{ readonly selector: Selector }> = ({ selector }) => {
   )
 
   return (
-    <Container>
+    <PaletteContainer>
       <h1>Spawn Object</h1>
 
-      {spawnable.map(([name]) => (
-        <button key={name} type='button' onClick={async () => spawn(name)}>
-          {name}
-        </button>
-      ))}
-    </Container>
+      <SpawnableList>
+        {spawnable.map(([name]) => (
+          <Button key={name} type='button' onClick={async () => spawn(name)}>
+            {name}
+          </Button>
+        ))}
+      </SpawnableList>
+    </PaletteContainer>
   )
 }
