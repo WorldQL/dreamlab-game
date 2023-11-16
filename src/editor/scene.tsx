@@ -10,9 +10,14 @@ const ListContainer = styled(Container)`
   top: var(--margin);
   left: var(--margin);
   bottom: var(--margin);
+
+  display: flex;
+  flex-direction: column;
 `
 
 const EntityList = styled.div`
+  flex-grow: 1;
+  margin-bottom: 1rem;
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
@@ -28,6 +33,17 @@ export const SceneList: FC<{ readonly selector: Selector }> = ({
     a.definition.entity.localeCompare(b.definition.entity),
   )
 
+  const onSave = useCallback(() => {
+    // Filter out entities tagged as "do not save"
+    const toSave = entities
+      .filter(entity => !entity.tags.includes('editor/doNotSave'))
+      .map(entity => entity.definition)
+
+    const json = JSON.stringify(toSave)
+    console.log(json)
+    // TODO: Do stuff with JSON
+  }, [entities])
+
   return (
     <ListContainer>
       <h1>Object List</h1>
@@ -38,6 +54,10 @@ export const SceneList: FC<{ readonly selector: Selector }> = ({
           <EntityDisplay key={entity.uid} entity={entity} selector={selector} />
         ))}
       </EntityList>
+
+      <Button type='button' onClick={onSave}>
+        Save
+      </Button>
     </ListContainer>
   )
 }
