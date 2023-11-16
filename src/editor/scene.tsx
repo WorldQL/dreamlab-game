@@ -39,9 +39,15 @@ export const SceneList: FC<{ readonly selector: Selector }> = ({
       .filter(entity => !entity.tags.includes('editor/doNotSave'))
       .map(entity => entity.definition)
 
-    const json = JSON.stringify(toSave)
-    console.log(json)
-    // TODO: Do stuff with JSON
+    const json = JSON.stringify(toSave, null, 2)
+    const template = `
+import type { LooseSpawnableDefinition } from '@dreamlab.gg/core'
+
+export const level: LooseSpawnableDefinition[] = ${json}
+`.trim()
+
+    console.log(template)
+    // TODO: Do something with level.json
   }, [entities])
 
   return (
