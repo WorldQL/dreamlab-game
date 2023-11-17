@@ -187,13 +187,13 @@ export const createNetwork = (
 
         case 'SpawnPlayer': {
           if (packet.peer_id === selfID) {
-            // TODO: apply character ID from server packet (instead of window.location) ?
-            localPlayer = await spawnPlayer(game)
-
             const resp = await LevelSchema.safeParseAsync(packet.level)
             if (resp.success) {
               await game.spawnMany(...resp.data)
             }
+
+            // TODO: apply character ID from server packet (instead of window.location) ?
+            localPlayer = await spawnPlayer(game)
           } else {
             const animations = await loadAnimations(packet.character_id)
             const netplayer = createNetPlayer(
