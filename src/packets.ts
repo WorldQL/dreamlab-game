@@ -31,6 +31,7 @@ export const SpawnPlayerSchema = z.object({
   entity_id: z.string(),
   character_id: z.optional(z.string()),
   position: TupleVectorSchema,
+  level: z.unknown(),
 })
 
 export type DespawnPlayerPacket = z.infer<typeof DespawnPlayerSchema>

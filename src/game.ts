@@ -78,6 +78,7 @@ export const init = async () => {
         await game.instantiate(editor)
 
         await loadScript(undefined, level, game)
+        // TODO: Spawn level
         await spawnPlayer(game, undefined)
       }
     }

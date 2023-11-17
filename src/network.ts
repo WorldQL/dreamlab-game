@@ -7,11 +7,13 @@ import type {
   NetPlayer,
   Player,
 } from '@dreamlab.gg/core/entities'
+import { isTrackedTransform, trackedSymbol } from '@dreamlab.gg/core/math'
 import { updateSyncedValue } from '@dreamlab.gg/core/network'
 import type {
   BareNetClient,
   MessageListenerClient,
 } from '@dreamlab.gg/core/network'
+import { LevelSchema } from '@dreamlab.gg/core/sdk'
 import { createSignal } from '@dreamlab.gg/core/utils'
 import { jwtDecode as decodeJWT } from 'jwt-decode'
 import Matter from 'matter-js'
@@ -187,6 +189,11 @@ export const createNetwork = (
           if (packet.peer_id === selfID) {
             // TODO: apply character ID from server packet (instead of window.location) ?
             localPlayer = await spawnPlayer(game)
+
+            const resp = await LevelSchema.safeParseAsync(packet.level)
+            if (resp.success) {
+              await game.spawnMany(...resp.data)
+            }
           } else {
             const animations = await loadAnimations(packet.character_id)
             const netplayer = createNetPlayer(
