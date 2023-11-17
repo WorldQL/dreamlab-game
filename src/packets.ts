@@ -189,6 +189,54 @@ export const UpdateSyncedValueSchema = z.object({
   value: z.unknown(),
 })
 
+export type IncomingTransformChangedPacket = z.infer<
+  typeof IncomingTransformChangedSchema
+>
+export const IncomingTransformChangedSchema = z.object({
+  t: z.literal('TransformChanged'),
+
+  entity_id: z.string(),
+  position: TupleVectorSchema,
+  rotation: z.number(),
+  z_index: z.number(),
+})
+
+export type IncomingArgsChangedPacket = z.infer<
+  typeof IncomingArgsChangedSchema
+>
+export const IncomingArgsChangedSchema = z.object({
+  t: z.literal('ArgsChanged'),
+
+  entity_id: z.string(),
+  path: z.string(),
+  value: z.unknown(),
+})
+
+export type OutgoingTransformChangedPacket = z.infer<
+  typeof OutgoingTransformChangedSchema
+>
+export const OutgoingTransformChangedSchema = z.object({
+  t: z.literal('TransformChanged'),
+
+  entity_id: z.string(),
+  peer_id: z.string(),
+  position: TupleVectorSchema,
+  rotation: z.number(),
+  z_index: z.number(),
+})
+
+export type OutgoingArgsChangedPacket = z.infer<
+  typeof OutgoingArgsChangedSchema
+>
+export const OutgoingArgsChangedSchema = z.object({
+  t: z.literal('ArgsChanged'),
+
+  entity_id: z.string(),
+  peer_id: z.string(),
+  path: z.string(),
+  value: z.unknown(),
+})
+
 export type ToClientPacket = z.infer<typeof ToClientPacketSchema>
 export const ToClientPacketSchema = HandshakeSchema.or(SpawnPlayerSchema)
   .or(DespawnPlayerSchema)
@@ -200,11 +248,17 @@ export const ToClientPacketSchema = HandshakeSchema.or(SpawnPlayerSchema)
   .or(PhysicsRevokeObjectControlSchema)
   .or(UpdateSyncedValueSchema)
   .or(CustomMessageSchema)
+  .or(OutgoingTransformChangedSchema)
+  .or(OutgoingArgsChangedSchema)
 
 export type ToServerPacket = z.infer<typeof ToServerPacketSchema>
 export const ToServerPacketSchema = HandshakeReadySchema.or(ChatMessageSchema)
   .or(CustomMessageSchema)
-  .or(PlayerMotionSchema)
+  .or(HandshakeReadySchema)
+  .or(IncomingArgsChangedSchema)
+  .or(IncomingTransformChangedSchema)
+  // .or(PhysicsControlledObjectsSnapshotSchema)
+  // .or(PhysicsRequestObjectControlSchema) TODO
   .or(PlayerAnimationChangeSchema)
-// .or(PhysicsRequestObjectControlSchema) TODO
-// .or(PhysicsControlledObjectsSnapshotSchema)
+  .or(PlayerInputsPacketSchema)
+  .or(PlayerMotionSchema)

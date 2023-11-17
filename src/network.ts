@@ -18,8 +18,10 @@ import Matter from 'matter-js'
 import type { Body } from 'matter-js'
 import { loadAnimations } from './animations.js'
 import { createClientControlManager } from './client-phys-control.js'
+import { createEditor } from './editor/editor.js'
 import { PROTOCOL_VERSION, ToClientPacketSchema } from './packets.js'
 import type {
+  IncomingArgsChangedPacket as ArgsChangedPacket,
   BodyInfo,
   CustomMessagePacket,
   HandshakePacket,
@@ -28,9 +30,10 @@ import type {
   PlayerInputsPacket,
   PlayerMotionPacket,
   ToClientPacket,
+  ToServerPacket,
+  IncomingTransformChangedPacket as TransformChangedPacket,
 } from './packets.js'
 import { loadScript, spawnPlayer } from './scripting.js'
-import { createEditor } from './editor/editor.js'
 
 let fakeLatency = Number.parseFloat(
   window.localStorage.getItem('@dreamlab/fakeLatency') ?? '0',
@@ -121,8 +124,8 @@ export const createNetwork = (
   ws: WebSocket,
   game: Game<false>,
 ): [network: BareNetClient, ready: Promise<void>] => {
-  const sendPacket = (packetObj: unknown) => {
-    const packet = JSON.stringify(packetObj)
+  const sendPacket = (_packet: ToServerPacket) => {
+    const packet = JSON.stringify(_packet)
     void runAfterFakeLatency(async () => ws.send(packet))
   }
 
@@ -335,6 +338,40 @@ export const createNetwork = (
           break
         }
 
+        case 'TransformChanged': {
+          if (packet.peer_id === selfID) return
+
+          const entity = game.lookup(packet.entity_id)
+          if (!entity) return
+
+          console.log(entity)
+
+          const transform = entity.transform
+          if (isTrackedTransform(transform)) {
+            const internal = transform[trackedSymbol]
+            internal.position.x = packet.position[0]
+            internal.position.y = packet.position[1]
+            internal.transform.rotation = packet.rotation
+            internal.transform.zIndex = packet.z_index
+
+            // TODO: Ensure physics linking works
+          }
+
+          break
+        }
+
+        case 'ArgsChanged': {
+          if (packet.peer_id === selfID) return
+
+          const entity = game.lookup(packet.entity_id)
+          if (!entity) return
+
+          // TODO: Implement ArgsChanged
+          console.log(packet)
+
+          break
+        }
+
         default:
           // @ts-expect-error default case
           console.warn(`unhandled packet: ${packet.t}`)
@@ -366,7 +403,7 @@ export const createNetwork = (
 
           if (packet.edit_mode) {
             const editor = createEditor()
-            game.instantiate(editor)
+            await game.instantiate(editor)
           }
 
           await loadScript(
@@ -503,6 +540,29 @@ export const createNetwork = (
       const payload: PlayerAnimationChangePacket = {
         t: 'PlayerAnimationChange',
         animation,
+      }
+
+      sendPacket(payload)
+    },
+
+    sendTransformUpdate(entityID, transform) {
+      const payload: TransformChangedPacket = {
+        t: 'TransformChanged',
+        entity_id: entityID,
+        position: [transform.position.x, transform.position.y],
+        rotation: transform.rotation,
+        z_index: transform.zIndex,
+      }
+
+      sendPacket(payload)
+    },
+
+    sendArgsUpdate(entityID, path, value) {
+      const payload: ArgsChangedPacket = {
+        t: 'ArgsChanged',
+        entity_id: entityID,
+        path,
+        value,
       }
 
       sendPacket(payload)
