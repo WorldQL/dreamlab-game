@@ -7,14 +7,23 @@ import type {
   NetPlayer,
   Player,
 } from '@dreamlab.gg/core/entities'
-import { isTrackedTransform, trackedSymbol } from '@dreamlab.gg/core/math'
+import {
+  isTrackedTransform,
+  toRadians,
+  trackedSymbol,
+} from '@dreamlab.gg/core/math'
 import { updateSyncedValue } from '@dreamlab.gg/core/network'
 import type {
   BareNetClient,
   MessageListenerClient,
 } from '@dreamlab.gg/core/network'
 import { LevelSchema } from '@dreamlab.gg/core/sdk'
-import { createSignal } from '@dreamlab.gg/core/utils'
+import {
+  clone,
+  createSignal,
+  onChange,
+  setProperty,
+} from '@dreamlab.gg/core/utils'
 import { jwtDecode as decodeJWT } from 'jwt-decode'
 import Matter from 'matter-js'
 import type { Body } from 'matter-js'
@@ -351,8 +360,6 @@ export const createNetwork = (
           const entity = game.lookup(packet.entity_id)
           if (!entity) return
 
-          console.log(entity)
-
           const transform = entity.transform
           if (isTrackedTransform(transform)) {
             const internal = transform[trackedSymbol]
@@ -361,7 +368,14 @@ export const createNetwork = (
             internal.transform.rotation = packet.rotation
             internal.transform.zIndex = packet.z_index
 
-            // TODO: Ensure physics linking works
+            const bodies = game.physics
+              .getBodies(entity)
+              .filter(body => game.physics.isLinked(body, transform))
+
+            for (const body of bodies) {
+              Matter.Body.setPosition(body, transform.position)
+              Matter.Body.setAngle(body, toRadians(transform.rotation))
+            }
           }
 
           break
@@ -373,8 +387,13 @@ export const createNetwork = (
           const entity = game.lookup(packet.entity_id)
           if (!entity) return
 
-          // TODO: Implement ArgsChanged
-          console.log(packet)
+          const argsTarget = onChange.target(entity.args)
+          const previousArgs = clone(argsTarget)
+          setProperty(argsTarget, packet.path, packet.value)
+
+          const data = dataManager.getData(entity)
+          const render = dataManager.getRenderData(entity)
+          entity.onArgsUpdate?.(packet.path, previousArgs, data, render)
 
           break
         }
