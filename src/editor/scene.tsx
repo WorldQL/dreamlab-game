@@ -1,5 +1,10 @@
 import type { SpawnableEntity } from '@dreamlab.gg/core'
-import { useGame, usePlayer, useSpawnableEntities } from '@dreamlab.gg/ui/react'
+import {
+  useGame,
+  useNetwork,
+  usePlayer,
+  useSpawnableEntities,
+} from '@dreamlab.gg/ui/react'
 import { useCallback } from 'https://esm.sh/react@18.2.0'
 import type { FC } from 'https://esm.sh/react@18.2.0'
 import { styled } from 'https://esm.sh/styled-components@6.1.1'
@@ -102,6 +107,7 @@ const EntityDisplay: FC<{
   entity: SpawnableEntity
 }> = ({ selector, entity }) => {
   const game = useGame()
+  const network = useNetwork()
   const player = usePlayer()
 
   const onFocus = useCallback(() => {
@@ -110,8 +116,11 @@ const EntityDisplay: FC<{
   }, [player])
 
   const onDelete = useCallback(async () => {
+    const id = entity.uid
     await game.destroy(entity)
-  }, [entity])
+
+    network?.sendEntityDestroy(id)
+  }, [network, entity])
 
   return (
     <EntityButtons id={entity.uid}>

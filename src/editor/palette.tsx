@@ -1,5 +1,6 @@
 import {
   useGame,
+  useNetwork,
   usePlayer,
   useRegisteredSpawnables,
 } from '@dreamlab.gg/ui/react'
@@ -25,6 +26,7 @@ const SpawnableList = styled.div`
 
 export const Palette: FC<{ readonly selector: Selector }> = ({ selector }) => {
   const game = useGame()
+  const network = useNetwork()
   const player = usePlayer()
 
   const registered = useRegisteredSpawnables()
@@ -46,9 +48,10 @@ export const Palette: FC<{ readonly selector: Selector }> = ({ selector }) => {
         },
       })
 
+      if (spawned) network?.sendEntityCreate(spawned)
       selector.select(spawned)
     },
-    [game, player, selector],
+    [game, network, player, selector],
   )
 
   return (

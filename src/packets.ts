@@ -190,6 +190,22 @@ export const UpdateSyncedValueSchema = z.object({
   value: z.unknown(),
 })
 
+export type IncomingSpawnEntityPacket = z.infer<
+  typeof IncomingSpawnEntitySchema
+>
+export const IncomingSpawnEntitySchema = z.object({
+  t: z.literal('SpawnEntity'),
+  definition: z.unknown(),
+})
+
+export type IncomingDestroyEntityPacket = z.infer<
+  typeof IncomingDestroyEntitySchema
+>
+export const IncomingDestroyEntitySchema = z.object({
+  t: z.literal('DestroyEntity'),
+  entity_id: z.string(),
+})
+
 export type IncomingTransformChangedPacket = z.infer<
   typeof IncomingTransformChangedSchema
 >
@@ -211,6 +227,26 @@ export const IncomingArgsChangedSchema = z.object({
   entity_id: z.string(),
   path: z.string(),
   value: z.unknown(),
+})
+
+export type OutgoingSpawnEntityPacket = z.infer<
+  typeof OutgoingSpawnEntitySchema
+>
+export const OutgoingSpawnEntitySchema = z.object({
+  t: z.literal('SpawnEntity'),
+
+  peer_id: z.string(),
+  definition: z.unknown(),
+})
+
+export type OutgoingDestroyEntityPacket = z.infer<
+  typeof OutgoingDestroyEntitySchema
+>
+export const OutgoingDestroyEntitySchema = z.object({
+  t: z.literal('DestroyEntity'),
+
+  peer_id: z.string(),
+  entity_id: z.string(),
 })
 
 export type OutgoingTransformChangedPacket = z.infer<
@@ -249,6 +285,8 @@ export const ToClientPacketSchema = HandshakeSchema.or(SpawnPlayerSchema)
   .or(PhysicsRevokeObjectControlSchema)
   .or(UpdateSyncedValueSchema)
   .or(CustomMessageSchema)
+  .or(OutgoingSpawnEntitySchema)
+  .or(OutgoingDestroyEntitySchema)
   .or(OutgoingTransformChangedSchema)
   .or(OutgoingArgsChangedSchema)
 
@@ -256,6 +294,8 @@ export type ToServerPacket = z.infer<typeof ToServerPacketSchema>
 export const ToServerPacketSchema = HandshakeReadySchema.or(ChatMessageSchema)
   .or(CustomMessageSchema)
   .or(HandshakeReadySchema)
+  .or(IncomingSpawnEntitySchema)
+  .or(IncomingDestroyEntitySchema)
   .or(IncomingArgsChangedSchema)
   .or(IncomingTransformChangedSchema)
   // .or(PhysicsControlledObjectsSnapshotSchema)

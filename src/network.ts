@@ -1,5 +1,5 @@
 /* eslint-disable id-length */
-import { dataManager } from '@dreamlab.gg/core'
+import { dataManager, SpawnableDefinitionSchema } from '@dreamlab.gg/core'
 import type { Game } from '@dreamlab.gg/core'
 import { createNetPlayer } from '@dreamlab.gg/core/entities'
 import type {
@@ -35,11 +35,13 @@ import type {
   IncomingArgsChangedPacket as ArgsChangedPacket,
   BodyInfo,
   CustomMessagePacket,
+  IncomingDestroyEntityPacket as DestroyEntityPacket,
   HandshakePacket,
   HandshakeReadyPacket,
   PlayerAnimationChangePacket,
   PlayerInputsPacket,
   PlayerMotionPacket,
+  IncomingSpawnEntityPacket as SpawnEntityPacket,
   ToClientPacket,
   ToServerPacket,
   IncomingTransformChangedPacket as TransformChangedPacket,
@@ -354,6 +356,24 @@ export const createNetwork = (
           break
         }
 
+        case 'SpawnEntity': {
+          if (packet.peer_id === selfID) return
+
+          const resp = SpawnableDefinitionSchema.safeParse(packet.definition)
+          if (resp.success) await game.spawn(resp.data)
+
+          break
+        }
+
+        case 'DestroyEntity': {
+          if (packet.peer_id === selfID) return
+
+          const entity = game.lookup(packet.entity_id)
+          if (entity) await game.destroy(entity)
+
+          break
+        }
+
         case 'TransformChanged': {
           if (packet.peer_id === selfID) return
 
@@ -566,6 +586,27 @@ export const createNetwork = (
       const payload: PlayerAnimationChangePacket = {
         t: 'PlayerAnimationChange',
         animation,
+      }
+
+      sendPacket(payload)
+    },
+
+    sendEntityCreate(entity) {
+      const payload: SpawnEntityPacket = {
+        t: 'SpawnEntity',
+        definition: {
+          uid: entity.uid,
+          ...entity.definition,
+        },
+      }
+
+      sendPacket(payload)
+    },
+
+    sendEntityDestroy(entityID) {
+      const payload: DestroyEntityPacket = {
+        t: 'DestroyEntity',
+        entity_id: entityID,
       }
 
       sendPacket(payload)
