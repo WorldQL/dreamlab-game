@@ -18,6 +18,16 @@ export const HandshakeSchema = z.object({
   world_script_url_base: z.string().optional().nullable(),
 })
 
+export type DisconnectingPacket = z.infer<typeof DisconnectingSchema>
+export const DisconnectingSchema = z.object({
+  t: z.literal('Disconnecting'),
+  reason: z.union([
+    z.literal('Restarting'),
+    z.literal('ShuttingDown'),
+    z.literal('Unknown'),
+  ]),
+})
+
 export type HandshakeReadyPacket = z.infer<typeof HandshakeReadySchema>
 export const HandshakeReadySchema = z.object({
   t: z.literal('HandshakeReady'),
@@ -275,31 +285,38 @@ export const OutgoingArgsChangedSchema = z.object({
 })
 
 export type ToClientPacket = z.infer<typeof ToClientPacketSchema>
-export const ToClientPacketSchema = HandshakeSchema.or(SpawnPlayerSchema)
-  .or(DespawnPlayerSchema)
-  .or(PlayerMotionSnapshotSchema)
-  .or(PhysicsFullSnapshotSchema)
-  .or(PhysicsDeltaSnapshotSchema)
-  .or(PlayerAnimationSnapshotSchema)
-  .or(PhysicsGrantObjectControlSchema)
-  .or(PhysicsRevokeObjectControlSchema)
-  .or(UpdateSyncedValueSchema)
-  .or(CustomMessageSchema)
-  .or(OutgoingSpawnEntitySchema)
-  .or(OutgoingDestroyEntitySchema)
-  .or(OutgoingTransformChangedSchema)
-  .or(OutgoingArgsChangedSchema)
+export const ToClientPacketSchema = z.discriminatedUnion('t', [
+  HandshakeSchema,
+  DisconnectingSchema,
+  SpawnPlayerSchema,
+  DespawnPlayerSchema,
+  PlayerMotionSnapshotSchema,
+  PhysicsFullSnapshotSchema,
+  PhysicsDeltaSnapshotSchema,
+  PlayerAnimationSnapshotSchema,
+  PhysicsGrantObjectControlSchema,
+  PhysicsRevokeObjectControlSchema,
+  UpdateSyncedValueSchema,
+  CustomMessageSchema,
+  OutgoingSpawnEntitySchema,
+  OutgoingDestroyEntitySchema,
+  OutgoingTransformChangedSchema,
+  OutgoingArgsChangedSchema,
+])
 
 export type ToServerPacket = z.infer<typeof ToServerPacketSchema>
-export const ToServerPacketSchema = HandshakeReadySchema.or(ChatMessageSchema)
-  .or(CustomMessageSchema)
-  .or(HandshakeReadySchema)
-  .or(IncomingSpawnEntitySchema)
-  .or(IncomingDestroyEntitySchema)
-  .or(IncomingArgsChangedSchema)
-  .or(IncomingTransformChangedSchema)
-  // .or(PhysicsControlledObjectsSnapshotSchema)
-  // .or(PhysicsRequestObjectControlSchema) TODO
-  .or(PlayerAnimationChangeSchema)
-  .or(PlayerInputsPacketSchema)
-  .or(PlayerMotionSchema)
+export const ToServerPacketSchema = z.discriminatedUnion('t', [
+  HandshakeReadySchema,
+  ChatMessageSchema,
+  CustomMessageSchema,
+  HandshakeReadySchema,
+  IncomingSpawnEntitySchema,
+  IncomingDestroyEntitySchema,
+  IncomingArgsChangedSchema,
+  IncomingTransformChangedSchema,
+  // PhysicsControlledObjectsSnapshotSchema,
+  // PhysicsRequestObjectControlSchema,
+  PlayerAnimationChangeSchema,
+  PlayerInputsPacketSchema,
+  PlayerMotionSchema,
+])

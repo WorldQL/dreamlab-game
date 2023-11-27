@@ -186,6 +186,18 @@ export const createNetwork = (
   const handlePacket = async (packet: QueuePacket) => {
     try {
       switch (packet.t) {
+        case 'Disconnecting': {
+          const { reason } = packet
+          if (reason === 'Restarting') {
+            // TODO: hot reload script instead of reloading window
+            window.location.reload()
+          }
+
+          // TODO: handle other disconnect notifications (i.e. show a screen!!!)
+
+          break
+        }
+
         case 'CustomMessage': {
           const { channel, data } = packet
 
