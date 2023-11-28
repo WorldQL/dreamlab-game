@@ -4,12 +4,13 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "check": "tsc",
+    "build": "npm run check && vite build",
     "preview": "vite preview",
     "lint": "prettier --check . && eslint src --ext mjs,js,ts,tsx",
     "format": "prettier --write . && eslint src --ext mjs,js,ts,tsx --fix",
     "fmt": "npm run format",
-    "test": "npm run lint"
+    "test": "npm run check && npm run lint"
   },
   "devDependencies": {
     "@dreamlab.gg/core": "0.0.55",
