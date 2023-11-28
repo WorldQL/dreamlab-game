@@ -418,6 +418,21 @@ export const createNetwork = (
           break
         }
 
+        case 'PhysicsSuspendResume': {
+          if (packet.peer_id === selfID) return
+
+          const entity = game.lookup(packet.entity_id)
+          if (!entity) return
+
+          if (packet.action === 'suspend') {
+            game.physics.suspend(packet.peer_id, [entity])
+          } else {
+            game.physics.resume(packet.peer_id, [entity])
+          }
+
+          break
+        }
+
         default:
           // @ts-expect-error default case
           console.warn(`unhandled packet: ${packet.t}`)
@@ -448,7 +463,7 @@ export const createNetwork = (
           }
 
           if (packet.edit_mode) {
-            const editor = createEditor()
+            const editor = createEditor(sendPacket)
             await game.instantiate(editor)
           }
 

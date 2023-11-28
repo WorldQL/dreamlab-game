@@ -1,3 +1,4 @@
+/* eslint-disable id-length */
 import { createEntity, dataManager } from '@dreamlab.gg/core'
 import type { Entity, Game, SpawnableEntity } from '@dreamlab.gg/core'
 import type { Camera } from '@dreamlab.gg/core/entities'
@@ -16,6 +17,7 @@ import type { Bounds, Vector } from '@dreamlab.gg/core/math'
 import type { Debug, Ref } from '@dreamlab.gg/core/utils'
 import { drawBox, drawCircle } from '@dreamlab.gg/core/utils'
 import { Container, Graphics } from 'pixi.js'
+import type { ToServerPacket } from '../packets'
 
 type ActionData =
   | { type: 'clear' }
@@ -49,7 +51,10 @@ export interface Selector extends Entity<Data, Render> {
   deselect(): void
 }
 
-export const createEntitySelect = (editorEnabled: Ref<boolean>) => {
+export const createEntitySelect = (
+  editorEnabled: Ref<boolean>,
+  sendPacket?: (packet: ToServerPacket) => void,
+) => {
   const colour = '#22a2ff'
   const strokeWidth = 2
   const handleSize = 10
@@ -74,8 +79,23 @@ export const createEntitySelect = (editorEnabled: Ref<boolean>) => {
       selected = entity
 
       if (selected !== prev) {
-        if (prev) game.physics.resume('@editor', [prev])
-        if (selected) game.physics.suspend('@editor', [selected])
+        if (prev) {
+          game.physics.resume('@editor', [prev])
+          sendPacket?.({
+            t: 'PhysicsSuspendResume',
+            action: 'resume',
+            entity_id: prev.uid,
+          })
+        }
+
+        if (selected) {
+          game.physics.suspend('@editor', [selected])
+          sendPacket?.({
+            t: 'PhysicsSuspendResume',
+            action: 'suspend',
+            entity_id: selected.uid,
+          })
+        }
       }
     },
 

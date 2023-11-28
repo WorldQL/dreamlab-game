@@ -1,5 +1,6 @@
 import { createEntity } from '@dreamlab.gg/core'
 import { deferUntilPlayer, ref } from '@dreamlab.gg/core/utils'
+import type { ToServerPacket } from '../packets'
 import { createEntitySelect } from './select'
 import { renderUI } from './ui'
 
@@ -8,9 +9,9 @@ enum EditorInputs {
   TogglePhysics = '@editor/TogglePhysics',
 }
 
-export const createEditor = () => {
+export const createEditor = (sendPacket?: (packet: ToServerPacket) => void) => {
   const enabled = ref<boolean>(false)
-  const selector = createEntitySelect(enabled)
+  const selector = createEntitySelect(enabled, sendPacket)
   // TODO: Implement the rest of the editor
 
   return createEntity({

@@ -229,50 +229,50 @@ export const IncomingArgsChangedSchema = z.object({
   value: z.unknown(),
 })
 
+export type IncomingPhysicsSuspendResumePacket = z.infer<
+  typeof IncomingPhysicsSuspendResumeSchema
+>
+export const IncomingPhysicsSuspendResumeSchema = z.object({
+  t: z.literal('PhysicsSuspendResume'),
+
+  entity_id: z.string(),
+  action: z.enum(['suspend', 'resume']),
+})
+
 export type OutgoingSpawnEntityPacket = z.infer<
   typeof OutgoingSpawnEntitySchema
 >
-export const OutgoingSpawnEntitySchema = z.object({
-  t: z.literal('SpawnEntity'),
-
+export const OutgoingSpawnEntitySchema = IncomingSpawnEntitySchema.extend({
   peer_id: z.string(),
-  definition: z.unknown(),
 })
 
 export type OutgoingDestroyEntityPacket = z.infer<
   typeof OutgoingDestroyEntitySchema
 >
-export const OutgoingDestroyEntitySchema = z.object({
-  t: z.literal('DestroyEntity'),
-
+export const OutgoingDestroyEntitySchema = IncomingDestroyEntitySchema.extend({
   peer_id: z.string(),
-  entity_id: z.string(),
 })
 
 export type OutgoingTransformChangedPacket = z.infer<
   typeof OutgoingTransformChangedSchema
 >
-export const OutgoingTransformChangedSchema = z.object({
-  t: z.literal('TransformChanged'),
-
-  entity_id: z.string(),
-  peer_id: z.string(),
-  position: TupleVectorSchema,
-  rotation: z.number(),
-  z_index: z.number(),
-})
+export const OutgoingTransformChangedSchema =
+  IncomingTransformChangedSchema.extend({ peer_id: z.string() })
 
 export type OutgoingArgsChangedPacket = z.infer<
   typeof OutgoingArgsChangedSchema
 >
-export const OutgoingArgsChangedSchema = z.object({
-  t: z.literal('ArgsChanged'),
-
-  entity_id: z.string(),
+export const OutgoingArgsChangedSchema = IncomingArgsChangedSchema.extend({
   peer_id: z.string(),
-  path: z.string(),
-  value: z.unknown(),
 })
+
+export type OutgoingPhysicsSuspendResumePacket = z.infer<
+  typeof OutgoingPhysicsSuspendResumeSchema
+>
+export const OutgoingPhysicsSuspendResumeSchema =
+  IncomingPhysicsSuspendResumeSchema.extend({
+    peer_id: z.string(),
+  })
 
 export type ToClientPacket = z.infer<typeof ToClientPacketSchema>
 export const ToClientPacketSchema = HandshakeSchema.or(SpawnPlayerSchema)
@@ -289,6 +289,7 @@ export const ToClientPacketSchema = HandshakeSchema.or(SpawnPlayerSchema)
   .or(OutgoingDestroyEntitySchema)
   .or(OutgoingTransformChangedSchema)
   .or(OutgoingArgsChangedSchema)
+  .or(OutgoingPhysicsSuspendResumeSchema)
 
 export type ToServerPacket = z.infer<typeof ToServerPacketSchema>
 export const ToServerPacketSchema = HandshakeReadySchema.or(ChatMessageSchema)
@@ -298,6 +299,7 @@ export const ToServerPacketSchema = HandshakeReadySchema.or(ChatMessageSchema)
   .or(IncomingDestroyEntitySchema)
   .or(IncomingArgsChangedSchema)
   .or(IncomingTransformChangedSchema)
+  .or(IncomingPhysicsSuspendResumeSchema)
   // .or(PhysicsControlledObjectsSnapshotSchema)
   // .or(PhysicsRequestObjectControlSchema) TODO
   .or(PlayerAnimationChangeSchema)
