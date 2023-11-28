@@ -5,7 +5,7 @@ import { createEditor } from './editor/editor.js'
 import { createKeybinds } from './keybinds/entity.js'
 import { bindInput, loadBindings } from './keybinds/persist.js'
 import { connect, createNetwork, decodeParams } from './network.js'
-import { loadScript, spawnPlayer } from './scripting.js'
+import { loadLevel, loadScript, spawnPlayer } from './scripting.js'
 
 export const init = async () => {
   // #region Setup
@@ -71,14 +71,14 @@ export const init = async () => {
   } else {
     if (import.meta.env.DEV) {
       const url = new URL(window.location.href)
-      const level = url.searchParams.get('level')
+      const world = url.searchParams.get('level')
 
-      if (level) {
+      if (world) {
         const editor = createEditor()
         await game.instantiate(editor)
 
-        await loadScript(undefined, level, game)
-        // TODO: Spawn level
+        await loadScript(undefined, world, game)
+        await loadLevel(undefined, world, game)
         await spawnPlayer(game, undefined)
       }
     }
