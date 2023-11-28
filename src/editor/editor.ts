@@ -19,9 +19,7 @@ export const createEditor = () => {
 
       const togglePhysics = (pressed: boolean) => {
         if (!pressed) return
-
-        if (game.physics.running) game.physics.suspend()
-        else game.physics.resume()
+        game.physics.running = !game.physics.running
       }
 
       const inputs = game.client?.inputs

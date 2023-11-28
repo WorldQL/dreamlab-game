@@ -74,8 +74,8 @@ export const createEntitySelect = (editorEnabled: Ref<boolean>) => {
       selected = entity
 
       if (selected !== prev) {
-        if (prev) game.physics.resume(prev)
-        if (selected) game.physics.suspend(selected)
+        if (prev) game.physics.resume('@editor', [prev])
+        if (selected) game.physics.suspend('@editor', [selected])
       }
     },
 
