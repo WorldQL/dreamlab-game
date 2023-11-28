@@ -39,17 +39,21 @@ export const Palette: FC<{ readonly selector: Selector }> = ({ selector }) => {
     async (entity: string) => {
       if (!player) return
 
-      const spawned = await game.spawn({
+      const definition = {
         entity,
         args: {},
         transform: {
           position: player.position,
           zIndex: 100, // Spawn in front of player
         },
-      })
+      }
 
-      if (spawned) network?.sendEntityCreate(spawned)
-      selector.select(spawned)
+      if (network) {
+        network.sendEntityCreate(definition)
+      } else {
+        const spawned = await game.spawn(definition)
+        if (spawned) selector.select(spawned)
+      }
     },
     [game, network, player, selector],
   )

@@ -357,8 +357,6 @@ export const createNetwork = (
         }
 
         case 'SpawnEntity': {
-          if (packet.peer_id === selfID) return
-
           const resp = SpawnableDefinitionSchema.safeParse(packet.definition)
           if (resp.success) await game.spawn(resp.data)
 
@@ -606,13 +604,10 @@ export const createNetwork = (
       sendPacket(payload)
     },
 
-    sendEntityCreate(entity) {
+    sendEntityCreate(definition) {
       const payload: SpawnEntityPacket = {
         t: 'SpawnEntity',
-        definition: {
-          uid: entity.uid,
-          ...entity.definition,
-        },
+        definition,
       }
 
       sendPacket(payload)
