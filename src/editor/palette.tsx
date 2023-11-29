@@ -11,9 +11,14 @@ import { Button, Container } from './components'
 import type { Selector } from './select'
 
 const PaletteContainer = styled(Container)`
-  top: var(--margin);
+  top: 5rem;
   right: var(--margin);
   bottom: var(--margin);
+  opacity: 0.7;
+
+  &:hover {
+    opacity: 1;
+  }
 `
 
 const SpawnableList = styled.div`
@@ -52,6 +57,7 @@ export const Palette: FC<{ readonly selector: Selector }> = ({ selector }) => {
         network.sendEntityCreate(definition)
       } else {
         const spawned = await game.spawn(definition)
+        console.log(spawned)
         if (spawned) selector.select(spawned)
       }
     },

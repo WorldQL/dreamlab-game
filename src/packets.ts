@@ -274,6 +274,24 @@ export const OutgoingPhysicsSuspendResumeSchema =
     peer_id: z.string(),
   })
 
+export type PhysicsRequestObjectControlPacket = z.infer<
+  typeof OutgoingPhysicsSuspendResumeSchema
+>
+export const PhysicsRequestObjectControlSchema = z.object({
+  t: z.literal('PhysicsRequestObjectControl'),
+
+  entity_id: z.string(),
+})
+
+export type PhysicsControlledObjectsSnapshotPacket = z.infer<
+  typeof OutgoingPhysicsSuspendResumeSchema
+>
+export const PhysicsControlledObjectsSnapshotSchema = z.object({
+  t: z.literal('PhysicsControlledObjectsSnapshot'),
+  tick_number: z.number(),
+  snapshot: z.unknown(),
+})
+
 export type ToClientPacket = z.infer<typeof ToClientPacketSchema>
 export const ToClientPacketSchema = HandshakeSchema.or(SpawnPlayerSchema)
   .or(DespawnPlayerSchema)
@@ -305,3 +323,5 @@ export const ToServerPacketSchema = HandshakeReadySchema.or(ChatMessageSchema)
   .or(PlayerAnimationChangeSchema)
   .or(PlayerInputsPacketSchema)
   .or(PlayerMotionSchema)
+  .or(PhysicsRequestObjectControlSchema)
+  .or(PhysicsControlledObjectsSnapshotSchema)

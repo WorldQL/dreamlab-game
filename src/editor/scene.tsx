@@ -12,12 +12,18 @@ import { Button, Container } from './components'
 import type { Selector } from './select'
 
 const ListContainer = styled(Container)`
-  top: var(--margin);
+  top: 5rem;
   left: var(--margin);
   bottom: var(--margin);
 
   display: flex;
   flex-direction: column;
+
+  opacity: 0.7;
+
+  &:hover {
+    opacity: 1;
+  }
 `
 
 const EntityList = styled.div`
