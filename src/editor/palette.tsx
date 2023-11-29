@@ -4,6 +4,7 @@ import {
   usePlayer,
   useRegisteredSpawnables,
 } from '@dreamlab.gg/ui/react'
+import cuid2 from '@paralleldrive/cuid2'
 import { useCallback, useMemo } from 'https://esm.sh/react@18.2.0'
 import type { FC } from 'https://esm.sh/react@18.2.0'
 import { styled } from 'https://esm.sh/styled-components@6.1.1'
@@ -40,9 +41,22 @@ export const Palette: FC<{ readonly selector: Selector }> = ({ selector }) => {
     [registered],
   )
 
+  const spawnedEntitiesAwaitingSelection: string[] = [];
+
+  // This event is being fired three times??
+  game.events.common.addListener('onSpawn', (entity) => {
+    const idx = spawnedEntitiesAwaitingSelection.indexOf(entity.uid);
+    if (idx !== -1) {
+      selector.select(entity)
+      spawnedEntitiesAwaitingSelection.splice(idx, 1);
+    }
+  })
+
   const spawn = useCallback(
     async (entity: string) => {
       if (!player) return
+
+      const uid = cuid2.createId()
 
       const definition = {
         entity,
@@ -51,13 +65,14 @@ export const Palette: FC<{ readonly selector: Selector }> = ({ selector }) => {
           position: player.position,
           zIndex: 100, // Spawn in front of player
         },
+        uid,
       }
 
       if (network) {
         network.sendEntityCreate(definition)
+        spawnedEntitiesAwaitingSelection.push(definition.uid)
       } else {
         const spawned = await game.spawn(definition)
-        console.log(spawned)
         if (spawned) selector.select(spawned)
       }
     },
