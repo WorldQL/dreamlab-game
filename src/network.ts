@@ -75,6 +75,17 @@ export interface Params {
   readonly nickname: string
 }
 
+window.addEventListener('message', ev => {
+  const data = ev.data
+
+  if (data?.fallbackUrl) {
+    window.localStorage.setItem(
+      '@dreamlab/worlds/fallbackUrl',
+      data.fallbackUrl,
+    )
+  }
+})
+
 export const decodeParams = (): Params | undefined => {
   const url = new URL(window.location.href)
 
@@ -119,7 +130,10 @@ export const connect = async (
     resolve(ws)
 
     // ws.addEventListener('open', () => resolve(ws))
-    // ws.addEventListener('error', () => resolve(undefined))
+    ws.addEventListener('error', () => {
+      const worldDetails = localStorage.getItem('@dreamlab/worlds/fallbackUrl')
+      if (worldDetails) window.location.href = worldDetails
+    })
   })
 }
 
@@ -139,7 +153,19 @@ export const createNetwork = (
 ): [network: BareNetClient, ready: Promise<void>] => {
   const sendPacket = (_packet: ToServerPacket) => {
     const packet = JSON.stringify(_packet)
-    void runAfterFakeLatency(async () => ws.send(packet))
+
+    const sendWhenOpen = async () => {
+      if (ws.readyState === WebSocket.OPEN) {
+        ws.send(packet)
+      } else {
+        const worldDetails = localStorage.getItem(
+          '@dreamlab/worlds/fallbackUrl',
+        )
+        if (worldDetails) window.location.href = worldDetails
+      }
+    }
+
+    void runAfterFakeLatency(sendWhenOpen)
   }
 
   const listeners = new Map<string, Set<MessageListenerClient>>()
@@ -492,9 +518,8 @@ export const createNetwork = (
         for (const pkt of queue) await handlePacket(pkt)
         await handlePacket(packet)
       })
-    } catch (error) {
+    } catch {
       console.warn(`malformed packet: ${ev.data}`)
-      console.log(error)
     }
   })
 

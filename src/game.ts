@@ -14,8 +14,10 @@ export const init = async () => {
 
   const params = decodeParams()
   const ws = await connect(params)
-  if (!ws) {
-    // TODO: Handle ws connect errors and alert user
+  const worldDetails = localStorage.getItem('@dreamlab/worlds/fallbackUrl')
+  if (!ws && worldDetails) {
+    window.location.href = worldDetails
+    return
   }
 
   const width = 1_600
