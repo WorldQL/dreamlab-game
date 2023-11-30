@@ -69,7 +69,7 @@ const esmLink = async (pkg, linkRoot) => {
   const { version } = await packageJson(pkg, linkRoot)
   if (!version) throw new Error(`unknown version for package: ${pkg}`)
 
-  return `https://esm.sh/${pkg}@${version}`
+  return `https://esm.sh/v136/${pkg}@${version}`
 }
 // #endregion
 

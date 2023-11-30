@@ -1,4 +1,4 @@
-import { styled } from 'https://esm.sh/styled-components@6.1.1'
+import { styled } from 'https://esm.sh/v136/styled-components@6.1.1'
 
 export const Container = styled.div`
   --margin: 1rem;

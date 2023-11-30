@@ -5,9 +5,13 @@ import {
   useGame,
   useRegisteredInputs,
 } from '@dreamlab.gg/ui/react'
-import { useCallback, useEffect, useState } from 'https://esm.sh/react@18.2.0'
-import type { FC } from 'https://esm.sh/react@18.2.0'
-import { styled } from 'https://esm.sh/styled-components@6.1.1'
+import {
+  useCallback,
+  useEffect,
+  useState,
+} from 'https://esm.sh/v136/react@18.2.0'
+import type { FC } from 'https://esm.sh/v136/react@18.2.0'
+import { styled } from 'https://esm.sh/v136/styled-components@6.1.1'
 import { Input } from './input'
 import { bindInput } from './persist'
 
