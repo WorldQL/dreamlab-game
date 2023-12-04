@@ -203,7 +203,11 @@ export const createEntitySelect = (
       const onClick = (ev: MouseEvent) => {
         if (!editorEnabled.value) return
         const pos = camera.localToWorld({ x: ev.offsetX, y: ev.offsetY })
-        const query = game.queryPosition(pos).filter(entity => !entity.preview)
+        const query = game
+          .queryPosition(pos)
+          .filter(
+            entity => !entity.preview && !entity.tags.includes('editorLocked'),
+          )
 
         // Sort based on z-index
         query.sort((a, b) => b.transform.zIndex - a.transform.zIndex)
