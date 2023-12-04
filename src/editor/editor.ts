@@ -36,10 +36,7 @@ export const createEditor = (sendPacket?: (packet: ToServerPacket) => void) => {
         player.events.addListener('onToggleNoclip', noclip => {
           enabled.value = noclip
 
-          if (noclip) {
-            inputs?.disable('mouse', 'editor')
-          } else {
-            inputs?.enable('mouse', 'editor')
+          if (!noclip) {
             selector.deselect()
           }
         })
