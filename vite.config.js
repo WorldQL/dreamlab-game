@@ -142,7 +142,7 @@ const importMapPlugin = () => ({
 export default defineConfig(async () => ({
   plugins: [importMapPlugin()],
   preview: {
-    port: 5173
+    port: 5173,
   },
 
   build: {

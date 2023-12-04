@@ -41,14 +41,14 @@ export const Palette: FC<{ readonly selector: Selector }> = ({ selector }) => {
     [registered],
   )
 
-  const spawnedEntitiesAwaitingSelection: string[] = [];
+  const spawnedEntitiesAwaitingSelection: string[] = []
 
   // This event is being fired three times??
-  game.events.common.addListener('onSpawn', (entity) => {
-    const idx = spawnedEntitiesAwaitingSelection.indexOf(entity.uid);
+  game.events.common.addListener('onSpawn', entity => {
+    const idx = spawnedEntitiesAwaitingSelection.indexOf(entity.uid)
     if (idx !== -1) {
       selector.select(entity)
-      spawnedEntitiesAwaitingSelection.splice(idx, 1);
+      spawnedEntitiesAwaitingSelection.splice(idx, 1)
     }
   })
 
