@@ -372,7 +372,7 @@ export const createEntitySelect = (
 
     onRenderFrame(
       _,
-      __,
+      { game },
       {
         camera,
         container,
@@ -390,10 +390,12 @@ export const createEntitySelect = (
 
       const bounds = selected?.rectangleBounds()
       if (!selected || !bounds) {
+        game.client?.inputs?.enable('mouse', 'editor')
         container.alpha = 0
         return
       }
 
+      game.client?.inputs?.disable('mouse', 'editor')
       const entity = selected
       const inverse = 1 / camera.scale
       const scaledWidth = strokeWidth * inverse

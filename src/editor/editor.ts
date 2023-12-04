@@ -37,6 +37,7 @@ export const createEditor = (sendPacket?: (packet: ToServerPacket) => void) => {
           enabled.value = noclip
 
           if (!noclip) {
+            inputs?.enable('mouse', 'editor')
             selector.deselect()
           }
         })
