@@ -7,6 +7,7 @@ import type {
   NetPlayer,
   Player,
 } from '@dreamlab.gg/core/entities'
+import { createGear } from '@dreamlab.gg/core/managers'
 import {
   isTrackedTransform,
   toRadians,
@@ -289,8 +290,9 @@ export const createNetwork = (
             const netplayer = players.get(info.entity_id)
             if (!netplayer) continue
 
-            // TODO: Maybe validate this string
-            netplayer.setItemInHand(info.item)
+            netplayer.setGear(
+              info.item === undefined ? undefined : createGear(info.item),
+            )
           }
 
           break
@@ -642,13 +644,23 @@ export const createNetwork = (
       sendPacket(payload)
     },
 
-    sendPlayerItem(item) {
-      const payload: PlayerItemChangePacket = {
-        t: 'PlayerItemChange',
-        item,
-      }
+    sendPlayerGear(gear) {
+      if (gear === undefined) {
+        const payload: PlayerItemChangePacket = {
+          t: 'PlayerItemChange',
+          item: undefined,
+        }
 
-      sendPacket(payload)
+        sendPacket(payload)
+      } else {
+        const { texture: _, ...base } = gear
+        const payload: PlayerItemChangePacket = {
+          t: 'PlayerItemChange',
+          item: base,
+        }
+
+        sendPacket(payload)
+      }
     },
 
     sendEntityCreate(definition) {

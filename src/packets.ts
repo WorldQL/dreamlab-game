@@ -1,6 +1,6 @@
 /* eslint-disable id-length */
 import { SpawnableDefinitionSchema } from '@dreamlab.gg/core'
-import { PlayerItemSchema } from '@dreamlab.gg/core/managers'
+import { BaseGearSchema } from '@dreamlab.gg/core/managers'
 import { z } from 'zod'
 
 export const PROTOCOL_VERSION = 5
@@ -78,7 +78,7 @@ export const PlayerAnimationSnapshotSchema = z.object({
 export type PlayerItemInfo = z.infer<typeof PlayerItemInfoSchema>
 export const PlayerItemInfoSchema = z.object({
   entity_id: z.string(),
-  item: PlayerItemSchema,
+  item: BaseGearSchema.or(z.undefined()),
 })
 
 export type PlayerItemSnapshotPacket = z.infer<typeof PlayerItemSnapshotSchema>
@@ -140,7 +140,7 @@ export type PlayerItemChangePacket = z.infer<typeof PlayerItemChangeSchema>
 export const PlayerItemChangeSchema = z.object({
   t: z.literal('PlayerItemChange'),
 
-  item: PlayerItemSchema,
+  item: BaseGearSchema.or(z.undefined()),
 })
 
 export type BodyInfo = z.infer<typeof BodyInfoSchema>
