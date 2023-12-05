@@ -75,17 +75,17 @@ export const PlayerAnimationSnapshotSchema = z.object({
   animation_info: PlayerAnimationInfoSchema.array(),
 })
 
-export type PlayerItemInfo = z.infer<typeof PlayerItemInfoSchema>
-export const PlayerItemInfoSchema = z.object({
+export type PlayerGearInfo = z.infer<typeof PlayerGearInfoSchema>
+export const PlayerGearInfoSchema = z.object({
   entity_id: z.string(),
-  item: BaseGearSchema.or(z.undefined()),
+  gear: BaseGearSchema.nullable(),
 })
 
-export type PlayerItemSnapshotPacket = z.infer<typeof PlayerItemSnapshotSchema>
-export const PlayerItemSnapshotSchema = z.object({
-  t: z.literal('PlayerItemSnapshot'),
+export type PlayerGearSnapshotPacket = z.infer<typeof PlayerGearSnapshotSchema>
+export const PlayerGearSnapshotSchema = z.object({
+  t: z.literal('PlayerGearSnapshot'),
 
-  item_info: PlayerItemInfoSchema.array(),
+  gear_info: PlayerGearInfoSchema.array(),
 })
 
 export type CustomMessagePacket = z.infer<typeof CustomMessageSchema>
@@ -136,11 +136,12 @@ export const PlayerAnimationChangeSchema = z.object({
   animation: z.string(),
 })
 
-export type PlayerItemChangePacket = z.infer<typeof PlayerItemChangeSchema>
-export const PlayerItemChangeSchema = z.object({
-  t: z.literal('PlayerItemChange'),
+export type PlayerGearChangePacket = z.infer<typeof PlayerGearChangeSchema>
+export const PlayerGearChangeSchema = z.object({
+  t: z.literal('PlayerGearChange'),
 
-  item: BaseGearSchema.or(z.undefined()),
+  // gear: BaseGearSchema.nullable(),
+  gear: z.unknown(),
 })
 
 export type BodyInfo = z.infer<typeof BodyInfoSchema>
@@ -317,7 +318,7 @@ export type ToClientPacket = z.infer<typeof ToClientPacketSchema>
 export const ToClientPacketSchema = HandshakeSchema.or(SpawnPlayerSchema)
   .or(DespawnPlayerSchema)
   .or(PlayerMotionSnapshotSchema)
-  .or(PlayerItemSnapshotSchema)
+  .or(PlayerGearSnapshotSchema)
   .or(PhysicsFullSnapshotSchema)
   .or(PhysicsDeltaSnapshotSchema)
   .or(PlayerAnimationSnapshotSchema)
@@ -345,6 +346,6 @@ export const ToServerPacketSchema = HandshakeReadySchema.or(ChatMessageSchema)
   .or(PlayerAnimationChangeSchema)
   .or(PlayerInputsPacketSchema)
   .or(PlayerMotionSchema)
-  .or(PlayerItemChangeSchema)
+  .or(PlayerGearChangeSchema)
   .or(PhysicsRequestObjectControlSchema)
   .or(PhysicsControlledObjectsSnapshotSchema)

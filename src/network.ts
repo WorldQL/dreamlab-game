@@ -40,8 +40,8 @@ import type {
   HandshakePacket,
   HandshakeReadyPacket,
   PlayerAnimationChangePacket,
+  PlayerGearChangePacket,
   PlayerInputsPacket,
-  PlayerItemChangePacket,
   PlayerMotionPacket,
   IncomingSpawnEntityPacket as SpawnEntityPacket,
   ToClientPacket,
@@ -285,13 +285,13 @@ export const createNetwork = (
           break
         }
 
-        case 'PlayerItemSnapshot': {
-          for (const info of packet.item_info) {
+        case 'PlayerGearSnapshot': {
+          for (const info of packet.gear_info) {
             const netplayer = players.get(info.entity_id)
             if (!netplayer) continue
 
             netplayer.setGear(
-              info.item === undefined ? undefined : createGear(info.item),
+              info.gear === null ? undefined : createGear(info.gear),
             )
           }
 
@@ -488,9 +488,7 @@ export const createNetwork = (
     if (typeof ev.data !== 'string') return
 
     try {
-      const result = ToClientPacketSchema.safeParse(JSON.parse(ev.data))
-      if (!result.success) throw result.error
-      const packet = result.data
+      const packet = await ToClientPacketSchema.parseAsync(JSON.parse(ev.data))
 
       await runAfterFakeLatency(async () => {
         if (packet.t === 'Handshake') {
@@ -533,8 +531,9 @@ export const createNetwork = (
         for (const pkt of queue) await handlePacket(pkt)
         await handlePacket(packet)
       })
-    } catch {
+    } catch (error) {
       console.warn(`malformed packet: ${ev.data}`)
+      console.error(error)
     }
   })
 
@@ -646,17 +645,17 @@ export const createNetwork = (
 
     sendPlayerGear(gear) {
       if (gear === undefined) {
-        const payload: PlayerItemChangePacket = {
-          t: 'PlayerItemChange',
-          item: undefined,
+        const payload: PlayerGearChangePacket = {
+          t: 'PlayerGearChange',
+          gear: null,
         }
 
         sendPacket(payload)
       } else {
         const { texture: _, ...base } = gear
-        const payload: PlayerItemChangePacket = {
-          t: 'PlayerItemChange',
-          item: base,
+        const payload: PlayerGearChangePacket = {
+          t: 'PlayerGearChange',
+          gear: base,
         }
 
         sendPacket(payload)
