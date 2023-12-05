@@ -1,5 +1,6 @@
 /* eslint-disable id-length */
 import { SpawnableDefinitionSchema } from '@dreamlab.gg/core'
+import { PlayerItemSchema } from '@dreamlab.gg/core/managers'
 import { z } from 'zod'
 
 export const PROTOCOL_VERSION = 5
@@ -74,6 +75,19 @@ export const PlayerAnimationSnapshotSchema = z.object({
   animation_info: PlayerAnimationInfoSchema.array(),
 })
 
+export type PlayerItemInfo = z.infer<typeof PlayerItemInfoSchema>
+export const PlayerItemInfoSchema = z.object({
+  entity_id: z.string(),
+  item: PlayerItemSchema,
+})
+
+export type PlayerItemSnapshotPacket = z.infer<typeof PlayerItemSnapshotSchema>
+export const PlayerItemSnapshotSchema = z.object({
+  t: z.literal('PlayerItemSnapshot'),
+
+  item_info: PlayerItemInfoSchema.array(),
+})
+
 export type CustomMessagePacket = z.infer<typeof CustomMessageSchema>
 export const CustomMessageSchema = z.object({
   t: z.literal('CustomMessage'),
@@ -120,6 +134,13 @@ export const PlayerAnimationChangeSchema = z.object({
   t: z.literal('PlayerAnimationChange'),
 
   animation: z.string(),
+})
+
+export type PlayerItemChangePacket = z.infer<typeof PlayerItemChangeSchema>
+export const PlayerItemChangeSchema = z.object({
+  t: z.literal('PlayerItemChange'),
+
+  item: PlayerItemSchema,
 })
 
 export type BodyInfo = z.infer<typeof BodyInfoSchema>
@@ -296,6 +317,7 @@ export type ToClientPacket = z.infer<typeof ToClientPacketSchema>
 export const ToClientPacketSchema = HandshakeSchema.or(SpawnPlayerSchema)
   .or(DespawnPlayerSchema)
   .or(PlayerMotionSnapshotSchema)
+  .or(PlayerItemSnapshotSchema)
   .or(PhysicsFullSnapshotSchema)
   .or(PhysicsDeltaSnapshotSchema)
   .or(PlayerAnimationSnapshotSchema)
@@ -323,5 +345,6 @@ export const ToServerPacketSchema = HandshakeReadySchema.or(ChatMessageSchema)
   .or(PlayerAnimationChangeSchema)
   .or(PlayerInputsPacketSchema)
   .or(PlayerMotionSchema)
+  .or(PlayerItemChangeSchema)
   .or(PhysicsRequestObjectControlSchema)
   .or(PhysicsControlledObjectsSnapshotSchema)

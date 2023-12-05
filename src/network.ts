@@ -40,6 +40,7 @@ import type {
   HandshakeReadyPacket,
   PlayerAnimationChangePacket,
   PlayerInputsPacket,
+  PlayerItemChangePacket,
   PlayerMotionPacket,
   IncomingSpawnEntityPacket as SpawnEntityPacket,
   ToClientPacket,
@@ -278,6 +279,18 @@ export const createNetwork = (
 
             // TODO: Maybe validate this string
             netplayer.setAnimation(info.animation as KnownPlayerAnimation)
+          }
+
+          break
+        }
+
+        case 'PlayerItemSnapshot': {
+          for (const info of packet.item_info) {
+            const netplayer = players.get(info.entity_id)
+            if (!netplayer) continue
+
+            // TODO: Maybe validate this string
+            netplayer.setItemInHand(info.item)
           }
 
           break
@@ -624,6 +637,15 @@ export const createNetwork = (
       const payload: PlayerAnimationChangePacket = {
         t: 'PlayerAnimationChange',
         animation,
+      }
+
+      sendPacket(payload)
+    },
+
+    sendPlayerItem(item) {
+      const payload: PlayerItemChangePacket = {
+        t: 'PlayerItemChange',
+        item,
       }
 
       sendPacket(payload)
