@@ -108,6 +108,38 @@ const DeleteButton = styled(IconButton)`
   }
 `
 
+const LockButton = styled(IconButton)`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem;
+  transition: all 0.3s ease;
+
+  &.locked {
+    background-color: #ef4444; // Red for locked
+    &:hover {
+      background-color: #b91c1c;
+    }
+  }
+
+  &.unlocked {
+    background-color: #22c55e; // Green for unlocked
+    &:hover {
+      background-color: #16a34a;
+    }
+  }
+
+  & svg {
+    width: 1.5rem;
+    height: 1.5rem;
+    transition: transform 0.3s ease;
+  }
+
+  &:hover svg {
+    transform: scale(1.1);
+  }
+`
+
 const EntityDisplay: FC<{
   readonly selector: Selector
   entity: SpawnableEntity
@@ -115,6 +147,7 @@ const EntityDisplay: FC<{
   const game = useGame()
   const network = useNetwork()
   const player = usePlayer()
+  const isLocked = entity.tags.includes('editorLocked')
 
   const onFocus = useCallback(() => {
     if (!player) return
@@ -128,11 +161,49 @@ const EntityDisplay: FC<{
     network?.sendEntityDestroy(id)
   }, [network, entity])
 
+  const onLockToggle = useCallback(() => {
+    // TODO: actually implement this
+    if (isLocked) {
+      // Remove the 'editorLocked' tag
+      console.log('unlocked')
+    } else {
+      // add tag
+      console.log('locked')
+    }
+  }, [entity])
+
   return (
     <EntityButtons id={entity.uid}>
       <SelectButton type='button' onClick={() => selector.select(entity)}>
         {entity.definition.entity}
       </SelectButton>
+
+      <LockButton
+        type='button'
+        title='Lock/Unlock'
+        onClick={onLockToggle}
+        className={isLocked ? 'locked' : 'unlocked'}
+      >
+        {isLocked ? (
+          <svg
+            xmlns='http://www.w3.org/2000/svg'
+            height='16'
+            width='14'
+            viewBox='0 0 448 512'
+          >
+            <path d='M144 144v48H304V144c0-44.2-35.8-80-80-80s-80 35.8-80 80zM80 192V144C80 64.5 144.5 0 224 0s144 64.5 144 144v48h16c35.3 0 64 28.7 64 64V448c0 35.3-28.7 64-64 64H64c-35.3 0-64-28.7-64-64V256c0-35.3 28.7-64 64-64H80z' />
+          </svg>
+        ) : (
+          <svg
+            xmlns='http://www.w3.org/2000/svg'
+            height='16'
+            width='18'
+            viewBox='0 0 576 512'
+          >
+            <path d='M352 144c0-44.2 35.8-80 80-80s80 35.8 80 80v48c0 17.7 14.3 32 32 32s32-14.3 32-32V144C576 64.5 511.5 0 432 0S288 64.5 288 144v48H64c-35.3 0-64 28.7-64 64V448c0 35.3 28.7 64 64 64H384c35.3 0 64-28.7 64-64V256c0-35.3-28.7-64-64-64H352V144z' />
+          </svg>
+        )}
+      </LockButton>
 
       <IconButton type='button' title='Focus' onClick={onFocus}>
         <svg
