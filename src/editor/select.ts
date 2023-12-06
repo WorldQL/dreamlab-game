@@ -2,7 +2,7 @@
 import { createEntity, dataManager } from '@dreamlab.gg/core'
 import type { Entity, Game, SpawnableEntity } from '@dreamlab.gg/core'
 import type { Camera } from '@dreamlab.gg/core/entities'
-import type { EventHandler } from '@dreamlab.gg/core/events';
+import type { EventHandler } from '@dreamlab.gg/core/events'
 import { EventEmitter } from '@dreamlab.gg/core/events'
 import {
   absolute,

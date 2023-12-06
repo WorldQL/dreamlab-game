@@ -5,21 +5,32 @@ import {
   usePlayer,
   useSpawnableEntities,
 } from '@dreamlab.gg/ui/react'
-import { useCallback, useEffect } from 'https://esm.sh/v136/react@18.2.0'
+import {
+  useCallback,
+  useEffect,
+  useState,
+} from 'https://esm.sh/v136/react@18.2.0'
 import type { FC } from 'https://esm.sh/v136/react@18.2.0'
 import { styled } from 'https://esm.sh/v136/styled-components@6.1.1'
 import { Button, Container } from './components'
 import type { Selector } from './select'
 
-const ListContainer = styled(Container)`
+interface ListContainerProps {
+  isCollapsed: boolean
+}
+
+const ListContainer = styled(Container)<ListContainerProps>`
   top: 5rem;
   left: var(--margin);
   bottom: var(--margin);
-
   display: flex;
   flex-direction: column;
-
   opacity: 0.7;
+  transform: ${props =>
+    props.isCollapsed ? 'translateX(-92%)' : 'translateX(0)'};
+  transition:
+    transform 0.3s ease,
+    visibility 0.3s ease;
 
   &:hover {
     opacity: 1;
@@ -36,6 +47,30 @@ const EntityList = styled.div`
   padding: 0.5rem 0;
 `
 
+export const CollapseButton = styled.button`
+  position: absolute;
+  top: 0.3rem;
+  background-color: transparent;
+  color: #4a4a4a;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 0.3rem;
+  font-size: 1.2rem;
+  transition:
+    background-color 0.3s,
+    color 0.3s;
+
+  &:hover {
+    background-color: rgba(0, 0, 0, 0.1);
+    color: #2c2c2c;
+  }
+
+  &:focus {
+    outline: none;
+  }
+`
+
 export const SceneList: FC<{ readonly selector: Selector }> = ({
   selector,
 }) => {
@@ -43,6 +78,11 @@ export const SceneList: FC<{ readonly selector: Selector }> = ({
   const entities = [...etys].sort((a, b) =>
     a.definition.entity.localeCompare(b.definition.entity),
   )
+  const [isCollapsed, setIsCollapsed] = useState(false)
+
+  const toggleCollapse = useCallback(() => {
+    setIsCollapsed(prev => !prev)
+  }, [])
 
   const onSave = useCallback(() => {
     // Filter out entities tagged as "do not save"
@@ -62,20 +102,36 @@ export const level: LooseSpawnableDefinition[] = ${json}
   }, [entities])
 
   return (
-    <ListContainer>
-      <h1>Object List</h1>
-
-      <EntityList>
-        {entities.map(entity => (
-          // eslint-disable-next-line @typescript-eslint/no-use-before-define
-          <EntityDisplay key={entity.uid} entity={entity} selector={selector} />
-        ))}
-      </EntityList>
-
-      <Button type='button' onClick={onSave}>
-        Save
-      </Button>
-    </ListContainer>
+    <>
+      <ListContainer isCollapsed={isCollapsed}>
+        <CollapseButton
+          onClick={toggleCollapse}
+          style={{
+            right: '0.3rem',
+          }}
+        >
+          {isCollapsed ? '✚' : '─'}
+        </CollapseButton>
+        {!isCollapsed && (
+          <>
+            <h1>Object List</h1>
+            <EntityList>
+              {entities.map(entity => (
+                // eslint-disable-next-line @typescript-eslint/no-use-before-define
+                <EntityDisplay
+                  key={entity.uid}
+                  entity={entity}
+                  selector={selector}
+                />
+              ))}
+            </EntityList>
+            <Button type='button' onClick={onSave}>
+              Save
+            </Button>
+          </>
+        )}
+      </ListContainer>
+    </>
   )
 }
 

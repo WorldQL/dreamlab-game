@@ -5,17 +5,31 @@ import {
   useRegisteredSpawnables,
 } from '@dreamlab.gg/ui/react'
 import cuid2 from '@paralleldrive/cuid2'
-import { useCallback, useMemo } from 'https://esm.sh/v136/react@18.2.0'
+import {
+  useCallback,
+  useMemo,
+  useState,
+} from 'https://esm.sh/v136/react@18.2.0'
 import type { FC } from 'https://esm.sh/v136/react@18.2.0'
 import { styled } from 'https://esm.sh/v136/styled-components@6.1.1'
 import { Button, Container } from './components'
+import { CollapseButton } from './scene'
 import type { Selector } from './select'
 
-const PaletteContainer = styled(Container)`
+interface PaletteContainerProps {
+  isCollapsed: boolean
+}
+
+const PaletteContainer = styled(Container)<PaletteContainerProps>`
   top: 5rem;
   right: var(--margin);
   bottom: var(--margin);
   opacity: 0.7;
+  transform: ${props =>
+    props.isCollapsed ? 'translateX(92%)' : 'translateX(0)'};
+  transition:
+    transform 0.3s ease,
+    opacity 0.3s ease;
 
   &:hover {
     opacity: 1;
@@ -40,6 +54,7 @@ export const Palette: FC<{ readonly selector: Selector }> = ({ selector }) => {
     () => registered.filter(([, fn]) => fn.hasDefaults),
     [registered],
   )
+  const [isCollapsed, setIsCollapsed] = useState(false)
 
   const spawnedEntitiesAwaitingSelection: string[] = []
 
@@ -80,16 +95,31 @@ export const Palette: FC<{ readonly selector: Selector }> = ({ selector }) => {
   )
 
   return (
-    <PaletteContainer>
-      <h1>Spawn Object</h1>
-
-      <SpawnableList>
-        {spawnable.map(([name]) => (
-          <Button key={name} type='button' onClick={async () => spawn(name)}>
-            {name}
-          </Button>
-        ))}
-      </SpawnableList>
+    <PaletteContainer isCollapsed={isCollapsed}>
+      <CollapseButton
+        onClick={() => setIsCollapsed(prev => !prev)}
+        style={{
+          left: '0.3rem',
+        }}
+      >
+        {isCollapsed ? '✚' : '─'}
+      </CollapseButton>
+      {!isCollapsed && (
+        <>
+          <h1>Spawn Object</h1>
+          <SpawnableList>
+            {spawnable.map(([name]) => (
+              <Button
+                key={name}
+                type='button'
+                onClick={async () => spawn(name)}
+              >
+                {name}
+              </Button>
+            ))}
+          </SpawnableList>
+        </>
+      )}
     </PaletteContainer>
   )
 }
