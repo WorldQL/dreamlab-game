@@ -150,7 +150,7 @@ const EntityDisplay: FC<{
   const isLocked = entity.tags.includes('editorLocked')
 
   useEffect(() => {
-    const onEvent = event => {
+    const onEvent = (event: unknown) => {
       console.log(event)
     }
 

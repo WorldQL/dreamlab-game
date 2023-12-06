@@ -69,7 +69,7 @@ export const Palette: FC<{ readonly selector: Selector }> = ({ selector }) => {
       }
 
       if (network) {
-        network.sendEntityCreate(definition)
+        void network.sendEntityCreate(definition)
         spawnedEntitiesAwaitingSelection.push(definition.uid)
       } else {
         const spawned = await game.spawn(definition)

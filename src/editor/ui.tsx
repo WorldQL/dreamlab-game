@@ -5,7 +5,11 @@ import { Palette } from './palette'
 import { SceneList } from './scene'
 import type { Selector } from './select'
 
-export const renderUI = (game: Game<false>, selector: Selector, scriptEditSecret?: string) => {
+export const renderUI = (
+  game: Game<false>,
+  selector: Selector,
+  scriptEditSecret?: string,
+) => {
   const styles = document.createElement('style')
   const ui = render(
     game,

@@ -2,7 +2,8 @@
 import { createEntity, dataManager } from '@dreamlab.gg/core'
 import type { Entity, Game, SpawnableEntity } from '@dreamlab.gg/core'
 import type { Camera } from '@dreamlab.gg/core/entities'
-import { EventEmitter, EventHandler } from '@dreamlab.gg/core/events'
+import type { EventHandler } from '@dreamlab.gg/core/events';
+import { EventEmitter } from '@dreamlab.gg/core/events'
 import {
   absolute,
   angleBetween,
@@ -76,7 +77,7 @@ export const createEntitySelect = (
     if (entity === selected) selected = undefined
   }
 
-  const events = new EventEmitter<EntityEvents>();
+  const events = new EventEmitter<EntityEvents>()
 
   return createEntity<Selector, Data, Render>({
     events() {
@@ -85,8 +86,8 @@ export const createEntitySelect = (
     select(entity) {
       const { game } = dataManager.getData(this)
 
-      events.emit('onSelect', entity?.uid);
-      
+      events.emit('onSelect', entity?.uid)
+
       const prev = selected
       selected = entity
 
