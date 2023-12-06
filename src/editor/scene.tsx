@@ -98,6 +98,9 @@ const IconButton = styled(Button)`
     width: 1.5rem;
     height: 1.5rem;
   }
+  &:hover {
+    transform: translateY(-2px);
+  }
 `
 
 const DeleteButton = styled(IconButton)`
@@ -105,6 +108,7 @@ const DeleteButton = styled(IconButton)`
 
   &:hover {
     background-color: #b91c1c;
+    transform: translateY(-2px);
   }
 `
 
@@ -113,19 +117,11 @@ const LockButton = styled(IconButton)`
   align-items: center;
   justify-content: center;
   padding: 0.5rem;
-  transition: all 0.3s ease;
 
   &.locked {
-    background-color: #ef4444; // Red for locked
+    background-color: #ef4444;
     &:hover {
       background-color: #b91c1c;
-    }
-  }
-
-  &.unlocked {
-    background-color: #22c55e; // Green for unlocked
-    &:hover {
-      background-color: #16a34a;
     }
   }
 
@@ -135,8 +131,8 @@ const LockButton = styled(IconButton)`
     transition: transform 0.3s ease;
   }
 
-  &:hover svg {
-    transform: scale(1.1);
+  &:hover {
+    transform: translateY(-2px);
   }
 `
 
@@ -190,6 +186,17 @@ const EntityDisplay: FC<{
         {entity.definition.entity}
       </SelectButton>
 
+      <IconButton type='button' title='Focus' onClick={onFocus}>
+        <svg
+          xmlns='http://www.w3.org/2000/svg'
+          viewBox='0 0 24 24'
+          fill='currentColor'
+          className='w-6 h-6'
+        >
+          <path d='M6 3a3 3 0 00-3 3v1.5a.75.75 0 001.5 0V6A1.5 1.5 0 016 4.5h1.5a.75.75 0 000-1.5H6zM16.5 3a.75.75 0 000 1.5H18A1.5 1.5 0 0119.5 6v1.5a.75.75 0 001.5 0V6a3 3 0 00-3-3h-1.5zM12 8.25a3.75 3.75 0 100 7.5 3.75 3.75 0 000-7.5zM4.5 16.5a.75.75 0 00-1.5 0V18a3 3 0 003 3h1.5a.75.75 0 000-1.5H6A1.5 1.5 0 014.5 18v-1.5zM21 16.5a.75.75 0 00-1.5 0V18a1.5 1.5 0 01-1.5 1.5h-1.5a.75.75 0 000 1.5H18a3 3 0 003-3v-1.5z' />
+        </svg>
+      </IconButton>
+
       <LockButton
         type='button'
         title='Lock/Unlock'
@@ -201,6 +208,7 @@ const EntityDisplay: FC<{
             xmlns='http://www.w3.org/2000/svg'
             height='16'
             width='14'
+            fill='currentColor'
             viewBox='0 0 448 512'
           >
             <path d='M144 144v48H304V144c0-44.2-35.8-80-80-80s-80 35.8-80 80zM80 192V144C80 64.5 144.5 0 224 0s144 64.5 144 144v48h16c35.3 0 64 28.7 64 64V448c0 35.3-28.7 64-64 64H64c-35.3 0-64-28.7-64-64V256c0-35.3 28.7-64 64-64H80z' />
@@ -210,23 +218,13 @@ const EntityDisplay: FC<{
             xmlns='http://www.w3.org/2000/svg'
             height='16'
             width='18'
+            fill='currentColor'
             viewBox='0 0 576 512'
           >
             <path d='M352 144c0-44.2 35.8-80 80-80s80 35.8 80 80v48c0 17.7 14.3 32 32 32s32-14.3 32-32V144C576 64.5 511.5 0 432 0S288 64.5 288 144v48H64c-35.3 0-64 28.7-64 64V448c0 35.3 28.7 64 64 64H384c35.3 0 64-28.7 64-64V256c0-35.3-28.7-64-64-64H352V144z' />
           </svg>
         )}
       </LockButton>
-
-      <IconButton type='button' title='Focus' onClick={onFocus}>
-        <svg
-          xmlns='http://www.w3.org/2000/svg'
-          viewBox='0 0 24 24'
-          fill='currentColor'
-          className='w-6 h-6'
-        >
-          <path d='M6 3a3 3 0 00-3 3v1.5a.75.75 0 001.5 0V6A1.5 1.5 0 016 4.5h1.5a.75.75 0 000-1.5H6zM16.5 3a.75.75 0 000 1.5H18A1.5 1.5 0 0119.5 6v1.5a.75.75 0 001.5 0V6a3 3 0 00-3-3h-1.5zM12 8.25a3.75 3.75 0 100 7.5 3.75 3.75 0 000-7.5zM4.5 16.5a.75.75 0 00-1.5 0V18a3 3 0 003 3h1.5a.75.75 0 000-1.5H6A1.5 1.5 0 014.5 18v-1.5zM21 16.5a.75.75 0 00-1.5 0V18a1.5 1.5 0 01-1.5 1.5h-1.5a.75.75 0 000 1.5H18a3 3 0 003-3v-1.5z' />
-        </svg>
-      </IconButton>
 
       <DeleteButton type='button' title='Delete' onClick={onDelete}>
         <svg
