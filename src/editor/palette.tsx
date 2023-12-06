@@ -105,6 +105,7 @@ export const Palette: FC<{ readonly selector: Selector }> = ({ selector }) => {
   const [currentCategory, setCurrentCategory] = useState(CATEGORIES.SPAWNABLES)
 
   const [assets, setAssets] = useState<{ name: string; url: string }[]>([])
+  const [dragOver, setDragOver] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const handleUploadClick = () => {
@@ -112,19 +113,42 @@ export const Palette: FC<{ readonly selector: Selector }> = ({ selector }) => {
     fileInputRef.current.click()
   }
 
+  const handleFile = (file: File) => {
+    const reader = new FileReader()
+    reader.addEventListener('load', ev => {
+      setAssets(prev => [
+        ...prev,
+        { name: file.name, url: ev.target?.result as string },
+      ])
+    })
+
+    reader.readAsDataURL(file)
+  }
+
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (file) {
-      const reader = new FileReader()
-      reader.addEventListener('load', ev => {
-        setAssets(prev => [
-          ...prev,
-          { name: file.name, url: ev.target?.result as string },
-        ])
-      })
-
-      reader.readAsDataURL(file)
+      handleFile(file)
     }
+  }
+
+  const handleDrop = (ev: React.DragEvent<HTMLDivElement>): void => {
+    ev.preventDefault()
+    const files = ev.dataTransfer.files
+    if (files && files.length > 0) {
+      const file = files[0]
+      handleFile(file)
+    }
+  }
+
+  const handleDragEnter = (ev: React.DragEvent<HTMLDivElement>): void => {
+    ev.preventDefault()
+    setDragOver(true)
+  }
+
+  const handleDragLeave = (ev: React.DragEvent<HTMLDivElement>): void => {
+    ev.preventDefault()
+    setDragOver(false)
   }
 
   // This event is being fired three times??
@@ -212,7 +236,16 @@ export const Palette: FC<{ readonly selector: Selector }> = ({ selector }) => {
           {currentCategory === CATEGORIES.ASSETS && (
             <div>
               <h1>Assets</h1>
-              <AssetUploader onClick={handleUploadClick}>
+              <AssetUploader
+                onDragOver={ev => {
+                  ev.preventDefault()
+                }}
+                onDrop={handleDrop}
+                onDragEnter={handleDragEnter}
+                onDragLeave={handleDragLeave}
+                onClick={handleUploadClick}
+                className={dragOver ? 'drag-over' : ''}
+              >
                 Drag and drop files or click here
                 <input
                   type='file'
