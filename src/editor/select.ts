@@ -45,6 +45,8 @@ interface Render {
   onClick(ev: MouseEvent): void
   onMouseDown(ev: MouseEvent): void
   onMouseMove(): void
+  onDrop(ev: DragEvent): void
+  onDragOver(ev: DragEvent): void
 }
 
 export interface Selector extends Entity<Data, Render> {
@@ -55,6 +57,7 @@ export interface Selector extends Entity<Data, Render> {
 
 interface EntityEvents {
   onSelect: [string | undefined]
+  onArgsUpdate: [string, unknown]
 }
 
 export const createEntitySelect = (
@@ -243,6 +246,18 @@ export const createEntitySelect = (
         if (import.meta.env.DEV) window.entity = selected
       }
 
+      // eslint-disable-next-line unicorn/consistent-function-scoping
+      const onDrop = (ev: DragEvent) => {
+        ev.preventDefault()
+        if (!selected) return
+
+        const url = ev.dataTransfer?.getData('text/plain')
+        if (url) {
+          selected.args.spriteSource = url
+          events.emit('onArgsUpdate', selected.uid, selected.args)
+        }
+      }
+
       const onMouseDown = (ev: MouseEvent) => {
         if (!editorEnabled.value) return
         const pos = camera.localToWorld({ x: ev.offsetX, y: ev.offsetY })
@@ -325,7 +340,14 @@ export const createEntitySelect = (
         }
       }
 
+      // eslint-disable-next-line unicorn/consistent-function-scoping
+      const onDragOver = (ev: DragEvent) => {
+        ev.preventDefault()
+      }
+
+      canvas.addEventListener('dragover', onDragOver)
       canvas.addEventListener('click', onClick)
+      canvas.addEventListener('drop', onDrop)
       canvas.addEventListener('mousedown', onMouseDown)
       canvas.addEventListener('mouseup', onMouseUp)
       // canvas.addEventListener('mousemove', onMouseMove)
@@ -365,6 +387,8 @@ export const createEntitySelect = (
         onClick,
         onMouseDown,
         onMouseMove,
+        onDrop,
+        onDragOver,
       }
     },
 
@@ -377,9 +401,13 @@ export const createEntitySelect = (
       container,
       onClick,
       onMouseDown,
+      onDrop,
+      onDragOver,
       // onMouseMove,
     }) {
       canvas.removeEventListener('click', onClick)
+      canvas.removeEventListener('drop', onDrop)
+      canvas.removeEventListener('dragover', onDragOver)
       canvas.removeEventListener('mousedown', onMouseDown)
       canvas.removeEventListener('mouseup', onMouseUp)
       // canvas.removeEventListener('mousemove', onMouseMove)

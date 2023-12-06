@@ -75,6 +75,7 @@ const AssetItem = styled.div`
   border-radius: 5px;
   background-color: #f8f9fa;
   border: 1px solid #ddd;
+  cursor: grab;
 
   &:hover {
     background-color: rgb(199 210 254);
@@ -264,7 +265,13 @@ export const Palette: FC<{ readonly selector: Selector }> = ({ selector }) => {
               </AssetUploader>
               <AssetList>
                 {assets.map((asset, index) => (
-                  <AssetItem key={index}>
+                  <AssetItem
+                    key={index}
+                    draggable
+                    onDragStart={ev =>
+                      ev.dataTransfer.setData('text/plain', asset.url)
+                    }
+                  >
                     <ImagePreview src={asset.url} alt={asset.name} />
                     <span>{asset.name}</span>
                   </AssetItem>
