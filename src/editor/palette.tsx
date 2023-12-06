@@ -75,6 +75,11 @@ const AssetItem = styled.div`
   border-radius: 5px;
   background-color: #f8f9fa;
   border: 1px solid #ddd;
+
+  &:hover {
+    background-color: rgb(199 210 254);
+    transition: background-color 0.1s ease;
+  }
 `
 
 const ImagePreview = styled.img`
@@ -134,6 +139,7 @@ export const Palette: FC<{ readonly selector: Selector }> = ({ selector }) => {
 
   const handleDrop = (ev: React.DragEvent<HTMLDivElement>): void => {
     ev.preventDefault()
+    setDragOver(false)
     const files = ev.dataTransfer.files
     if (files && files.length > 0) {
       const file = files[0]
@@ -251,7 +257,9 @@ export const Palette: FC<{ readonly selector: Selector }> = ({ selector }) => {
                   type='file'
                   ref={fileInputRef}
                   onChange={handleFileChange}
-                  style={{ display: 'none' }}
+                  style={{
+                    display: 'none',
+                  }}
                 />
               </AssetUploader>
               <AssetList>
