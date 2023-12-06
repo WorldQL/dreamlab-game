@@ -5,7 +5,7 @@ import {
   usePlayer,
   useSpawnableEntities,
 } from '@dreamlab.gg/ui/react'
-import { useCallback } from 'https://esm.sh/v136/react@18.2.0'
+import { useCallback, useEffect } from 'https://esm.sh/v136/react@18.2.0'
 import type { FC } from 'https://esm.sh/v136/react@18.2.0'
 import { styled } from 'https://esm.sh/v136/styled-components@6.1.1'
 import { Button, Container } from './components'
@@ -149,6 +149,18 @@ const EntityDisplay: FC<{
   const player = usePlayer()
   const isLocked = entity.tags.includes('editorLocked')
 
+  useEffect(() => {
+    const onEvent = event => {
+      console.log(event)
+    }
+
+    selector.events().addListener('onSelect', onEvent)
+
+    return () => {
+      selector.events().removeListener('onSelect', onEvent)
+    }
+  }, [])
+
   const onFocus = useCallback(() => {
     if (!player) return
     player.teleport(entity.transform.position, true)
@@ -158,7 +170,7 @@ const EntityDisplay: FC<{
     const id = entity.uid
     await game.destroy(entity)
 
-    network?.sendEntityDestroy(id)
+    await network?.sendEntityDestroy(id)
   }, [network, entity])
 
   const onLockToggle = useCallback(() => {
