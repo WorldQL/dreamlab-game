@@ -17,6 +17,7 @@ export const HandshakeSchema = z.object({
   world_id: z.string(),
   edit_mode: z.boolean(),
   world_script_url_base: z.string().optional().nullable(),
+  edit_secret: z.string().optional().nullable(),
 })
 
 export type HandshakeReadyPacket = z.infer<typeof HandshakeReadySchema>

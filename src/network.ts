@@ -500,14 +500,15 @@ export const createNetwork = (
           }
 
           if (packet.edit_mode) {
-            const editor = createEditor(sendPacket)
+            const editor = createEditor(
+              sendPacket,
+              packet.edit_secret ?? undefined,
+            )
             await game.instantiate(editor)
           }
 
           await loadScript(
-            packet.world_script_url_base
-              ? packet.world_script_url_base
-              : undefined,
+            packet.world_script_url_base ?? undefined,
             packet.world_id,
             game,
           )

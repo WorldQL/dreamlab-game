@@ -9,7 +9,10 @@ enum EditorInputs {
   TogglePhysics = '@editor/TogglePhysics',
 }
 
-export const createEditor = (sendPacket?: (packet: ToServerPacket) => void) => {
+export const createEditor = (
+  sendPacket?: (packet: ToServerPacket) => void,
+  scriptEditSecret?: string,
+) => {
   const enabled = ref<boolean>(false)
   const selector = createEntitySelect(enabled, sendPacket)
   // TODO: Implement the rest of the editor
@@ -47,7 +50,7 @@ export const createEditor = (sendPacket?: (packet: ToServerPacket) => void) => {
     },
 
     initRenderContext({ game }, _render) {
-      const { container, unmount } = renderUI(game, selector)
+      const { container, unmount } = renderUI(game, selector, scriptEditSecret)
       container.style.display = 'none'
 
       deferUntilPlayer(game, player => {

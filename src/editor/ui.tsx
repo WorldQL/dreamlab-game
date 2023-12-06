@@ -5,11 +5,14 @@ import { Palette } from './palette'
 import { SceneList } from './scene'
 import type { Selector } from './select'
 
-export const renderUI = (game: Game<false>, selector: Selector) => {
+export const renderUI = (game: Game<false>, selector: Selector, scriptEditSecret?: string) => {
   const styles = document.createElement('style')
   const ui = render(
     game,
     <StyleSheetManager target={styles}>
+      {/* TODO(Charlotte): display scriptEditSecret as part of npx command if it exists */}
+      {scriptEditSecret && <></>}
+
       <SceneList selector={selector} />
       <Palette selector={selector} />
     </StyleSheetManager>,
