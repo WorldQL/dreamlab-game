@@ -47,7 +47,7 @@ const SpawnableList = styled.div`
 
 const AssetUploader = styled.div`
   border: 2px dashed rgb(99 102 241);
-  padding: 18px;
+  padding: 36px;
   text-align: center;
   cursor: pointer;
   margin-bottom: 10px;
