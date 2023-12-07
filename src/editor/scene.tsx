@@ -232,7 +232,9 @@ const EntityDisplay: FC<{
   const network = useNetwork()
   const player = usePlayer()
   const entityRef = useRef<HTMLDivElement>(null)
-  const [isLocked, setIsLocked] = useState(entity.tags.includes('editorLocked'))
+  const [isLocked, setIsLocked] = useState(
+    entity.definition.tags?.includes('editorLocked'),
+  )
 
   const onFocus = useCallback(() => {
     if (!player) return
@@ -240,7 +242,7 @@ const EntityDisplay: FC<{
   }, [player])
 
   const onSelect = useCallback(() => {
-    if (isLocked) {
+    if (!entity.definition.tags?.includes('editorLocked')) {
       selector.select(entity)
     }
   }, [player])
