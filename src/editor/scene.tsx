@@ -257,7 +257,7 @@ const EntityDisplay: FC<{
 
   useEffect(() => {
     if (isSelected && entityRef.current) {
-      entityRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      entityRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
     }
   }, [isSelected])
 
