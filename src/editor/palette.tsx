@@ -5,8 +5,10 @@ import {
   useRegisteredSpawnables,
 } from '@dreamlab.gg/ui/react'
 import cuid2 from '@paralleldrive/cuid2'
+import axios from 'axios'
 import {
   useCallback,
+  useEffect,
   useMemo,
   useRef,
   useState,
@@ -95,6 +97,10 @@ const CATEGORIES = {
   ASSETS: 'Assets',
 }
 
+const url = new URL(window.location.href)
+const jwt = url.searchParams.get('token')
+const nextAPIBaseURL = window.localStorage.getItem('@dreamlab/NextAPIURL')
+
 export const Palette: FC<{ readonly selector: Selector }> = ({ selector }) => {
   const game = useGame()
   const network = useNetwork()
@@ -114,6 +120,35 @@ export const Palette: FC<{ readonly selector: Selector }> = ({ selector }) => {
   const [dragOver, setDragOver] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
+  useEffect(() => {
+    ;(async () => {
+      // send an authenticated API request to get the user's image library
+      const requestURL = nextAPIBaseURL + '/api/gameclient/listImages'
+      const response = await axios.get(requestURL, {
+        headers: { Authorization: jwt },
+      })
+      console.log(response)
+      const imageAssets = []
+      interface ImageData {
+        name: string
+        imageURL: string
+      }
+      for (const image of response.data as ImageData[]) {
+        imageAssets.push({
+          name: image.name ?? image.imageURL.split('/').at(-1),
+          url: image.imageURL,
+        })
+      }
+
+      console.log(imageAssets)
+      setAssets(imageAssets)
+      console.log(window.location.origin)
+
+      // after we get the list of URLs from the user's library, we also load the images of everything that's currently in the game
+      // then we remove duplicates by matching on URL
+    })()
+  }, [])
+
   const handleUploadClick = () => {
     if (!fileInputRef.current) return
     fileInputRef.current.click()
@@ -121,10 +156,18 @@ export const Palette: FC<{ readonly selector: Selector }> = ({ selector }) => {
 
   const handleFile = (file: File) => {
     const reader = new FileReader()
-    reader.addEventListener('load', ev => {
+    reader.addEventListener('load', async ev => {
+      const requestURL = nextAPIBaseURL + '/api/gameclient/uploadImage'
+
+      const response = await axios.post(
+        requestURL,
+        { imageBase64: ev.target?.result, name: file.name },
+        { headers: { Authorization: jwt } },
+      )
+      console.log(response)
       setAssets(prev => [
         ...prev,
-        { name: file.name, url: ev.target?.result as string },
+        { name: file.name, url: response.data.imageURL },
       ])
     })
 

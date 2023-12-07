@@ -85,6 +85,11 @@ window.addEventListener('message', ev => {
       '@dreamlab/worlds/fallbackUrl',
       data.fallbackUrl,
     )
+    const url = new URL(data.fallbackUrl)
+    window.localStorage.setItem(
+      '@dreamlab/NextAPIURL',
+      url.protocol + '//' + url.host,
+    )
   }
 })
 
