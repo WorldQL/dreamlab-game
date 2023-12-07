@@ -240,7 +240,7 @@ const EntityDisplay: FC<{
   }, [player])
 
   const onSelect = useCallback(() => {
-    if (!entity.definition.tags?.includes('editorLocked')) {
+    if (isLocked) {
       selector.select(entity)
     }
   }, [player])
