@@ -222,7 +222,9 @@ export const createEntitySelect = (
         const query = game
           .queryPosition(pos)
           .filter(
-            entity => !entity.preview && !entity.tags.includes('editorLocked'),
+            entity =>
+              !entity.preview &&
+              !entity.definition.tags?.includes('editorLocked'),
           )
 
         // Sort based on z-index

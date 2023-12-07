@@ -199,7 +199,7 @@ const EntityDisplay: FC<{
   const game = useGame()
   const network = useNetwork()
   const player = usePlayer()
-  const isLocked = entity.tags.includes('editorLocked')
+  const [isLocked, setIsLocked] = useState(entity.tags.includes('editorLocked'))
 
   useEffect(() => {
     const onEvent = (event: unknown) => {
@@ -226,15 +226,13 @@ const EntityDisplay: FC<{
   }, [network, entity])
 
   const onLockToggle = useCallback(() => {
-    // TODO: actually implement this
-    if (isLocked) {
-      // Remove the 'editorLocked' tag
-      console.log('unlocked')
-    } else {
-      // add tag
-      console.log('locked')
-    }
-  }, [entity])
+    const newTags = isLocked
+      ? entity.tags.filter(tag => tag !== 'editorLocked')
+      : [...entity.tags, 'editorLocked']
+
+    setIsLocked(!isLocked)
+    entity.definition.tags = newTags
+  }, [entity, isLocked])
 
   return (
     <EntityButtons id={entity.uid}>
