@@ -239,6 +239,12 @@ const EntityDisplay: FC<{
     player.teleport(entity.transform.position, true)
   }, [player])
 
+  const onSelect = useCallback(() => {
+    if (!entity.definition.tags?.includes('editorLocked')) {
+      selector.select(entity)
+    }
+  }, [player])
+
   const onDelete = useCallback(async () => {
     const id = entity.uid
     await game.destroy(entity)
@@ -263,10 +269,7 @@ const EntityDisplay: FC<{
 
   return (
     <EntityButtons id={entity.uid} ref={entityRef}>
-      <SelectButton
-        isSelected={isSelected}
-        onClick={() => selector.select(entity)}
-      >
+      <SelectButton isSelected={isSelected} onClick={onSelect}>
         {entity.definition.entity}
       </SelectButton>
 
