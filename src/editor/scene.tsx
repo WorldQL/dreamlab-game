@@ -8,6 +8,7 @@ import {
 import {
   useCallback,
   useEffect,
+  useRef,
   useState,
 } from 'https://esm.sh/v136/react@18.2.0'
 import type { FC } from 'https://esm.sh/v136/react@18.2.0'
@@ -84,6 +85,22 @@ export const SceneList: FC<{ readonly selector: Selector }> = ({
     setIsCollapsed(prev => !prev)
   }, [])
 
+  const [selectedEntityUid, setSelectedEntityUid] = useState<
+    string | undefined
+  >(undefined)
+
+  useEffect(() => {
+    const onSelect = (uid: string | undefined) => {
+      setSelectedEntityUid(uid)
+    }
+
+    selector.events().addListener('onSelect', onSelect)
+
+    return () => {
+      selector.events().removeListener('onSelect', onSelect)
+    }
+  }, [])
+
   const onSave = useCallback(() => {
     // Filter out entities tagged as "do not save"
     const toSave = entities
@@ -122,6 +139,7 @@ export const level: LooseSpawnableDefinition[] = ${json}
                   key={entity.uid}
                   entity={entity}
                   selector={selector}
+                  isSelected={entity.uid === selectedEntityUid}
                 />
               ))}
             </EntityList>
@@ -140,8 +158,21 @@ const EntityButtons = styled.div`
   gap: 0.25rem;
 `
 
-const SelectButton = styled(Button)`
+interface SelectButtonProps {
+  isSelected: boolean
+}
+
+const SelectButton = styled(Button)<SelectButtonProps>`
   flex-grow: 1;
+  background-color: ${props =>
+    props.isSelected ? 'rgb(236 72 153)' : 'rgb(99 102 241)'};
+  color: white;
+  transition: background-color 0.3s ease;
+
+  &:hover {
+    background-color: ${props =>
+      props.isSelected ? 'rgb(249 168 212)' : 'rgb(129 140 248)'};
+  }
 `
 
 const IconButton = styled(Button)`
@@ -195,23 +226,13 @@ const LockButton = styled(IconButton)`
 const EntityDisplay: FC<{
   readonly selector: Selector
   entity: SpawnableEntity
-}> = ({ selector, entity }) => {
+  isSelected: boolean
+}> = ({ selector, entity, isSelected }) => {
   const game = useGame()
   const network = useNetwork()
   const player = usePlayer()
+  const entityRef = useRef<HTMLDivElement>(null)
   const [isLocked, setIsLocked] = useState(entity.tags.includes('editorLocked'))
-
-  useEffect(() => {
-    const onEvent = (event: unknown) => {
-      console.log(event)
-    }
-
-    selector.events().addListener('onSelect', onEvent)
-
-    return () => {
-      selector.events().removeListener('onSelect', onEvent)
-    }
-  }, [])
 
   const onFocus = useCallback(() => {
     if (!player) return
@@ -234,9 +255,18 @@ const EntityDisplay: FC<{
     entity.definition.tags = newTags
   }, [entity, isLocked])
 
+  useEffect(() => {
+    if (isSelected && entityRef.current) {
+      entityRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }
+  }, [isSelected])
+
   return (
-    <EntityButtons id={entity.uid}>
-      <SelectButton type='button' onClick={() => selector.select(entity)}>
+    <EntityButtons id={entity.uid} ref={entityRef}>
+      <SelectButton
+        isSelected={isSelected}
+        onClick={() => selector.select(entity)}
+      >
         {entity.definition.entity}
       </SelectButton>
 
@@ -260,8 +290,6 @@ const EntityDisplay: FC<{
         {isLocked ? (
           <svg
             xmlns='http://www.w3.org/2000/svg'
-            height='16'
-            width='14'
             fill='currentColor'
             viewBox='0 0 448 512'
           >
@@ -270,8 +298,6 @@ const EntityDisplay: FC<{
         ) : (
           <svg
             xmlns='http://www.w3.org/2000/svg'
-            height='16'
-            width='18'
             fill='currentColor'
             viewBox='0 0 576 512'
           >
