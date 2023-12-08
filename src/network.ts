@@ -213,7 +213,7 @@ export const createNetwork = (
 
         case 'SpawnPlayer': {
           if (packet.peer_id === selfID) {
-            const resp = await LevelSchema.safeParseAsync(packet.level)
+            const resp = LevelSchema.safeParse(packet.level)
             if (resp.success) {
               await game.spawnMany(...resp.data)
             }

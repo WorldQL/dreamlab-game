@@ -31,7 +31,7 @@ const loadBones: BoneMap<Animation> = async animation => {
   const resp = await fetch(url)
   const json = await resp.json()
 
-  return PlayerAnimationBonesSchema.parseAsync(json)
+  return PlayerAnimationBonesSchema.parse(json)
 }
 
 export const loadAnimations = async (characterID: string | undefined) => {
