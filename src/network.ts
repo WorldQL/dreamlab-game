@@ -50,24 +50,6 @@ import type {
 } from './packets.js'
 import { loadScript, spawnPlayer } from './scripting.js'
 
-let fakeLatency = Number.parseFloat(
-  window.localStorage.getItem('@dreamlab/fakeLatency') ?? '0',
-)
-Object.defineProperty(window, 'dreamlabFakeLatency', {
-  get: () => fakeLatency,
-  set(v) {
-    if (typeof v === 'number') fakeLatency = v
-    window.localStorage.setItem('@dreamlab/fakeLatency', v)
-  },
-})
-const runAfterFakeLatency = async (f: () => Promise<void>) => {
-  if (fakeLatency !== 0) {
-    setTimeout(f, fakeLatency)
-  } else {
-    await f()
-  }
-}
-
 export interface Params {
   readonly server: string
   readonly instance: string
@@ -172,7 +154,7 @@ export const createNetwork = (
       }
     }
 
-    void runAfterFakeLatency(sendWhenOpen)
+    ;(async () => sendWhenOpen())()
   }
 
   const listeners = new Map<string, Set<MessageListenerClient>>()
@@ -495,7 +477,7 @@ export const createNetwork = (
     try {
       const packet = JSON.parse(ev.data)
 
-      await runAfterFakeLatency(async () => {
+      await (async () => {
         if (packet.t === 'Handshake') {
           if (packet.protocol_version !== PROTOCOL_VERSION) {
             console.warn(
@@ -536,7 +518,7 @@ export const createNetwork = (
         // eslint-disable-next-line no-await-in-loop
         for (const pkt of queue) await handlePacket(pkt)
         await handlePacket(packet)
-      })
+      })()
     } catch (error) {
       console.warn(`malformed packet: ${ev.data}`)
       console.error(error)
