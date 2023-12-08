@@ -1,4 +1,4 @@
-import type { SpawnableEntity } from '@dreamlab.gg/core'
+import type { Entity, SpawnableEntity } from '@dreamlab.gg/core'
 import {
   useGame,
   useNetwork,
@@ -14,6 +14,7 @@ import {
 import type { FC } from 'https://esm.sh/v136/react@18.2.0'
 import { styled } from 'https://esm.sh/v136/styled-components@6.1.1'
 import { Button, Container } from './components'
+import { EditorInputs } from './editor'
 import type { Selector } from './select'
 
 interface ListContainerProps {
@@ -80,6 +81,7 @@ export const SceneList: FC<{ readonly selector: Selector }> = ({
     a.definition.entity.localeCompare(b.definition.entity),
   )
   const [isCollapsed, setIsCollapsed] = useState(false)
+  const game = useGame()
 
   const toggleCollapse = useCallback(() => {
     setIsCollapsed(prev => !prev)
@@ -90,6 +92,22 @@ export const SceneList: FC<{ readonly selector: Selector }> = ({
   >(undefined)
 
   useEffect(() => {
+    game.client.inputs?.registerInput(
+      EditorInputs.DeleteEntity,
+      'Delete Entity',
+      'Backspace',
+    )
+
+    game.client.inputs?.addListener(
+      EditorInputs.DeleteEntity,
+      async pressed => {
+        if (!pressed && selector.getSelected()) {
+          await game.destroy(selector.getSelected() as Entity)
+          await network?.sendEntityDestroy(id)
+        }
+      },
+    )
+
     const onSelect = (uid: string | undefined) => {
       setSelectedEntityUid(uid)
     }

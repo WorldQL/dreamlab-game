@@ -4,7 +4,8 @@ import type { ToServerPacket } from '../packets'
 import { createEntitySelect } from './select'
 import { renderUI } from './ui'
 
-enum EditorInputs {
+export enum EditorInputs {
+  DeleteEntity = '@editor/DeleteEntity',
   TogglePalette = '@editor/TogglePalette',
   TogglePhysics = '@editor/TogglePhysics',
 }
