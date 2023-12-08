@@ -82,6 +82,7 @@ export const SceneList: FC<{ readonly selector: Selector }> = ({
   )
   const [isCollapsed, setIsCollapsed] = useState(false)
   const game = useGame()
+  const network = useNetwork()
 
   const toggleCollapse = useCallback(() => {
     setIsCollapsed(prev => !prev)
@@ -101,9 +102,10 @@ export const SceneList: FC<{ readonly selector: Selector }> = ({
     game.client.inputs?.addListener(
       EditorInputs.DeleteEntity,
       async pressed => {
-        if (!pressed && selector.getSelected()) {
-          await game.destroy(selector.getSelected() as Entity)
-          await network?.sendEntityDestroy(id)
+        const selected = selector.getSelected()
+        if (!pressed && selected) {
+          await game.destroy(selected)
+          await network?.sendEntityDestroy(selected.uid)
         }
       },
     )
