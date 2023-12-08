@@ -284,7 +284,7 @@ export const Palette: FC<{ readonly selector: Selector }> = ({ selector }) => {
           )}
 
           {currentCategory === CATEGORIES.ASSETS && (
-            <div>
+            <>
               <h1>Assets</h1>
               <AssetUploader
                 onDragOver={ev => {
@@ -320,7 +320,7 @@ export const Palette: FC<{ readonly selector: Selector }> = ({ selector }) => {
                   </AssetItem>
                 ))}
               </AssetList>
-            </div>
+            </>
           )}
         </>
       )}
