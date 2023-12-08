@@ -1,4 +1,4 @@
-import type { Entity, SpawnableEntity } from '@dreamlab.gg/core'
+import type { SpawnableEntity } from '@dreamlab.gg/core'
 import {
   useGame,
   useNetwork,

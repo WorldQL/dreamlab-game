@@ -493,7 +493,7 @@ export const createNetwork = (
     if (typeof ev.data !== 'string') return
 
     try {
-      const packet = await ToClientPacketSchema.parseAsync(JSON.parse(ev.data))
+      const packet = JSON.parse(ev.data)
 
       await runAfterFakeLatency(async () => {
         if (packet.t === 'Handshake') {
