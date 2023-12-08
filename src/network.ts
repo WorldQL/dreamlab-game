@@ -475,7 +475,8 @@ export const createNetwork = (
     if (typeof ev.data !== 'string') return
 
     try {
-      const packet = JSON.parse(ev.data)
+      // this is an unsafe cast but we're in a try-catch so it's okay
+      const packet: ToClientPacket = JSON.parse(ev.data)
 
       await (async () => {
         if (packet.t === 'Handshake') {

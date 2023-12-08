@@ -316,37 +316,41 @@ export const PhysicsControlledObjectsSnapshotSchema = z.object({
 })
 
 export type ToClientPacket = z.infer<typeof ToClientPacketSchema>
-export const ToClientPacketSchema = HandshakeSchema.or(SpawnPlayerSchema)
-  .or(DespawnPlayerSchema)
-  .or(PlayerMotionSnapshotSchema)
-  .or(PlayerGearSnapshotSchema)
-  .or(PhysicsFullSnapshotSchema)
-  .or(PhysicsDeltaSnapshotSchema)
-  .or(PlayerAnimationSnapshotSchema)
-  .or(PhysicsGrantObjectControlSchema)
-  .or(PhysicsRevokeObjectControlSchema)
-  .or(UpdateSyncedValueSchema)
-  .or(CustomMessageSchema)
-  .or(OutgoingSpawnEntitySchema)
-  .or(OutgoingDestroyEntitySchema)
-  .or(OutgoingTransformChangedSchema)
-  .or(OutgoingArgsChangedSchema)
-  .or(OutgoingPhysicsSuspendResumeSchema)
+export const ToClientPacketSchema = z.discriminatedUnion('t', [
+  HandshakeSchema,
+  SpawnPlayerSchema,
+  DespawnPlayerSchema,
+  PlayerMotionSnapshotSchema,
+  PlayerGearSnapshotSchema,
+  PhysicsFullSnapshotSchema,
+  PhysicsDeltaSnapshotSchema,
+  PlayerAnimationSnapshotSchema,
+  PhysicsGrantObjectControlSchema,
+  PhysicsRevokeObjectControlSchema,
+  UpdateSyncedValueSchema,
+  CustomMessageSchema,
+  OutgoingSpawnEntitySchema,
+  OutgoingDestroyEntitySchema,
+  OutgoingTransformChangedSchema,
+  OutgoingArgsChangedSchema,
+  OutgoingPhysicsSuspendResumeSchema,
+])
 
 export type ToServerPacket = z.infer<typeof ToServerPacketSchema>
-export const ToServerPacketSchema = HandshakeReadySchema.or(ChatMessageSchema)
-  .or(CustomMessageSchema)
-  .or(HandshakeReadySchema)
-  .or(IncomingSpawnEntitySchema)
-  .or(IncomingDestroyEntitySchema)
-  .or(IncomingArgsChangedSchema)
-  .or(IncomingTransformChangedSchema)
-  .or(IncomingPhysicsSuspendResumeSchema)
-  // .or(PhysicsControlledObjectsSnapshotSchema)
-  // .or(PhysicsRequestObjectControlSchema) TODO
-  .or(PlayerAnimationChangeSchema)
-  .or(PlayerInputsPacketSchema)
-  .or(PlayerMotionSchema)
-  .or(PlayerGearChangeSchema)
-  .or(PhysicsRequestObjectControlSchema)
-  .or(PhysicsControlledObjectsSnapshotSchema)
+export const ToServerPacketSchema = z.discriminatedUnion('t', [
+  HandshakeReadySchema,
+  ChatMessageSchema,
+  CustomMessageSchema,
+  HandshakeReadySchema,
+  IncomingSpawnEntitySchema,
+  IncomingDestroyEntitySchema,
+  IncomingArgsChangedSchema,
+  IncomingTransformChangedSchema,
+  IncomingPhysicsSuspendResumeSchema,
+  PlayerAnimationChangeSchema,
+  PlayerInputsPacketSchema,
+  PlayerMotionSchema,
+  PlayerGearChangeSchema,
+  PhysicsRequestObjectControlSchema,
+  PhysicsControlledObjectsSnapshotSchema,
+])
