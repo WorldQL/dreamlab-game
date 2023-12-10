@@ -341,7 +341,6 @@ export const ToServerPacketSchema = z.discriminatedUnion('t', [
   HandshakeReadySchema,
   ChatMessageSchema,
   CustomMessageSchema,
-  HandshakeReadySchema,
   IncomingSpawnEntitySchema,
   IncomingDestroyEntitySchema,
   IncomingArgsChangedSchema,
