@@ -316,7 +316,16 @@ export const Palette: FC<{ readonly selector: Selector }> = ({ selector }) => {
                     }
                   >
                     <ImagePreview src={asset.url} alt={asset.name} />
-                    <span>{asset.name}</span>
+                    <div
+                      style={{
+                        maxWidth: '300px',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                      }}
+                    >
+                      {asset.name}
+                    </div>
                   </AssetItem>
                 ))}
               </AssetList>
