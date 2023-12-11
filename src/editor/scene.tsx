@@ -97,14 +97,15 @@ export const SceneList: FC<{ readonly selector: Selector }> = ({
     [setSelected],
   )
 
-  const onDelete = useCallback(async () => {
+  const onDelete = async () => {
     if (!selector.selected) return
+    const selectedUID = selector.selected.uid
     await game.destroy(selector.selected)
-    await network?.sendEntityDestroy(selector.selected.uid)
-  }, [network])
+    await network?.sendEntityDestroy(selectedUID)
+  }
 
   useEventListener(selector.events, 'onSelect', onSelect)
-  useInputPressed(EditorInputs.DeleteEntity, () => onDelete)
+  useInputPressed(EditorInputs.DeleteEntity, onDelete)
 
   const onSave = useCallback(() => {
     // Filter out entities tagged as "do not save"
