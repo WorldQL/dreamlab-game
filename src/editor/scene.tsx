@@ -242,11 +242,12 @@ const EntityDisplay: FC<{
   )
 
   const onSelect = useCallback(() => {
-    if (!entity.definition.tags?.includes('editorLocked')) {
-      selector.select(entity)
-      if (player) player.teleport(entity.transform.position, true)
-    }
-  }, [player])
+    const locked = entity.tags?.includes('editorLocked')
+    if (locked) return
+
+    selector.select(entity)
+    if (player) player.teleport(entity.transform.position, true)
+  }, [selector, entity, player])
 
   const onDelete = useCallback(async () => {
     const id = entity.uid
