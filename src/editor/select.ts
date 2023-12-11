@@ -143,8 +143,6 @@ export const createEntitySelect = (
         const { width, height } = bounds
         const angle = toRadians(selected.transform.rotation)
 
-        // TODO: Ensure corrections for camera scale work
-
         const topLeft = Vec.rotateAbout(
           {
             x: selected.transform.position.x - width / 2 - strokeWidth / 2,

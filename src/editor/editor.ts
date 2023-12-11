@@ -16,7 +16,6 @@ export const createEditor = (
 ) => {
   const enabled = ref<boolean>(false)
   const selector = createEntitySelect(enabled, sendPacket)
-  // TODO: Implement the rest of the editor
 
   return createEntity({
     async init({ game }) {
