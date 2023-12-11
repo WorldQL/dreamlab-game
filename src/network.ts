@@ -31,7 +31,7 @@ import type { Body } from 'matter-js'
 import { loadAnimations } from './animations.js'
 import { createClientControlManager } from './client-phys-control.js'
 import { createEditor } from './editor/editor.js'
-import { PROTOCOL_VERSION, ToClientPacketSchema } from './packets.js'
+import { PROTOCOL_VERSION } from './packets.js'
 import type {
   IncomingArgsChangedPacket as ArgsChangedPacket,
   BodyInfo,

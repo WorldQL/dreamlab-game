@@ -151,7 +151,8 @@ export const Palette: FC<{ readonly selector: Selector }> = ({ selector }) => {
     ;(async () => refreshImages())()
   }, [])
 
-  const confirmDeleteImage = async (name, id) => {
+  const confirmDeleteImage = async (name: string, id: string) => {
+    // eslint-disable-next-line no-alert
     const reply = confirm(
       `Delete "${name}"? Make sure it's not used by any objects in your game.`,
     )
@@ -164,7 +165,9 @@ export const Palette: FC<{ readonly selector: Selector }> = ({ selector }) => {
           headers: { Authorization: jwt },
         },
       )
-      await refreshImages()
+      if (response.status === 200) {
+        await refreshImages()
+      }
     }
   }
 
