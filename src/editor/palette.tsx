@@ -341,7 +341,10 @@ export const Palette: FC<{ readonly selector: Selector }> = ({ selector }) => {
                       ev.dataTransfer.setData('text/plain', asset.imageURL)
                     }
                   >
-                    <ImagePreview src={asset.imageURL} alt={asset.name} />
+                    <ImagePreview
+                      src={asset.imageURL + '?cachebuster=123'}
+                      alt={asset.name}
+                    />
                     <div
                       style={{
                         width: '250px',
