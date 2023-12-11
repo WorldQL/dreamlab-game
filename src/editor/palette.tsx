@@ -24,7 +24,7 @@ interface PaletteContainerProps {
 }
 
 const PaletteContainer = styled(Container)<PaletteContainerProps>`
-  top: 5rem;
+  top: 6rem;
   right: var(--margin);
   bottom: var(--margin);
   opacity: 0.7;

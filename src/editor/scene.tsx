@@ -24,7 +24,7 @@ interface ListContainerProps {
 }
 
 const ListContainer = styled(Container)<ListContainerProps>`
-  top: 5rem;
+  top: 6rem;
   left: var(--margin);
   bottom: var(--margin);
   display: flex;

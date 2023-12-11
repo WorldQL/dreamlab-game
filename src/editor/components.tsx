@@ -14,6 +14,7 @@ export const Container = styled.div`
 
   padding: 1rem;
   border-radius: 0.5rem;
+  outline: 1px rgba(200 200 200 / 1) solid;
   background-color: rgba(230 230 230 / 1);
   box-shadow:
     0 4px 6px -1px rgb(0 0 0 / 0.3),
