@@ -102,7 +102,7 @@ export const SceneList: FC<{ readonly selector: Selector }> = ({
     game.client.inputs?.addListener(
       EditorInputs.DeleteEntity,
       async pressed => {
-        const selected = selector.getSelected()
+        const selected = selector.selected
         if (!pressed && selected) {
           await game.destroy(selected)
           await network?.sendEntityDestroy(selected.uid)
@@ -114,10 +114,10 @@ export const SceneList: FC<{ readonly selector: Selector }> = ({
       setSelectedEntityUid(uid)
     }
 
-    selector.events().addListener('onSelect', onSelect)
+    selector.events.addListener('onSelect', onSelect)
 
     return () => {
-      selector.events().removeListener('onSelect', onSelect)
+      selector.events.removeListener('onSelect', onSelect)
     }
   }, [])
 

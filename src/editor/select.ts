@@ -50,10 +50,11 @@ interface Render {
 }
 
 export interface Selector extends Entity<Data, Render> {
+  get events(): EventEmitter<EntityEvents>
+  get selected(): SpawnableEntity | undefined
+
   select(entity: SpawnableEntity | undefined): void
   deselect(): void
-  events(): EventEmitter<EntityEvents>
-  getSelected(): SpawnableEntity | undefined
 }
 
 interface EntityEvents {
@@ -84,12 +85,14 @@ export const createEntitySelect = (
   const events = new EventEmitter<EntityEvents>()
 
   return createEntity<Selector, Data, Render>({
-    getSelected() {
+    get selected() {
       return selected
     },
-    events() {
+
+    get events() {
       return events
     },
+
     select(entity) {
       const { game } = dataManager.getData(this)
 
