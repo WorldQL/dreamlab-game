@@ -34,6 +34,12 @@ export const createEditor = (
         'KeyK',
       )
 
+      inputs?.registerInput(
+        EditorInputs.DeleteEntity,
+        'Delete Entity',
+        'Backspace',
+      )
+
       inputs?.addListener(EditorInputs.TogglePhysics, togglePhysics)
 
       deferUntilPlayer(game, player => {

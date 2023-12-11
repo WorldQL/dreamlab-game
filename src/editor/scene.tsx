@@ -99,12 +99,6 @@ export const SceneList: FC<{ readonly selector: Selector }> = ({
   useEventListener(selector.events, 'onSelect', onSelect)
 
   useEffect(() => {
-    game.client.inputs?.registerInput(
-      EditorInputs.DeleteEntity,
-      'Delete Entity',
-      'Backspace',
-    )
-
     game.client.inputs?.addListener(
       EditorInputs.DeleteEntity,
       async pressed => {
