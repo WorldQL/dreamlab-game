@@ -115,39 +115,58 @@ export const Palette: FC<{ readonly selector: Selector }> = ({ selector }) => {
 
   const spawnedEntitiesAwaitingSelection: string[] = []
   const [currentCategory, setCurrentCategory] = useState(CATEGORIES.SPAWNABLES)
-
-  const [assets, setAssets] = useState<{ name: string; url: string }[]>([])
+  interface ImageData {
+    name: string
+    imageURL: string
+    id: string
+  }
+  const [assets, setAssets] = useState<ImageData[]>([])
   const [dragOver, setDragOver] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  useEffect(() => {
-    ;(async () => {
-      // send an authenticated API request to get the user's image library
-      const requestURL = nextAPIBaseURL + '/api/gameclient/listImages'
-      const response = await axios.get(requestURL, {
-        headers: { Authorization: jwt },
+  const refreshImages = async () => {
+    // send an authenticated API request to get the user's image library
+    const requestURL = nextAPIBaseURL + '/api/gameclient/listImages'
+    const response = await axios.get(requestURL, {
+      headers: { Authorization: jwt },
+    })
+    console.log(response)
+    const imageAssets: ImageData[] = []
+
+    for (const image of response.data as ImageData[]) {
+      imageAssets.push({
+        name: image.name ?? image.imageURL.split('/').at(-1),
+        imageURL: image.imageURL,
+        id: image.id,
       })
-      console.log(response)
-      const imageAssets = []
-      interface ImageData {
-        name: string
-        imageURL: string
-      }
-      for (const image of response.data as ImageData[]) {
-        imageAssets.push({
-          name: image.name ?? image.imageURL.split('/').at(-1),
-          url: image.imageURL,
-        })
-      }
+    }
 
-      console.log(imageAssets)
-      setAssets(imageAssets)
-      console.log(window.location.origin)
+    setAssets(imageAssets)
 
-      // after we get the list of URLs from the user's library, we also load the images of everything that's currently in the game
-      // then we remove duplicates by matching on URL
-    })()
+    // after we get the list of URLs from the user's library, we also load the images of everything that's currently in the game
+    // then we remove duplicates by matching on URL
+  }
+
+  useEffect(() => {
+    ;(async () => refreshImages())()
   }, [])
+
+  const confirmDeleteImage = async (name, id) => {
+    const reply = confirm(
+      `Delete "${name}"? Make sure it's not used by any objects in your game.`,
+    )
+    if (reply) {
+      const requestURL = nextAPIBaseURL + '/api/gameclient/deleteImage'
+      const response = await axios.post(
+        requestURL,
+        { imageID: id },
+        {
+          headers: { Authorization: jwt },
+        },
+      )
+      await refreshImages()
+    }
+  }
 
   const handleUploadClick = () => {
     if (!fileInputRef.current) return
@@ -167,7 +186,11 @@ export const Palette: FC<{ readonly selector: Selector }> = ({ selector }) => {
       console.log(response)
       setAssets(prev => [
         ...prev,
-        { name: file.name, url: response.data.imageURL },
+        {
+          name: file.name,
+          imageURL: response.data.imageURL,
+          id: response.data.id,
+        },
       ])
     })
 
@@ -312,19 +335,27 @@ export const Palette: FC<{ readonly selector: Selector }> = ({ selector }) => {
                     key={index}
                     draggable
                     onDragStart={ev =>
-                      ev.dataTransfer.setData('text/plain', asset.url)
+                      ev.dataTransfer.setData('text/plain', asset.imageURL)
                     }
                   >
-                    <ImagePreview src={asset.url} alt={asset.name} />
+                    <ImagePreview src={asset.imageURL} alt={asset.name} />
                     <div
                       style={{
-                        maxWidth: '300px',
+                        width: '250px',
                         textOverflow: 'ellipsis',
                         whiteSpace: 'nowrap',
                         overflow: 'hidden',
                       }}
                     >
                       {asset.name}
+                    </div>
+                    <div
+                      style={{ cursor: 'pointer', color: 'rgb(120 113 108)' }}
+                      onClick={async () => {
+                        await confirmDeleteImage(asset.name, asset.id)
+                      }}
+                    >
+                      Delete
                     </div>
                   </AssetItem>
                 ))}
