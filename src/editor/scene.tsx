@@ -2,6 +2,7 @@ import type { SpawnableEntity } from '@dreamlab.gg/core'
 import {
   useEventListener,
   useGame,
+  useInputPressed,
   useNetwork,
   usePlayer,
   useSpawnableEntities,
@@ -96,20 +97,14 @@ export const SceneList: FC<{ readonly selector: Selector }> = ({
     [setSelected],
   )
 
-  useEventListener(selector.events, 'onSelect', onSelect)
+  const onDelete = useCallback(async () => {
+    if (!selector.selected) return
+    await game.destroy(selector.selected)
+    await network?.sendEntityDestroy(selector.selected.uid)
+  }, [network])
 
-  useEffect(() => {
-    game.client.inputs?.addListener(
-      EditorInputs.DeleteEntity,
-      async pressed => {
-        const selected = selector.selected
-        if (!pressed && selected) {
-          await game.destroy(selected)
-          await network?.sendEntityDestroy(selected.uid)
-        }
-      },
-    )
-  }, [])
+  useEventListener(selector.events, 'onSelect', onSelect)
+  useInputPressed(EditorInputs.DeleteEntity, () => onDelete)
 
   const onSave = useCallback(() => {
     // Filter out entities tagged as "do not save"
