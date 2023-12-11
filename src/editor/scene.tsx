@@ -1,5 +1,6 @@
 import type { SpawnableEntity } from '@dreamlab.gg/core'
 import {
+  useEventListener,
   useGame,
   useNetwork,
   usePlayer,
@@ -76,21 +77,26 @@ export const CollapseButton = styled.button`
 export const SceneList: FC<{ readonly selector: Selector }> = ({
   selector,
 }) => {
+  const game = useGame()
+  const network = useNetwork()
+  const [isCollapsed, setIsCollapsed] = useState(false)
+
   const etys = useSpawnableEntities()
   const entities = [...etys].sort((a, b) =>
     a.definition.entity.localeCompare(b.definition.entity),
   )
-  const [isCollapsed, setIsCollapsed] = useState(false)
-  const game = useGame()
-  const network = useNetwork()
 
   const toggleCollapse = useCallback(() => {
     setIsCollapsed(prev => !prev)
   }, [])
 
-  const [selectedEntityUid, setSelectedEntityUid] = useState<
-    string | undefined
-  >(undefined)
+  const [selected, setSelected] = useState<string | undefined>(undefined)
+  const onSelect = useCallback(
+    (id: string | undefined) => setSelected(id),
+    [setSelected],
+  )
+
+  useEventListener(selector.events, 'onSelect', onSelect)
 
   useEffect(() => {
     game.client.inputs?.registerInput(
@@ -109,16 +115,6 @@ export const SceneList: FC<{ readonly selector: Selector }> = ({
         }
       },
     )
-
-    const onSelect = (uid: string | undefined) => {
-      setSelectedEntityUid(uid)
-    }
-
-    selector.events.addListener('onSelect', onSelect)
-
-    return () => {
-      selector.events.removeListener('onSelect', onSelect)
-    }
   }, [])
 
   const onSave = useCallback(() => {
@@ -159,7 +155,7 @@ export const level: LooseSpawnableDefinition[] = ${json}
                   key={entity.uid}
                   entity={entity}
                   selector={selector}
-                  isSelected={entity.uid === selectedEntityUid}
+                  isSelected={entity.uid === selected}
                 />
               ))}
             </EntityList>
