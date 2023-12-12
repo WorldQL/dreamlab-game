@@ -30,6 +30,7 @@ import Matter from 'matter-js'
 import type { Body } from 'matter-js'
 import { loadAnimations } from './animations.js'
 import { createClientControlManager } from './client-phys-control.js'
+import type { EditDetails } from './editor/editor.js'
 import { createEditor } from './editor/editor.js'
 import { PROTOCOL_VERSION } from './packets.js'
 import type {
@@ -488,10 +489,11 @@ export const createNetwork = (
           }
 
           if (packet.edit_mode) {
-            const editor = createEditor(
-              sendPacket,
-              packet.edit_secret ?? undefined,
-            )
+            const details: EditDetails | undefined = packet.edit_secret
+              ? { secret: packet.edit_secret }
+              : undefined
+
+            const editor = createEditor(sendPacket, details)
             await game.instantiate(editor)
           }
 
