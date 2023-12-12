@@ -6,6 +6,7 @@ import {
 } from 'https://esm.sh/v136/react@18.2.0'
 import type { FC } from 'https://esm.sh/v136/react@18.2.0'
 import { styled } from 'https://esm.sh/v136/styled-components@6.1.1'
+import type { EditDetails } from './editor'
 
 const Container = styled.div`
   --margin: 1rem;
@@ -52,7 +53,7 @@ const Copy = styled.div`
 `
 
 interface Props {
-  readonly editSecret: string
+  readonly details: EditDetails
 }
 
 export const CLICommand: FC<Props> = () => {

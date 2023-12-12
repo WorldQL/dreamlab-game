@@ -13,9 +13,13 @@ export enum EditorInputs {
   ToggleTiling = '@editor/ToggleTiling',
 }
 
+export interface EditDetails {
+  readonly secret: string
+}
+
 export const createEditor = (
   sendPacket?: (packet: ToServerPacket) => void,
-  scriptEditSecret?: string,
+  editDetails?: EditDetails,
 ) => {
   const enabled = ref<boolean>(false)
   const selector = createEntitySelect(enabled, sendPacket)
@@ -76,7 +80,7 @@ export const createEditor = (
     },
 
     initRenderContext({ game }, _render) {
-      const { container, unmount } = renderUI(game, selector, scriptEditSecret)
+      const { container, unmount } = renderUI(game, selector, editDetails)
       container.style.display = 'none'
 
       deferUntilPlayer(game, player => {
