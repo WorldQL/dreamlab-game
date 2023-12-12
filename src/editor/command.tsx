@@ -1,3 +1,4 @@
+import { binary_to_base58 } from 'base58-js'
 import copy from 'copy-to-clipboard'
 import {
   useCallback,
@@ -6,6 +7,7 @@ import {
 } from 'https://esm.sh/v136/react@18.2.0'
 import type { FC } from 'https://esm.sh/v136/react@18.2.0'
 import { styled } from 'https://esm.sh/v136/styled-components@6.1.1'
+import type { Params } from '../network'
 import type { EditDetails } from './editor'
 
 const Container = styled.div`
@@ -53,12 +55,34 @@ const Copy = styled.div`
 `
 
 interface Props {
+  readonly params: Params
   readonly details: EditDetails
 }
 
-export const CLICommand: FC<Props> = () => {
-  // TODO: Actual command
-  const command = useMemo<string>(() => `npx dreamlab-cli setup ...`, [])
+const encodeBlob = (baseUrl: string, editToken: string) => {
+  const encodedBaseUrl = new TextEncoder().encode(baseUrl)
+  const encodedEditToken = new TextEncoder().encode(editToken)
+
+  const array = new Uint8Array(
+    4 + encodedBaseUrl.length + encodedEditToken.length,
+  )
+  const view = new DataView(array.buffer, array.byteOffset, array.byteLength)
+  view.setInt16(0, encodedBaseUrl.byteLength)
+  array.set(encodedBaseUrl, 2)
+  view.setInt16(2 + encodedBaseUrl.byteLength, encodedEditToken.byteLength)
+  array.set(encodedEditToken, 4 + encodedBaseUrl.byteLength)
+
+  return binary_to_base58(array)
+}
+
+export const CLICommand: FC<Props> = ({ details, params }) => {
+  const command = useMemo<string>(() => {
+    const baseUrl = new URL(params.server)
+    baseUrl.pathname = `/api/v1/edit/${params.instance}`
+    const blob = encodeBlob(baseUrl.toString(), details.secret)
+    return `npx @dreamlab.gg/cli dev ${blob}`
+  }, [details, params])
+
   const [copied, setCopied] = useState<boolean>(false)
 
   const onClick = useCallback(() => {

@@ -28,6 +28,7 @@
   "dependencies": {
     "@paralleldrive/cuid2": "^2.2.2",
     "axios": "^1.6.2",
+    "base58-js": "^2.0.0",
     "copy-to-clipboard": "^3.3.3",
     "jwt-decode": "^4.0.0",
     "matter-js": "^0.19.0",
