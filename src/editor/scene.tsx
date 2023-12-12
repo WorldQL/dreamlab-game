@@ -134,13 +134,13 @@ export const SceneList: FC<{ readonly selector: Selector }> = ({
     if (!selector.selected) return
     selector.selected.transform.zIndex += ctrlHeldDown ? 25 : 1
     forceUpdate()
-  }, [selector.selected, forceUpdate])
+  }, [selector.selected, ctrlHeldDown, forceUpdate])
 
   const onMoveBackwards = useCallback(async () => {
     if (!selector.selected) return
     selector.selected.transform.zIndex -= ctrlHeldDown ? 25 : 1
     forceUpdate()
-  }, [selector.selected, forceUpdate])
+  }, [selector.selected, ctrlHeldDown, forceUpdate])
 
   const onChangeTiling = useCallback(async () => {
     if (!selector.selected) return
@@ -194,37 +194,35 @@ export const level: LooseSpawnableDefinition[] = ${json}
   }, [entities])
 
   return (
-    <>
-      <ListContainer isCollapsed={isCollapsed}>
-        <CollapseButton
-          onClick={toggleCollapse}
-          style={{
-            right: '0.3rem',
-          }}
-        >
-          {isCollapsed ? '✚' : '─'}
-        </CollapseButton>
-        {!isCollapsed && (
-          <>
-            <h1>Object List</h1>
-            <EntityList>
-              {entities.map(entity => (
-                // eslint-disable-next-line @typescript-eslint/no-use-before-define
-                <EntityDisplay
-                  key={entity.uid}
-                  entity={entity}
-                  selector={selector}
-                  isSelected={entity.uid === selected}
-                />
-              ))}
-            </EntityList>
-            <Button type='button' onClick={onSave}>
-              Save
-            </Button>
-          </>
-        )}
-      </ListContainer>
-    </>
+    <ListContainer isCollapsed={isCollapsed}>
+      <CollapseButton
+        onClick={toggleCollapse}
+        style={{
+          right: '0.3rem',
+        }}
+      >
+        {isCollapsed ? '✚' : '─'}
+      </CollapseButton>
+      {!isCollapsed && (
+        <>
+          <h1>Object List</h1>
+          <EntityList>
+            {entities.map(entity => (
+              // eslint-disable-next-line @typescript-eslint/no-use-before-define
+              <EntityDisplay
+                entity={entity}
+                isSelected={entity.uid === selected}
+                key={entity.uid}
+                selector={selector}
+              />
+            ))}
+          </EntityList>
+          <Button onClick={onSave} type='button'>
+            Save
+          </Button>
+        </>
+      )}
+    </ListContainer>
   )
 }
 
@@ -298,11 +296,13 @@ const LockButton = styled(IconButton)`
   }
 `
 
-const EntityDisplay: FC<{
+interface DisplayProps {
   readonly selector: Selector
-  entity: SpawnableEntity
+  readonly entity: SpawnableEntity
   isSelected: boolean
-}> = ({ selector, entity, isSelected }) => {
+}
+
+const EntityDisplay: FC<DisplayProps> = ({ selector, entity, isSelected }) => {
   const game = useGame()
   const network = useNetwork()
   const player = usePlayer()
@@ -324,7 +324,7 @@ const EntityDisplay: FC<{
     await game.destroy(entity)
 
     await network?.sendEntityDestroy(id)
-  }, [network, entity])
+  }, [game, network, entity])
 
   const onLockToggle = useCallback(() => {
     const newTags = isLocked
@@ -348,41 +348,41 @@ const EntityDisplay: FC<{
       </SelectButton>
 
       <LockButton
-        type='button'
-        title='Lock/Unlock'
-        onClick={onLockToggle}
         className={isLocked ? 'locked' : 'unlocked'}
+        onClick={onLockToggle}
+        title='Lock/Unlock'
+        type='button'
       >
         {isLocked ? (
           <svg
-            xmlns='http://www.w3.org/2000/svg'
             fill='currentColor'
             viewBox='0 0 448 512'
+            xmlns='http://www.w3.org/2000/svg'
           >
             <path d='M144 144v48H304V144c0-44.2-35.8-80-80-80s-80 35.8-80 80zM80 192V144C80 64.5 144.5 0 224 0s144 64.5 144 144v48h16c35.3 0 64 28.7 64 64V448c0 35.3-28.7 64-64 64H64c-35.3 0-64-28.7-64-64V256c0-35.3 28.7-64 64-64H80z' />
           </svg>
         ) : (
           <svg
-            xmlns='http://www.w3.org/2000/svg'
             fill='currentColor'
             viewBox='0 0 576 512'
+            xmlns='http://www.w3.org/2000/svg'
           >
             <path d='M352 144c0-44.2 35.8-80 80-80s80 35.8 80 80v48c0 17.7 14.3 32 32 32s32-14.3 32-32V144C576 64.5 511.5 0 432 0S288 64.5 288 144v48H64c-35.3 0-64 28.7-64 64V448c0 35.3 28.7 64 64 64H384c35.3 0 64-28.7 64-64V256c0-35.3-28.7-64-64-64H352V144z' />
           </svg>
         )}
       </LockButton>
 
-      <DeleteButton type='button' title='Delete' onClick={onDelete}>
+      <DeleteButton onClick={onDelete} title='Delete' type='button'>
         <svg
-          xmlns='http://www.w3.org/2000/svg'
-          viewBox='0 0 24 24'
-          fill='currentColor'
           className='w-6 h-6'
+          fill='currentColor'
+          viewBox='0 0 24 24'
+          xmlns='http://www.w3.org/2000/svg'
         >
           <path
-            fillRule='evenodd'
-            d='M16.5 4.478v.227a48.816 48.816 0 013.878.512.75.75 0 11-.256 1.478l-.209-.035-1.005 13.07a3 3 0 01-2.991 2.77H8.084a3 3 0 01-2.991-2.77L4.087 6.66l-.209.035a.75.75 0 01-.256-1.478A48.567 48.567 0 017.5 4.705v-.227c0-1.564 1.213-2.9 2.816-2.951a52.662 52.662 0 013.369 0c1.603.051 2.815 1.387 2.815 2.951zm-6.136-1.452a51.196 51.196 0 013.273 0C14.39 3.05 15 3.684 15 4.478v.113a49.488 49.488 0 00-6 0v-.113c0-.794.609-1.428 1.364-1.452zm-.355 5.945a.75.75 0 10-1.5.058l.347 9a.75.75 0 101.499-.058l-.346-9zm5.48.058a.75.75 0 10-1.498-.058l-.347 9a.75.75 0 001.5.058l.345-9z'
             clipRule='evenodd'
+            d='M16.5 4.478v.227a48.816 48.816 0 013.878.512.75.75 0 11-.256 1.478l-.209-.035-1.005 13.07a3 3 0 01-2.991 2.77H8.084a3 3 0 01-2.991-2.77L4.087 6.66l-.209.035a.75.75 0 01-.256-1.478A48.567 48.567 0 017.5 4.705v-.227c0-1.564 1.213-2.9 2.816-2.951a52.662 52.662 0 013.369 0c1.603.051 2.815 1.387 2.815 2.951zm-6.136-1.452a51.196 51.196 0 013.273 0C14.39 3.05 15 3.684 15 4.478v.113a49.488 49.488 0 00-6 0v-.113c0-.794.609-1.428 1.364-1.452zm-.355 5.945a.75.75 0 10-1.5.058l.347 9a.75.75 0 101.499-.058l-.346-9zm5.48.058a.75.75 0 10-1.498-.058l-.347 9a.75.75 0 001.5.058l.345-9z'
+            fillRule='evenodd'
           />
         </svg>
       </DeleteButton>

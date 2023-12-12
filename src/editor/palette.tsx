@@ -1,4 +1,6 @@
+import type { EventHandler } from '@dreamlab.gg/core/dist/events'
 import {
+  useCommonEventListener,
   useGame,
   useNetwork,
   usePlayer,
@@ -13,7 +15,11 @@ import {
   useRef,
   useState,
 } from 'https://esm.sh/v136/react@18.2.0'
-import type { FC } from 'https://esm.sh/v136/react@18.2.0'
+import type {
+  ChangeEventHandler,
+  DragEventHandler,
+  FC,
+} from 'https://esm.sh/v136/react@18.2.0'
 import { styled } from 'https://esm.sh/v136/styled-components@6.1.1'
 import { Button, Container } from './components'
 import { CollapseButton } from './scene'
@@ -113,7 +119,7 @@ export const Palette: FC<{ readonly selector: Selector }> = ({ selector }) => {
   )
   const [isCollapsed, setIsCollapsed] = useState(false)
 
-  const spawnedEntitiesAwaitingSelection: string[] = []
+  const spawnedAwaitingSelectionRef = useRef<string[]>([])
   const [currentCategory, setCurrentCategory] = useState(CATEGORIES.SPAWNABLES)
   interface ImageData {
     name: string
@@ -124,7 +130,7 @@ export const Palette: FC<{ readonly selector: Selector }> = ({ selector }) => {
   const [dragOver, setDragOver] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const refreshImages = async () => {
+  const refreshImages = useCallback(async () => {
     // send an authenticated API request to get the user's image library
     const requestURL = nextAPIBaseURL + '/api/gameclient/listImages'
     const response = await axios.get(requestURL, {
@@ -145,11 +151,11 @@ export const Palette: FC<{ readonly selector: Selector }> = ({ selector }) => {
 
     // after we get the list of URLs from the user's library, we also load the images of everything that's currently in the game
     // then we remove duplicates by matching on URL
-  }
+  }, [])
 
   useEffect(() => {
-    ;(async () => refreshImages())()
-  }, [])
+    void refreshImages()
+  }, [refreshImages])
 
   const confirmDeleteImage = async (name: string, id: string) => {
     // eslint-disable-next-line no-alert
@@ -171,10 +177,10 @@ export const Palette: FC<{ readonly selector: Selector }> = ({ selector }) => {
     }
   }
 
-  const handleUploadClick = () => {
+  const handleUploadClick = useCallback(() => {
     if (!fileInputRef.current) return
     fileInputRef.current.click()
-  }
+  }, [])
 
   const handleFile = (file: File) => {
     const reader = new FileReader()
@@ -200,41 +206,48 @@ export const Palette: FC<{ readonly selector: Selector }> = ({ selector }) => {
     reader.readAsDataURL(file)
   }
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
-    if (file) {
-      handleFile(file)
-    }
-  }
+  const handleFileChange = useCallback<ChangeEventHandler<HTMLInputElement>>(
+    ev => {
+      const file = ev.target.files?.[0]
+      if (file) handleFile(file)
+    },
+    [],
+  )
 
-  const handleDrop = (ev: React.DragEvent<HTMLDivElement>): void => {
+  const handleDrop = useCallback<DragEventHandler<HTMLDivElement>>(ev => {
     ev.preventDefault()
     setDragOver(false)
+
     const files = ev.dataTransfer.files
     if (files && files.length > 0) {
       const file = files[0]
       handleFile(file)
     }
-  }
+  }, [])
 
-  const handleDragEnter = (ev: React.DragEvent<HTMLDivElement>): void => {
+  const handleDragEnter = useCallback<DragEventHandler<HTMLDivElement>>(ev => {
     ev.preventDefault()
     setDragOver(true)
-  }
+  }, [])
 
-  const handleDragLeave = (ev: React.DragEvent<HTMLDivElement>): void => {
+  const handleDragLeave = useCallback<DragEventHandler<HTMLDivElement>>(ev => {
     ev.preventDefault()
     setDragOver(false)
-  }
+  }, [])
 
-  // This event is being fired three times??
-  game.events.common.addListener('onSpawn', entity => {
-    const idx = spawnedEntitiesAwaitingSelection.indexOf(entity.uid)
-    if (idx !== -1) {
-      selector.select(entity)
-      spawnedEntitiesAwaitingSelection.splice(idx, 1)
-    }
-  })
+  const onSpawn = useCallback<EventHandler<'onSpawn'>>(
+    entity => {
+      const idx = spawnedAwaitingSelectionRef.current.indexOf(entity.uid)
+
+      if (idx !== -1) {
+        selector.select(entity)
+        spawnedAwaitingSelectionRef.current.splice(idx, 1)
+      }
+    },
+    [selector],
+  )
+
+  useCommonEventListener('onSpawn', onSpawn)
 
   const spawn = useCallback(
     async (entity: string) => {
@@ -254,7 +267,7 @@ export const Palette: FC<{ readonly selector: Selector }> = ({ selector }) => {
 
       if (network) {
         void network.sendEntityCreate(definition)
-        spawnedEntitiesAwaitingSelection.push(definition.uid)
+        spawnedAwaitingSelectionRef.current.push(definition.uid)
       } else {
         const spawned = await game.spawn(definition)
         if (spawned) selector.select(spawned)
@@ -299,8 +312,8 @@ export const Palette: FC<{ readonly selector: Selector }> = ({ selector }) => {
                 {spawnable.map(([name]) => (
                   <Button
                     key={name}
-                    type='button'
                     onClick={async () => spawn(name)}
+                    type='button'
                   >
                     {name}
                   </Button>
@@ -313,37 +326,37 @@ export const Palette: FC<{ readonly selector: Selector }> = ({ selector }) => {
             <>
               <h1>Assets</h1>
               <AssetUploader
+                className={dragOver ? 'drag-over' : ''}
+                onClick={handleUploadClick}
+                onDragEnter={handleDragEnter}
+                onDragLeave={handleDragLeave}
                 onDragOver={ev => {
                   ev.preventDefault()
                 }}
                 onDrop={handleDrop}
-                onDragEnter={handleDragEnter}
-                onDragLeave={handleDragLeave}
-                onClick={handleUploadClick}
-                className={dragOver ? 'drag-over' : ''}
               >
                 Drag and drop files or click here
                 <input
-                  type='file'
-                  ref={fileInputRef}
                   onChange={handleFileChange}
+                  ref={fileInputRef}
                   style={{
                     display: 'none',
                   }}
+                  type='file'
                 />
               </AssetUploader>
               <AssetList>
-                {assets.map((asset, index) => (
+                {assets.map(asset => (
                   <AssetItem
-                    key={index}
                     draggable
+                    key={asset.id}
                     onDragStart={ev =>
                       ev.dataTransfer.setData('text/plain', asset.imageURL)
                     }
                   >
                     <ImagePreview
-                      src={asset.imageURL + '?cachebuster=123'}
                       alt={asset.name}
+                      src={asset.imageURL + '?cachebuster=123'}
                     />
                     <div
                       style={{
@@ -356,10 +369,10 @@ export const Palette: FC<{ readonly selector: Selector }> = ({ selector }) => {
                       {asset.name}
                     </div>
                     <div
-                      style={{ cursor: 'pointer', color: 'rgb(120 113 108)' }}
                       onClick={async () => {
                         await confirmDeleteImage(asset.name, asset.id)
                       }}
+                      style={{ cursor: 'pointer', color: 'rgb(120 113 108)' }}
                     >
                       Delete
                     </div>

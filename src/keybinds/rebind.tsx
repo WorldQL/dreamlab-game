@@ -144,7 +144,7 @@ export const Rebind: FC<Props> = ({ visible, setVisible }) => {
       bindInput(game, code, id)
       setRebinding(undefined)
     },
-    [inputs, rebinding, setRebinding],
+    [game, inputs, rebinding, setRebinding],
   )
 
   const onClick = useCallback(
@@ -172,7 +172,7 @@ export const Rebind: FC<Props> = ({ visible, setVisible }) => {
         setRebinding([id, type])
       }
     },
-    [rebinding, setRebinding],
+    [game, inputs, rebinding, setRebinding],
   )
 
   const onReset = useCallback(() => {
@@ -182,7 +182,7 @@ export const Rebind: FC<Props> = ({ visible, setVisible }) => {
     }
 
     forceUpdate()
-  }, [forceUpdate])
+  }, [game, forceUpdate])
 
   useEffect(() => {
     window.addEventListener('keydown', onKeyPress)
@@ -199,17 +199,17 @@ export const Rebind: FC<Props> = ({ visible, setVisible }) => {
           <H1>Rebind Inputs</H1>
           <CloseIcon onClick={close}>
             <svg
-              xmlns='http://www.w3.org/2000/svg'
-              fill='none'
-              viewBox='0 0 24 24'
-              strokeWidth={1.5}
-              stroke='currentColor'
               className='w-6 h-6'
+              fill='none'
+              stroke='currentColor'
+              strokeWidth={1.5}
+              viewBox='0 0 24 24'
+              xmlns='http://www.w3.org/2000/svg'
             >
               <path
+                d='M6 18L18 6M6 6l12 12'
                 strokeLinecap='round'
                 strokeLinejoin='round'
-                d='M6 18L18 6M6 6l12 12'
               />
             </svg>
           </CloseIcon>
@@ -218,19 +218,19 @@ export const Rebind: FC<Props> = ({ visible, setVisible }) => {
         <InputGrid>
           {inputs.map(([id, name, keys]) => (
             <Input
-              key={id}
-              id={id}
-              name={name}
-              keys={keys}
-              onClick={onClick}
               active={
                 rebinding && rebinding[0] === id ? rebinding[1] : undefined
               }
+              id={id}
+              key={id}
+              keys={keys}
+              name={name}
+              onClick={onClick}
             />
           ))}
         </InputGrid>
 
-        <ResetButton type='button' onClick={onReset}>
+        <ResetButton onClick={onReset} type='button'>
           Reset
         </ResetButton>
       </Popup>

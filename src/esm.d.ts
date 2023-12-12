@@ -1,3 +1,4 @@
+/* eslint-disable import/no-extraneous-dependencies */
 // define types for HTTP imports
 
 declare module 'https://esm.sh/v136/react@18.2.0' {

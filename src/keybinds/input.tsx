@@ -1,7 +1,7 @@
 import type { InputCode } from '@dreamlab.gg/core/input'
 import { useGame } from '@dreamlab.gg/ui/react'
 import { useCallback } from 'https://esm.sh/v136/react@18.2.0'
-import type { FC } from 'https://esm.sh/v136/react@18.2.0'
+import type { FC, MouseEventHandler } from 'https://esm.sh/v136/react@18.2.0'
 import { styled } from 'https://esm.sh/v136/styled-components@6.1.1'
 
 const Name = styled.p`
@@ -41,7 +41,7 @@ export const Input: FC<Props> = ({ id, name, keys, active, onClick }) => {
   const keyPrimary = inputs.getKeyName(primary)
   const keySecondary = secondary ? inputs.getKeyName(secondary) : '-'
 
-  const onContextMenu = useCallback((ev: React.MouseEvent) => {
+  const onContextMenu = useCallback<MouseEventHandler>(ev => {
     ev.preventDefault()
     return false
   }, [])
@@ -51,17 +51,17 @@ export const Input: FC<Props> = ({ id, name, keys, active, onClick }) => {
       <Name>{name}</Name>
 
       <InputKey
-        onMouseDown={ev => onClick(ev, id, 'primary')}
         active={active === 'primary'}
         onContextMenu={onContextMenu}
+        onMouseDown={ev => onClick(ev, id, 'primary')}
       >
         {keyPrimary}
       </InputKey>
 
       <InputKey
-        onMouseDown={ev => onClick(ev, id, 'secondary')}
         active={active === 'secondary'}
         onContextMenu={onContextMenu}
+        onMouseDown={ev => onClick(ev, id, 'secondary')}
       >
         {keySecondary}
       </InputKey>
