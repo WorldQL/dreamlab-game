@@ -19,6 +19,7 @@ import { styled } from 'https://esm.sh/v136/styled-components@6.1.1'
 import { Button, Container } from './components'
 import { EditorInputs } from './editor'
 import type { Selector } from './select'
+import { SpriteSource } from '@dreamlab.gg/core/dist/textures'
 
 interface ListContainerProps {
   isCollapsed: boolean
@@ -143,10 +144,39 @@ export const SceneList: FC<{ readonly selector: Selector }> = ({
     forceUpdate()
   }
 
+  const onChangeTiling = async () => {
+    if (!selector.selected) return
+    console.log(selector.selected.args)
+    if (typeof selector.selected.args.spriteSource === 'string') {
+      const originalSpritesource = selector.selected.args.spriteSource
+      const newSpritesource: SpriteSource = {
+        url: originalSpritesource,
+        tile: true,
+      }
+      selector.selected.args.spriteSource = newSpritesource
+      selector.events.emit(
+        'onArgsUpdate',
+        selector.selected.uid,
+        selector.selected.args,
+      )
+    } else if (typeof selector.selected.args.spriteSource === 'object') {
+      const originalSpritesource = selector.selected.args.spriteSource
+      const newSpritesource: SpriteSource = originalSpritesource.url
+      selector.selected.args.spriteSource = newSpritesource
+      selector.events.emit(
+        'onArgsUpdate',
+        selector.selected.uid,
+        selector.selected.args,
+      )
+    }
+    // forceUpdate()
+  }
+
   useEventListener(selector.events, 'onSelect', onSelect)
   useInputPressed(EditorInputs.DeleteEntity, onDelete)
   useInputPressed(EditorInputs.MoveBackwards, onMoveBackwards)
   useInputPressed(EditorInputs.MoveForewards, onMoveForewards)
+  useInputPressed(EditorInputs.ToggleTiling, onChangeTiling)
 
   const onSave = useCallback(() => {
     // Filter out entities tagged as "do not save"

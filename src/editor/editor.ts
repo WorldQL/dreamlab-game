@@ -10,6 +10,7 @@ export enum EditorInputs {
   MoveForewards = '@editor/MoveForewards',
   TogglePalette = '@editor/TogglePalette',
   TogglePhysics = '@editor/TogglePhysics',
+  ToggleTiling = '@editor/ToggleTiling',
 }
 
 export const createEditor = (
@@ -43,13 +44,19 @@ export const createEditor = (
 
       inputs?.registerInput(
         EditorInputs.MoveForewards,
-        'Move Forewards',
+        'Move Into Foreground',
         'BracketRight',
       )
       inputs?.registerInput(
         EditorInputs.MoveBackwards,
-        'Move Backwards',
+        'Move Into Background',
         'BracketLeft',
+      )
+
+      inputs?.registerInput(
+        EditorInputs.ToggleTiling,
+        'Toggle Sprite Tiling',
+        'Backslash',
       )
 
       inputs?.addListener(EditorInputs.TogglePhysics, togglePhysics)
