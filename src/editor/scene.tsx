@@ -1,4 +1,5 @@
 import type { SpawnableEntity } from '@dreamlab.gg/core'
+import type { SpriteSource } from '@dreamlab.gg/core/textures'
 import {
   useEventListener,
   useForceUpdate,
@@ -19,7 +20,6 @@ import { styled } from 'https://esm.sh/v136/styled-components@6.1.1'
 import { Button, Container } from './components'
 import { EditorInputs } from './editor'
 import type { Selector } from './select'
-import { SpriteSource } from '@dreamlab.gg/core/dist/textures'
 
 interface ListContainerProps {
   isCollapsed: boolean
@@ -82,7 +82,6 @@ export const SceneList: FC<{ readonly selector: Selector }> = ({
 }) => {
   const game = useGame()
   const network = useNetwork()
-  const [isCollapsed, setIsCollapsed] = useState(false)
   const forceUpdate = useForceUpdate()
 
   const etys = useSpawnableEntities()
@@ -90,9 +89,8 @@ export const SceneList: FC<{ readonly selector: Selector }> = ({
     a.definition.entity.localeCompare(b.definition.entity),
   )
 
-  const toggleCollapse = useCallback(() => {
-    setIsCollapsed(prev => !prev)
-  }, [])
+  const [isCollapsed, setIsCollapsed] = useState(false)
+  const toggleCollapse = useCallback(() => setIsCollapsed(prev => !prev), [])
 
   const [selected, setSelected] = useState<string | undefined>(undefined)
   const onSelect = useCallback(
@@ -100,12 +98,12 @@ export const SceneList: FC<{ readonly selector: Selector }> = ({
     [setSelected],
   )
 
-  const onDelete = async () => {
+  const onDelete = useCallback(async () => {
     if (!selector.selected) return
-    const selectedUID = selector.selected.uid
+
     await game.destroy(selector.selected)
-    await network?.sendEntityDestroy(selectedUID)
-  }
+    await network?.sendEntityDestroy(selector.selected.uid)
+  }, [game, network, selector.selected])
 
   const [ctrlHeldDown, setCtrlHeldDown] = useState(false)
 
@@ -132,21 +130,21 @@ export const SceneList: FC<{ readonly selector: Selector }> = ({
     }
   }, [])
 
-  const onMoveForewards = async () => {
+  const onMoveForewards = useCallback(async () => {
     if (!selector.selected) return
     selector.selected.transform.zIndex += ctrlHeldDown ? 25 : 1
     forceUpdate()
-  }
+  }, [selector.selected, forceUpdate])
 
-  const onMoveBackwards = async () => {
+  const onMoveBackwards = useCallback(async () => {
     if (!selector.selected) return
     selector.selected.transform.zIndex -= ctrlHeldDown ? 25 : 1
     forceUpdate()
-  }
+  }, [selector.selected, forceUpdate])
 
-  const onChangeTiling = async () => {
+  const onChangeTiling = useCallback(async () => {
     if (!selector.selected) return
-    console.log(selector.selected.args)
+    // console.log(selector.selected.args)
     if (typeof selector.selected.args.spriteSource === 'string') {
       const originalSpritesource = selector.selected.args.spriteSource
       const newSpritesource: SpriteSource = {
@@ -170,7 +168,7 @@ export const SceneList: FC<{ readonly selector: Selector }> = ({
       )
     }
     // forceUpdate()
-  }
+  }, [selector.events, selector.selected])
 
   useEventListener(selector.events, 'onSelect', onSelect)
   useInputPressed(EditorInputs.DeleteEntity, onDelete)
