@@ -1,4 +1,5 @@
-import type { EventHandler } from '@dreamlab.gg/core/dist/events'
+import type { LooseSpawnableDefinition } from '@dreamlab.gg/core'
+import type { EventHandler } from '@dreamlab.gg/core/events'
 import {
   useCommonEventListener,
   useGame,
@@ -254,7 +255,6 @@ export const Palette: FC<{ readonly selector: Selector }> = ({ selector }) => {
       if (!player) return
 
       const uid = cuid2.createId()
-
       const definition = {
         entity,
         args: {},
@@ -263,7 +263,7 @@ export const Palette: FC<{ readonly selector: Selector }> = ({ selector }) => {
           zIndex: 100, // Spawn in front of player
         },
         uid,
-      }
+      } satisfies LooseSpawnableDefinition
 
       if (network) {
         void network.sendEntityCreate(definition)
@@ -275,6 +275,26 @@ export const Palette: FC<{ readonly selector: Selector }> = ({ selector }) => {
     },
     [game, network, player, selector],
   )
+
+  // TODO: Keyboard shortcut
+  const cloneSelected = useCallback(async () => {
+    if (!selector.selected) return
+
+    const uid = cuid2.createId()
+    const definition = {
+      ...selector.selected.definition,
+      // TODO: Maybe dont clone at the same coords?
+      uid,
+    } satisfies LooseSpawnableDefinition
+
+    if (network) {
+      void network.sendEntityCreate(definition)
+      spawnedAwaitingSelectionRef.current.push(definition.uid)
+    } else {
+      const spawned = await game.spawn(definition)
+      if (spawned) selector.select(spawned)
+    }
+  }, [game, network, selector])
 
   return (
     <PaletteContainer isCollapsed={isCollapsed}>
