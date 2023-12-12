@@ -1,6 +1,7 @@
 import type { SpawnableEntity } from '@dreamlab.gg/core'
 import {
   useEventListener,
+  useForceUpdate,
   useGame,
   useInputPressed,
   useNetwork,
@@ -81,6 +82,7 @@ export const SceneList: FC<{ readonly selector: Selector }> = ({
   const game = useGame()
   const network = useNetwork()
   const [isCollapsed, setIsCollapsed] = useState(false)
+  const forceUpdate = useForceUpdate()
 
   const etys = useSpawnableEntities()
   const entities = [...etys].sort((a, b) =>
@@ -104,8 +106,47 @@ export const SceneList: FC<{ readonly selector: Selector }> = ({
     await network?.sendEntityDestroy(selectedUID)
   }
 
+  const [ctrlHeldDown, setCtrlHeldDown] = useState(false)
+
+  useEffect(() => {
+    const handleKeyDown = (event: { key: string }) => {
+      if (event.key === 'Control') {
+        setCtrlHeldDown(true)
+      }
+    }
+
+    const handleKeyUp = (event: { key: string }) => {
+      if (event.key === 'Control') {
+        setCtrlHeldDown(false)
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown)
+    document.addEventListener('keyup', handleKeyUp)
+
+    // Clean up event listeners
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown)
+      document.removeEventListener('keyup', handleKeyUp)
+    }
+  }, [])
+
+  const onMoveForewards = async () => {
+    if (!selector.selected) return
+    selector.selected.transform.zIndex += ctrlHeldDown ? 25 : 1
+    forceUpdate()
+  }
+
+  const onMoveBackwards = async () => {
+    if (!selector.selected) return
+    selector.selected.transform.zIndex -= ctrlHeldDown ? 25 : 1
+    forceUpdate()
+  }
+
   useEventListener(selector.events, 'onSelect', onSelect)
   useInputPressed(EditorInputs.DeleteEntity, onDelete)
+  useInputPressed(EditorInputs.MoveBackwards, onMoveBackwards)
+  useInputPressed(EditorInputs.MoveForewards, onMoveForewards)
 
   const onSave = useCallback(() => {
     // Filter out entities tagged as "do not save"
@@ -275,7 +316,7 @@ const EntityDisplay: FC<{
   return (
     <EntityButtons id={entity.uid} ref={entityRef}>
       <SelectButton isSelected={isSelected} onClick={onSelect}>
-        {entity.definition.entity}
+        {entity.definition.entity} (z: {entity.transform.zIndex})
       </SelectButton>
 
       <LockButton

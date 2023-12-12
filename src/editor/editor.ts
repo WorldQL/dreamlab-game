@@ -6,6 +6,8 @@ import { renderUI } from './ui'
 
 export enum EditorInputs {
   DeleteEntity = '@editor/DeleteEntity',
+  MoveBackwards = '@editor/MoveBackwards',
+  MoveForewards = '@editor/MoveForewards',
   TogglePalette = '@editor/TogglePalette',
   TogglePhysics = '@editor/TogglePhysics',
 }
@@ -37,6 +39,17 @@ export const createEditor = (
         EditorInputs.DeleteEntity,
         'Delete Entity',
         'Backspace',
+      )
+
+      inputs?.registerInput(
+        EditorInputs.MoveForewards,
+        'Move Forewards',
+        'BracketRight',
+      )
+      inputs?.registerInput(
+        EditorInputs.MoveBackwards,
+        'Move Backwards',
+        'BracketLeft',
       )
 
       inputs?.addListener(EditorInputs.TogglePhysics, togglePhysics)
