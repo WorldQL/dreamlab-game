@@ -4,16 +4,15 @@
     "@luludev/eslint-config/common",
     "@luludev/eslint-config/typescript",
     "@luludev/eslint-config/browser",
+    "@luludev/eslint-config/react",
     "@luludev/eslint-config/prettier"
   ],
   "parserOptions": {
     "project": "./tsconfig.eslint.json"
   },
   "rules": {
-    "jsdoc/no-bad-blocks": ["error", { "ignore": ["vite-ignore"] }]
+    "jsdoc/no-bad-blocks": ["error", { "ignore": ["vite-ignore"] }],
+    "react/prop-types": 0
   },
-  "ignorePatterns": ["**/dist/*", "vite-env.d.ts"],
-  "env": {
-    "jest": true
-  }
+  "ignorePatterns": ["**/dist/*", "vite-env.d.ts"]
 }
