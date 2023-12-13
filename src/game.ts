@@ -66,7 +66,7 @@ export const init = async () => {
   // #endregion
 
   if (ws) {
-    const [network, connected] = createNetwork(ws, game)
+    const [network, connected] = createNetwork(params!, ws, game)
     game.initNetwork(network)
 
     await connected
@@ -76,7 +76,7 @@ export const init = async () => {
       const world = url.searchParams.get('level')
 
       if (world) {
-        const editor = createEditor(undefined, params, { secret: 'secret' })
+        const editor = createEditor()
         await game.instantiate(editor)
 
         await loadScript(undefined, world, game)

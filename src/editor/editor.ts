@@ -1,6 +1,5 @@
 import { createEntity } from '@dreamlab.gg/core'
 import { deferUntilPlayer, ref } from '@dreamlab.gg/core/utils'
-import type { Params } from '../network'
 import type { ToServerPacket } from '../packets'
 import { createEntitySelect } from './select'
 import { renderUI } from './ui'
@@ -16,11 +15,12 @@ export enum EditorInputs {
 
 export interface EditDetails {
   readonly secret: string
+  readonly server: string
+  readonly instance: string
 }
 
 export const createEditor = (
   sendPacket?: (packet: ToServerPacket) => void,
-  netParams?: Params,
   editDetails?: EditDetails,
 ) => {
   const enabled = ref<boolean>(false)
@@ -82,12 +82,7 @@ export const createEditor = (
     },
 
     initRenderContext({ game }, _render) {
-      const { container, unmount } = renderUI(
-        game,
-        selector,
-        netParams,
-        editDetails,
-      )
+      const { container, unmount } = renderUI(game, selector, editDetails)
       container.style.display = 'none'
 
       deferUntilPlayer(game, player => {

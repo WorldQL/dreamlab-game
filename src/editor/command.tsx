@@ -7,7 +7,6 @@ import {
 } from 'https://esm.sh/v136/react@18.2.0'
 import type { FC } from 'https://esm.sh/v136/react@18.2.0'
 import { styled } from 'https://esm.sh/v136/styled-components@6.1.1'
-import type { Params } from '../network'
 import type { EditDetails } from './editor'
 
 const Container = styled.div`
@@ -55,7 +54,6 @@ const Copy = styled.div`
 `
 
 interface Props {
-  readonly params: Params
   readonly details: EditDetails
 }
 
@@ -75,13 +73,13 @@ const encodeBlob = (baseUrl: string, editToken: string) => {
   return binary_to_base58(array)
 }
 
-export const CLICommand: FC<Props> = ({ details, params }) => {
+export const CLICommand: FC<Props> = ({ details }) => {
   const command = useMemo<string>(() => {
-    const baseUrl = new URL(params.server)
-    baseUrl.pathname = `/api/v1/edit/${params.instance}`
+    const baseUrl = new URL(details.server)
+    baseUrl.pathname = `/api/v1/edit/${details.instance}`
     const blob = encodeBlob(baseUrl.toString(), details.secret)
     return `npx @dreamlab.gg/cli dev ${blob}`
-  }, [details, params])
+  }, [details])
 
   const [copied, setCopied] = useState<boolean>(false)
 

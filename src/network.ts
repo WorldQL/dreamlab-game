@@ -138,6 +138,7 @@ const updateBodies = (bodies: Body[], bodyInfo: BodyInfo[]) => {
 }
 
 export const createNetwork = (
+  params: Params,
   ws: WebSocket,
   game: Game<false>,
 ): [network: BareNetClient, ready: Promise<void>] => {
@@ -490,7 +491,11 @@ export const createNetwork = (
 
           if (packet.edit_mode) {
             const details: EditDetails | undefined = packet.edit_secret
-              ? { secret: packet.edit_secret }
+              ? {
+                  secret: packet.edit_secret,
+                  instance: params.instance,
+                  server: params.server,
+                }
               : undefined
 
             const editor = createEditor(sendPacket, details)
