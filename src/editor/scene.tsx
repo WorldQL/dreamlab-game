@@ -100,9 +100,9 @@ export const SceneList: FC<{ readonly selector: Selector }> = ({
 
   const onDelete = useCallback(async () => {
     if (!selector.selected) return
-
+    const id = selector.selected.uid
     await game.destroy(selector.selected)
-    await network?.sendEntityDestroy(selector.selected.uid)
+    await network?.sendEntityDestroy(id)
   }, [game, network, selector.selected])
 
   const [ctrlHeldDown, setCtrlHeldDown] = useState(false)
