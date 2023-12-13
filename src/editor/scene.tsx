@@ -263,7 +263,7 @@ const IconButton = styled(Button)`
   }
 `
 
-const DeleteButton = styled(IconButton)`
+export const DeleteButton = styled(IconButton)`
   background-color: #ef4444;
 
   &:hover {

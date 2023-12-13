@@ -1,4 +1,7 @@
-import type { LooseSpawnableDefinition } from '@dreamlab.gg/core'
+import type {
+  LooseSpawnableDefinition,
+  SpawnableEntity,
+} from '@dreamlab.gg/core'
 import type { EventHandler } from '@dreamlab.gg/core/events'
 import {
   useCommonEventListener,
@@ -23,7 +26,7 @@ import type {
 } from 'https://esm.sh/v136/react@18.2.0'
 import { styled } from 'https://esm.sh/v136/styled-components@6.1.1'
 import { Button, Container } from './components'
-import { CollapseButton } from './scene'
+import { CollapseButton, DeleteButton } from './scene'
 import type { Selector } from './select'
 
 interface PaletteContainerProps {
@@ -130,6 +133,14 @@ export const Palette: FC<{ readonly selector: Selector }> = ({ selector }) => {
   const [assets, setAssets] = useState<ImageData[]>([])
   const [dragOver, setDragOver] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  interface HistoryAction {
+    action: 'create' | 'delete'
+    entity: SpawnableEntity
+  }
+
+  const clipboard = useRef<SpawnableEntity | null>(null)
+  const historyRef = useRef<HistoryAction[]>([])
 
   const refreshImages = useCallback(async () => {
     // send an authenticated API request to get the user's image library
@@ -251,6 +262,22 @@ export const Palette: FC<{ readonly selector: Selector }> = ({ selector }) => {
   useCommonEventListener('onSpawn', onSpawn)
 
   const spawn = useCallback(
+    async (definition: LooseSpawnableDefinition) => {
+      if (network) {
+        void network.sendEntityCreate(definition)
+        spawnedAwaitingSelectionRef.current.push(definition.uid!)
+      } else {
+        const spawned = await game.spawn(definition)
+        if (spawned) {
+          selector.select(spawned)
+          historyRef.current.push({ action: 'create', entity: spawned })
+        }
+      }
+    },
+    [game, network, selector],
+  )
+
+  const create = useCallback(
     async (entity: string) => {
       if (!player) return
 
@@ -265,36 +292,68 @@ export const Palette: FC<{ readonly selector: Selector }> = ({ selector }) => {
         uid,
       } satisfies LooseSpawnableDefinition
 
-      if (network) {
-        void network.sendEntityCreate(definition)
-        spawnedAwaitingSelectionRef.current.push(definition.uid)
-      } else {
-        const spawned = await game.spawn(definition)
-        if (spawned) selector.select(spawned)
-      }
+      await spawn(definition)
     },
-    [game, network, player, selector],
+    [player, spawn],
   )
 
-  // TODO: Keyboard shortcut
-  const cloneSelected = useCallback(async () => {
+  const copyEntity = useCallback(() => {
     if (!selector.selected) return
+    clipboard.current = selector.selected
+  }, [selector.selected])
 
-    const uid = cuid2.createId()
-    const definition = {
-      ...selector.selected.definition,
-      // TODO: Maybe dont clone at the same coords?
-      uid,
-    } satisfies LooseSpawnableDefinition
+  const pasteEntity = useCallback(async () => {
+    if (!player) return
+    if (clipboard.current) {
+      const uid = cuid2.createId()
+      const cursorPosition = game.client.inputs.getCursor()
+      const position =
+        cursorPosition ?? clipboard.current.definition.transform.position
 
-    if (network) {
-      void network.sendEntityCreate(definition)
-      spawnedAwaitingSelectionRef.current.push(definition.uid)
-    } else {
-      const spawned = await game.spawn(definition)
-      if (spawned) selector.select(spawned)
+      const definition = {
+        ...clipboard.current.definition,
+        uid,
+        transform: {
+          ...clipboard.current.definition.transform,
+          position,
+        },
+      }
+
+      await spawn(definition)
     }
-  }, [game, network, selector])
+  }, [game.client.inputs, player, spawn])
+
+  // TODO: implement undo
+  const undoLastAction = useCallback(async () => {
+    const lastAction = historyRef.current.pop()
+    if (lastAction && lastAction.action === 'create') {
+      console.log('undo')
+    }
+  }, [])
+
+  useEffect(() => {
+    const handleKeyDown = async (event: KeyboardEvent) => {
+      if (event.ctrlKey) {
+        switch (event.key.toLowerCase()) {
+          case 'c':
+            copyEntity()
+            break
+          case 'v':
+            await pasteEntity()
+            break
+          case 'z':
+            await undoLastAction()
+            break
+        }
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [copyEntity, pasteEntity, undoLastAction, selector.selected])
 
   return (
     <PaletteContainer isCollapsed={isCollapsed}>
@@ -332,7 +391,7 @@ export const Palette: FC<{ readonly selector: Selector }> = ({ selector }) => {
                 {spawnable.map(([name]) => (
                   <Button
                     key={name}
-                    onClick={async () => spawn(name)}
+                    onClick={async () => create(name)}
                     type='button'
                   >
                     {name}
@@ -388,14 +447,24 @@ export const Palette: FC<{ readonly selector: Selector }> = ({ selector }) => {
                     >
                       {asset.name}
                     </div>
-                    <div
+                    <DeleteButton
                       onClick={async () => {
                         await confirmDeleteImage(asset.name, asset.id)
                       }}
-                      style={{ cursor: 'pointer', color: 'rgb(120 113 108)' }}
                     >
-                      Delete
-                    </div>
+                      <svg
+                        className='w-6 h-6'
+                        fill='currentColor'
+                        viewBox='0 0 24 24'
+                        xmlns='http://www.w3.org/2000/svg'
+                      >
+                        <path
+                          clipRule='evenodd'
+                          d='M16.5 4.478v.227a48.816 48.816 0 013.878.512.75.75 0 11-.256 1.478l-.209-.035-1.005 13.07a3 3 0 01-2.991 2.77H8.084a3 3 0 01-2.991-2.77L4.087 6.66l-.209.035a.75.75 0 01-.256-1.478A48.567 48.567 0 017.5 4.705v-.227c0-1.564 1.213-2.9 2.816-2.951a52.662 52.662 0 013.369 0c1.603.051 2.815 1.387 2.815 2.951zm-6.136-1.452a51.196 51.196 0 013.273 0C14.39 3.05 15 3.684 15 4.478v.113a49.488 49.488 0 00-6 0v-.113c0-.794.609-1.428 1.364-1.452zm-.355 5.945a.75.75 0 10-1.5.058l.347 9a.75.75 0 101.499-.058l-.346-9zm5.48.058a.75.75 0 10-1.498-.058l-.347 9a.75.75 0 001.5.058l.345-9z'
+                          fillRule='evenodd'
+                        />
+                      </svg>
+                    </DeleteButton>
                   </AssetItem>
                 ))}
               </AssetList>
