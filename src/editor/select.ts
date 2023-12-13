@@ -20,10 +20,29 @@ import { drawBox, drawCircle } from '@dreamlab.gg/core/utils'
 import { Container, Graphics } from 'pixi.js'
 import type { ToServerPacket } from '../packets'
 
+type CornerHandle = `${'bottom' | 'top'}${'Left' | 'Right'}`
+type Handle = CornerHandle | 'rotation'
+
+const getOppositeCorner = (handle: CornerHandle): CornerHandle => {
+  const oppositeHandle: CornerHandle | undefined =
+    handle === 'topLeft'
+      ? 'bottomRight'
+      : handle === 'topRight'
+      ? 'bottomLeft'
+      : handle === 'bottomLeft'
+      ? 'topRight'
+      : handle === 'bottomRight'
+      ? 'topLeft'
+      : undefined
+
+  if (!oppositeHandle) throw new Error('invalid handle')
+  return oppositeHandle
+}
+
 type ActionData =
   | { type: 'clear' }
   | { type: 'rotate' }
-  | { type: 'scale'; origin: Vector }
+  | { type: 'scale'; origin: Vector; locked: CornerHandle; opposite: Vector }
   | { type: 'translate'; origin: Vector }
 
 interface Data {
@@ -133,65 +152,93 @@ export const createEntitySelect = (
     },
 
     initRenderContext({ game }, { canvas, stage, camera }) {
-      type Handle = 'rotation' | `${'bottom' | 'top'}${'Left' | 'Right'}`
+      const getHandlePosition = (
+        selected: SpawnableEntity,
+        bounds: Bounds,
+        handle: Handle,
+      ): Vector => {
+        const inverse = 1 / camera.scale
+        const { width, height } = bounds
+        const angle = toRadians(selected.transform.rotation)
+
+        switch (handle) {
+          case 'topLeft': {
+            return Vec.rotateAbout(
+              {
+                x: selected.transform.position.x - width / 2 - strokeWidth / 2,
+                y: selected.transform.position.y - height / 2 - strokeWidth / 2,
+              },
+              angle,
+              selected.transform.position,
+            )
+          }
+
+          case 'topRight': {
+            return Vec.rotateAbout(
+              {
+                x: selected.transform.position.x + width / 2 + strokeWidth / 2,
+                y: selected.transform.position.y - height / 2 - strokeWidth / 2,
+              },
+              angle,
+              selected.transform.position,
+            )
+          }
+
+          case 'bottomLeft': {
+            return Vec.rotateAbout(
+              {
+                x: selected.transform.position.x - width / 2 - strokeWidth / 2,
+                y: selected.transform.position.y + height / 2 + strokeWidth / 2,
+              },
+              angle,
+              selected.transform.position,
+            )
+          }
+
+          case 'bottomRight': {
+            return Vec.rotateAbout(
+              {
+                x: selected.transform.position.x + width / 2 + strokeWidth / 2,
+                y: selected.transform.position.y + height / 2 + strokeWidth / 2,
+              },
+              angle,
+              selected.transform.position,
+            )
+          }
+
+          case 'rotation': {
+            const scaledStalkHeight = Math.min(
+              rotStalkHeight * inverse,
+              rotStalkHeight,
+            )
+
+            return Vec.rotateAbout(
+              {
+                x: selected.transform.position.x,
+                y:
+                  selected.transform.position.y -
+                  height / 2 -
+                  scaledStalkHeight,
+              },
+              angle,
+              selected.transform.position,
+            )
+          }
+        }
+      }
+
       const isHandle = (point: Vector): Handle | undefined => {
         const bounds = selected?.rectangleBounds()
         if (!selected || !bounds) return undefined
 
         const inverse = 1 / camera.scale
         const distanceTest = handleSize * 1.5 * inverse
-        const { width, height } = bounds
-        const angle = toRadians(selected.transform.rotation)
 
-        const topLeft = Vec.rotateAbout(
-          {
-            x: selected.transform.position.x - width / 2 - strokeWidth / 2,
-            y: selected.transform.position.y - height / 2 - strokeWidth / 2,
-          },
-          angle,
-          selected.transform.position,
-        )
-
-        const topRight = Vec.rotateAbout(
-          {
-            x: selected.transform.position.x + width / 2 + strokeWidth / 2,
-            y: selected.transform.position.y - height / 2 - strokeWidth / 2,
-          },
-          angle,
-          selected.transform.position,
-        )
-
-        const bottomLeft = Vec.rotateAbout(
-          {
-            x: selected.transform.position.x - width / 2 - strokeWidth / 2,
-            y: selected.transform.position.y + height / 2 + strokeWidth / 2,
-          },
-          angle,
-          selected.transform.position,
-        )
-
-        const bottomRight = Vec.rotateAbout(
-          {
-            x: selected.transform.position.x + width / 2 + strokeWidth / 2,
-            y: selected.transform.position.y + height / 2 + strokeWidth / 2,
-          },
-          angle,
-          selected.transform.position,
-        )
-
-        const scaledStalkHeight = Math.min(
-          rotStalkHeight * inverse,
-          rotStalkHeight,
-        )
-
-        const rotation = Vec.rotateAbout(
-          {
-            x: selected.transform.position.x,
-            y: selected.transform.position.y - height / 2 - scaledStalkHeight,
-          },
-          angle,
-          selected.transform.position,
-        )
+        const topLeft = getHandlePosition(selected, bounds, 'topLeft')
+        const topRight = getHandlePosition(selected, bounds, 'topRight')
+        const bottomLeft = getHandlePosition(selected, bounds, 'bottomLeft')
+        const bottomRight = getHandlePosition(selected, bounds, 'bottomRight')
+        const rotation = getHandlePosition(selected, bounds, 'rotation')
 
         const distances: [number, Handle][] = [
           [distance(topLeft, point), 'topLeft'],
@@ -268,15 +315,22 @@ export const createEntitySelect = (
       const onMouseDown = (ev: MouseEvent) => {
         if (!editorEnabled.value) return
         const pos = camera.localToWorld({ x: ev.offsetX, y: ev.offsetY })
-        if (!selected) return
+
+        const bounds = selected?.rectangleBounds()
+        if (!selected || !bounds) return
 
         const handle = isHandle(pos)
         if (handle === 'rotation') {
           action = { type: 'rotate' }
         } else if (handle) {
+          const locked = getOppositeCorner(handle)
+          const opposite = getHandlePosition(selected, bounds, locked)
+
           action = {
             type: 'scale',
             origin: pos,
+            locked,
+            opposite,
           }
         } else if (selected.isPointInside(pos)) {
           action = {
@@ -293,6 +347,7 @@ export const createEntitySelect = (
 
         if (!selected || !action) return
         const shift = game.client.inputs.getKey('ShiftLeft')
+        const ctrl = game.client.inputs.getKey('ControlLeft')
 
         switch (action.type) {
           case 'rotate': {
@@ -308,24 +363,48 @@ export const createEntitySelect = (
           case 'scale': {
             // TODO: Account for mouse offset
 
-            const radians = toRadians(0 - selected.transform.rotation)
-            const rotated = Vec.rotateAbout(
-              pos,
-              radians,
-              selected.transform.position,
-            )
+            const radians = toRadians(selected.transform.rotation)
+            const inverseRadians = toRadians(0 - selected.transform.rotation)
 
-            const edge = Vec.sub(rotated, selected.transform.position)
-            const abs = absolute(edge)
-            const width = Math.max(abs.x * 2, 1)
-            const height = Math.max(abs.y * 2, 1)
+            if (ctrl) {
+              const rotated = Vec.rotateAbout(
+                pos,
+                inverseRadians,
+                selected.transform.position,
+              )
 
-            const size = Math.max(width, height)
-            const bounds: Bounds = shift
-              ? { width: size, height: size }
-              : { width, height }
+              const edge = Vec.sub(rotated, selected.transform.position)
+              const abs = absolute(edge)
+              const width = Math.max(abs.x * 2, 1)
+              const height = Math.max(abs.y * 2, 1)
 
-            game.resize(selected, bounds)
+              const size = Math.max(width, height)
+              const bounds: Bounds = shift
+                ? { width: size, height: size }
+                : { width, height }
+
+              game.resize(selected, bounds)
+            } else {
+              const rotated = Vec.rotateAbout(
+                pos,
+                inverseRadians,
+                action.opposite,
+              )
+
+              const edge = Vec.sub(rotated, action.opposite)
+              const abs = absolute(edge)
+              const width = Math.max(abs.x, 1)
+              const height = Math.max(abs.y, 1)
+
+              const newOrigin = Vec.rotateAbout(
+                Vec.add(action.opposite, Vec.div(edge, 2)),
+                radians,
+                action.opposite,
+              )
+
+              selected.transform.position = newOrigin
+              game.resize(selected, { width, height })
+            }
 
             break
           }
