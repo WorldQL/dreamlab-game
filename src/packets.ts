@@ -62,6 +62,21 @@ export const PlayerMotionSnapshotSchema = z.object({
   motion_info: PlayerMotionInfoSchema.array(),
 })
 
+export type PlayerCharacterIdInfo = z.infer<typeof PlayerCharacterIdInfoSchema>
+export const PlayerCharacterIdInfoSchema = z.object({
+  entity_id: z.string(),
+  character_id: z.string().nullable(),
+})
+
+export type PlayerCharacterIdSnapshotPacket = z.infer<
+  typeof PlayerCharacterIdSnapshotSchema
+>
+export const PlayerCharacterIdSnapshotSchema = z.object({
+  t: z.literal('PlayerCharacterIdSnapshot'),
+
+  character_id_info: PlayerCharacterIdInfoSchema.array(),
+})
+
 export type PlayerAnimationInfo = z.infer<typeof PlayerAnimationInfoSchema>
 export const PlayerAnimationInfoSchema = z.object({
   entity_id: z.string(),
@@ -127,6 +142,15 @@ export const PlayerInputsPacketSchema = z.object({
   left: z.boolean(),
   right: z.boolean(),
   attack: z.boolean(),
+})
+
+export type PlayerCharacterIdChangePacket = z.infer<
+  typeof PlayerCharacterIdChangeSchema
+>
+export const PlayerCharacterIdChangeSchema = z.object({
+  t: z.literal('PlayerCharacterIdChange'),
+
+  character_id: z.string().nullable(),
 })
 
 export type PlayerAnimationChangePacket = z.infer<
@@ -322,6 +346,7 @@ export const ToClientPacketSchema = z.discriminatedUnion('t', [
   SpawnPlayerSchema,
   DespawnPlayerSchema,
   PlayerMotionSnapshotSchema,
+  PlayerCharacterIdSnapshotSchema,
   PlayerGearSnapshotSchema,
   PhysicsFullSnapshotSchema,
   PhysicsDeltaSnapshotSchema,
@@ -347,6 +372,7 @@ export const ToServerPacketSchema = z.discriminatedUnion('t', [
   IncomingArgsChangedSchema,
   IncomingTransformChangedSchema,
   IncomingPhysicsSuspendResumeSchema,
+  PlayerCharacterIdChangeSchema,
   PlayerAnimationChangeSchema,
   PlayerInputsPacketSchema,
   PlayerMotionSchema,

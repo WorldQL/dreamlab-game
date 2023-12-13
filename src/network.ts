@@ -40,6 +40,7 @@ import type {
   HandshakePacket,
   HandshakeReadyPacket,
   PlayerAnimationChangePacket,
+  PlayerCharacterIdChangePacket,
   PlayerGearChangePacket,
   PlayerInputsPacket,
   PlayerMotionPacket,
@@ -259,6 +260,17 @@ export const createNetwork = (
             netplayer.setPosition(info.position)
             netplayer.setVelocity(info.velocity)
             netplayer.setFlipped(info.flipped)
+          }
+
+          break
+        }
+
+        case 'PlayerCharacterIdSnapshot': {
+          for (const info of packet.character_id_info) {
+            const netplayer = players.get(info.entity_id)
+            if (!netplayer) continue
+
+            void netplayer.setCharacterId(info.character_id ?? undefined)
           }
 
           break
@@ -633,7 +645,12 @@ export const createNetwork = (
     },
 
     sendPlayerCharacterId(characterId) {
-      // TODO
+      const payload: PlayerCharacterIdChangePacket = {
+        t: 'PlayerCharacterIdChange',
+        character_id: characterId ?? null,
+      }
+
+      sendPacket(payload)
     },
 
     sendPlayerAnimation(animation) {
