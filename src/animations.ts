@@ -41,7 +41,7 @@ export const loadAnimations = async (characterID: string | undefined) => {
     if (characterID === undefined) return stockURL
     if (characterID === 'default') return stockURL
 
-    return `https://dreamlab-user-assets.s3.amazonaws.com/${characterID}/${animation}.json`
+    return `https://s3-assets.dreamlab.gg/characters/${characterID}/${animation}.json`
   }
 
   const fallback: Fallback<Animation> = async animation => {
