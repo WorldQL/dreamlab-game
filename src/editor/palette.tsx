@@ -1,3 +1,4 @@
+import { isSpawnableEntity } from '@dreamlab.gg/core'
 import type {
   LooseSpawnableDefinition,
   SpawnableEntity,
@@ -26,6 +27,7 @@ import type {
 } from 'https://esm.sh/v136/react@18.2.0'
 import { styled } from 'https://esm.sh/v136/styled-components@6.1.1'
 import { Button, Container } from './components'
+import type { Action } from './editor'
 import { CollapseButton, DeleteButton } from './scene'
 import type { Selector } from './select'
 
@@ -111,7 +113,14 @@ const url = new URL(window.location.href)
 const jwt = url.searchParams.get('token')
 const nextAPIBaseURL = window.localStorage.getItem('@dreamlab/NextAPIURL')
 
-export const Palette: FC<{ readonly selector: Selector }> = ({ selector }) => {
+export const Palette: FC<{
+  readonly selector: Selector
+  history: {
+    record(action: Action): void
+    undo(): void
+    getActions(): Action[]
+  }
+}> = ({ selector, history }) => {
   const game = useGame()
   const network = useNetwork()
   const player = usePlayer()
@@ -134,13 +143,7 @@ export const Palette: FC<{ readonly selector: Selector }> = ({ selector }) => {
   const [dragOver, setDragOver] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  interface HistoryAction {
-    action: 'create' | 'delete'
-    entity: SpawnableEntity
-  }
-
   const clipboard = useRef<SpawnableEntity | null>(null)
-  const historyRef = useRef<HistoryAction[]>([])
 
   const refreshImages = useCallback(async () => {
     // send an authenticated API request to get the user's image library
@@ -270,7 +273,6 @@ export const Palette: FC<{ readonly selector: Selector }> = ({ selector }) => {
         const spawned = await game.spawn(definition)
         if (spawned) {
           selector.select(spawned)
-          historyRef.current.push({ action: 'create', entity: spawned })
         }
       }
     },
@@ -293,8 +295,9 @@ export const Palette: FC<{ readonly selector: Selector }> = ({ selector }) => {
       } satisfies LooseSpawnableDefinition
 
       await spawn(definition)
+      history.record({ type: 'create', uid: definition.uid })
     },
-    [player, spawn],
+    [history, player, spawn],
   )
 
   const copyEntity = useCallback(() => {
@@ -320,16 +323,27 @@ export const Palette: FC<{ readonly selector: Selector }> = ({ selector }) => {
       }
 
       await spawn(definition)
+      history.record({ type: 'create', uid: definition.uid })
     }
-  }, [game.client.inputs, player, spawn])
+  }, [game.client.inputs, history, player, spawn])
 
-  // TODO: implement undo
   const undoLastAction = useCallback(async () => {
-    const lastAction = historyRef.current.pop()
-    if (lastAction && lastAction.action === 'create') {
-      console.log('undo')
+    const lastAction = history.getActions()[history.getActions().length - 1]
+    if (lastAction) {
+      if (lastAction.type === 'create') {
+        const spawnables = game.entities.filter(isSpawnableEntity)
+        const entity = spawnables.find(entity => entity.uid === lastAction.uid)
+        if (entity) await game.destroy(entity)
+        await network?.sendEntityDestroy(lastAction.uid)
+      }
+
+      if (lastAction.type === 'delete') {
+        await spawn(lastAction.definition)
+      }
     }
-  }, [])
+
+    history.undo()
+  }, [history, game, network, spawn])
 
   useEffect(() => {
     const handleKeyDown = async (event: KeyboardEvent) => {

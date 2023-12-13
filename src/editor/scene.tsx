@@ -18,6 +18,7 @@ import {
 import type { FC } from 'https://esm.sh/v136/react@18.2.0'
 import { styled } from 'https://esm.sh/v136/styled-components@6.1.1'
 import { Button, Container } from './components'
+import type { Action } from './editor'
 import { EditorInputs } from './editor'
 import type { Selector } from './select'
 
@@ -77,9 +78,14 @@ export const CollapseButton = styled.button`
   }
 `
 
-export const SceneList: FC<{ readonly selector: Selector }> = ({
-  selector,
-}) => {
+export const SceneList: FC<{
+  readonly selector: Selector
+  history: {
+    record(action: Action): void
+    undo(): void
+    getActions(): Action[]
+  }
+}> = ({ selector, history }) => {
   const game = useGame()
   const network = useNetwork()
   const forceUpdate = useForceUpdate()
@@ -101,9 +107,13 @@ export const SceneList: FC<{ readonly selector: Selector }> = ({
   const onDelete = useCallback(async () => {
     if (!selector.selected) return
     const id = selector.selected.uid
+    history.record({
+      type: 'delete',
+      definition: selector.selected.definition,
+    })
     await game.destroy(selector.selected)
     await network?.sendEntityDestroy(id)
-  }, [game, network, selector.selected])
+  }, [game, history, network, selector.selected])
 
   const [ctrlHeldDown, setCtrlHeldDown] = useState(false)
 
@@ -211,6 +221,7 @@ export const level: LooseSpawnableDefinition[] = ${json}
               // eslint-disable-next-line @typescript-eslint/no-use-before-define
               <EntityDisplay
                 entity={entity}
+                history={history}
                 isSelected={entity.uid === selected}
                 key={entity.uid}
                 selector={selector}
@@ -300,9 +311,19 @@ interface DisplayProps {
   readonly selector: Selector
   readonly entity: SpawnableEntity
   isSelected: boolean
+  history: {
+    record(action: Action): void
+    undo(): void
+    getActions(): Action[]
+  }
 }
 
-const EntityDisplay: FC<DisplayProps> = ({ selector, entity, isSelected }) => {
+const EntityDisplay: FC<DisplayProps> = ({
+  selector,
+  entity,
+  isSelected,
+  history,
+}) => {
   const game = useGame()
   const network = useNetwork()
   const player = usePlayer()
@@ -321,10 +342,10 @@ const EntityDisplay: FC<DisplayProps> = ({ selector, entity, isSelected }) => {
 
   const onDelete = useCallback(async () => {
     const id = entity.uid
+    history.record({ type: 'delete', definition: entity.definition })
     await game.destroy(entity)
-
     await network?.sendEntityDestroy(id)
-  }, [game, network, entity])
+  }, [entity, game, history, network])
 
   const onLockToggle = useCallback(() => {
     const newTags = isLocked
