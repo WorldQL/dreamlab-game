@@ -28,7 +28,7 @@ import {
 import { jwtDecode as decodeJWT } from 'jwt-decode'
 import Matter from 'matter-js'
 import type { Body } from 'matter-js'
-import { loadAnimations } from './animations.js'
+import { getCharacterID, loadAnimations } from './animations.js'
 import { createClientControlManager } from './client-phys-control.js'
 import type { EditDetails } from './editor/editor.js'
 import { createEditor } from './editor/editor.js'
@@ -114,6 +114,9 @@ export const connect = async (
   serverURL.pathname = `/api/v1/connect/${params.instance}`
   serverURL.searchParams.set('instance', params.instance)
   serverURL.searchParams.set('token', params.token)
+
+  const characterId = getCharacterID()
+  if (characterId) serverURL.searchParams.set('character_id', characterId)
 
   return new Promise<WebSocket | undefined>(resolve => {
     const ws = new WebSocket(serverURL.toString())
@@ -219,10 +222,10 @@ export const createNetwork = (
               await game.spawnMany(...resp.data)
             }
 
-            // TODO: apply character ID from server packet (instead of window.location) ?
             localPlayer = await spawnPlayer(game)
           } else {
             const animations = await loadAnimations(packet.character_id)
+            // TODO: pass nickname & character id to NetPlayer
             const netplayer = createNetPlayer(
               packet.peer_id,
               packet.entity_id,
