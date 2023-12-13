@@ -225,11 +225,12 @@ export const createNetwork = (
             localPlayer = await spawnPlayer(game)
           } else {
             const animations = await loadAnimations(packet.character_id)
-            // TODO: pass nickname & character id to NetPlayer
             const netplayer = createNetPlayer(
               packet.peer_id,
               packet.entity_id,
               animations,
+              packet.character_id,
+              packet.nickname,
             )
 
             players.set(packet.entity_id, netplayer)
