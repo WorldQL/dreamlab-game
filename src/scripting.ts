@@ -2,7 +2,13 @@ import type { Game } from '@dreamlab.gg/core'
 import { createPlayer } from '@dreamlab.gg/core/entities'
 import type { Vector } from '@dreamlab.gg/core/math'
 import { LevelSchema } from '@dreamlab.gg/core/sdk'
-import { getCharacterID, loadAnimations } from './animations.js'
+
+export const getCharacterId = () => {
+  const params = new URLSearchParams(window.location.search)
+  const characterId = params.get('characterId')
+
+  return characterId ?? undefined
+}
 
 export const loadScript = async (
   baseURL: string | undefined,
@@ -44,10 +50,8 @@ export const loadLevel = async (
 }
 
 export const spawnPlayer = async (game: Game<false>, position?: Vector) => {
-  const characterID = getCharacterID()
-  const animations = await loadAnimations(characterID)
-
-  const player = createPlayer(animations)
+  const characterId = getCharacterId()
+  const player = await createPlayer(characterId)
   await game.instantiate(player)
 
   if (position) player.teleport(position, true)

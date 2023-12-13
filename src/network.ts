@@ -28,7 +28,6 @@ import {
 import { jwtDecode as decodeJWT } from 'jwt-decode'
 import Matter from 'matter-js'
 import type { Body } from 'matter-js'
-import { getCharacterID, loadAnimations } from './animations.js'
 import { createClientControlManager } from './client-phys-control.js'
 import type { EditDetails } from './editor/editor.js'
 import { createEditor } from './editor/editor.js'
@@ -49,7 +48,7 @@ import type {
   ToServerPacket,
   IncomingTransformChangedPacket as TransformChangedPacket,
 } from './packets.js'
-import { loadScript, spawnPlayer } from './scripting.js'
+import { getCharacterId, loadScript, spawnPlayer } from './scripting.js'
 
 export interface Params {
   readonly server: string
@@ -115,7 +114,7 @@ export const connect = async (
   serverURL.searchParams.set('instance', params.instance)
   serverURL.searchParams.set('token', params.token)
 
-  const characterId = getCharacterID()
+  const characterId = getCharacterId()
   if (characterId) serverURL.searchParams.set('character_id', characterId)
 
   return new Promise<WebSocket | undefined>(resolve => {
@@ -225,11 +224,10 @@ export const createNetwork = (
 
             localPlayer = await spawnPlayer(game)
           } else {
-            const animations = await loadAnimations(packet.character_id)
-            const netplayer = createNetPlayer(
+            const netplayer = await createNetPlayer(
               packet.peer_id,
               packet.entity_id,
-              animations,
+              game,
               packet.character_id,
               packet.nickname,
             )
