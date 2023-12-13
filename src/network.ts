@@ -634,6 +634,10 @@ export const createNetwork = (
       sendPacket(payload)
     },
 
+    sendPlayerCharacterId(characterId) {
+      // TODO
+    },
+
     sendPlayerAnimation(animation) {
       const payload: PlayerAnimationChangePacket = {
         t: 'PlayerAnimationChange',
