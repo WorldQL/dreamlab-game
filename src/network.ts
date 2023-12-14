@@ -483,7 +483,7 @@ export const createNetwork = (
     } catch (error) {
       console.warn('error handling packet')
       console.log(packet)
-      console.log(error)
+      console.error(error)
     }
   }
 

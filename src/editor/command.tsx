@@ -76,6 +76,7 @@ const encodeBlob = (baseUrl: string, editToken: string) => {
 export const CLICommand: FC<Props> = ({ details }) => {
   const command = useMemo<string>(() => {
     const baseUrl = new URL(details.server)
+    baseUrl.protocol = baseUrl.protocol === "wss" ? "https" : "http"
     baseUrl.pathname = `/api/v1/edit/${details.instance}`
     const blob = encodeBlob(baseUrl.toString(), details.secret)
     return `npx @dreamlab.gg/cli dev ${blob}`
