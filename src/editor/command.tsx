@@ -76,10 +76,10 @@ const encodeBlob = (baseUrl: string, editToken: string) => {
 export const CLICommand: FC<Props> = ({ details }) => {
   const command = useMemo<string>(() => {
     const baseUrl = new URL(details.server)
-    baseUrl.protocol = baseUrl.protocol === "wss" ? "https" : "http"
+    baseUrl.protocol = baseUrl.protocol === 'wss' ? 'https' : 'http'
     baseUrl.pathname = `/api/v1/edit/${details.instance}`
     const blob = encodeBlob(baseUrl.toString(), details.secret)
-    return `npx @dreamlab.gg/cli dev ${blob}`
+    return `npx dreamlab-cli dev ${blob}`
   }, [details])
 
   const [copied, setCopied] = useState<boolean>(false)
@@ -94,7 +94,10 @@ export const CLICommand: FC<Props> = ({ details }) => {
   return (
     <Container>
       <Card>
-        <Text>{copied ? 'Command copied!' : command}</Text>
+        <Text>
+          Run this command to edit scripts:{' '}
+          {copied ? 'Command copied!' : command.slice(0, 27) + '...'}
+        </Text>
         <Copy onClick={onClick}>
           <svg
             className='w-6 h-6'
