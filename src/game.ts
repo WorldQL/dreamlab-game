@@ -76,7 +76,12 @@ export const init = async () => {
       const world = url.searchParams.get('level')
 
       if (world) {
-        const editor = createEditor()
+        const editor = createEditor(undefined, {
+          secret: 'secret',
+          server: 'http://localhost',
+          instance: 'instance',
+        })
+
         await game.instantiate(editor)
 
         await loadScript(undefined, world, game)
