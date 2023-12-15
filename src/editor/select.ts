@@ -306,10 +306,17 @@ export const createEntitySelect = (
         if (!selected) return
 
         const url = ev.dataTransfer?.getData('text/plain')
-        if (url) {
+        if (!url) return
+
+        if ('spriteSource' in selected.argsSchema.shape) {
           selected.args.spriteSource = url
-          events.emit('onArgsUpdate', selected.uid, selected.args)
+        } else if (
+          selected.definition.entity === '@dreamlab/BackgroundTrigger'
+        ) {
+          selected.args.onEnter = { action: 'set', textureURL: url }
         }
+
+        events.emit('onArgsUpdate', selected.uid, selected.args)
       }
 
       const onMouseDown = (ev: MouseEvent) => {
