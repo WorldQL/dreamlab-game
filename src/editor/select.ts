@@ -50,6 +50,10 @@ interface Data {
   debug: Debug
 }
 
+const onDragOver = (ev: DragEvent) => {
+  ev.preventDefault()
+}
+
 interface Render {
   canvas: HTMLCanvasElement
   camera: Camera
@@ -64,8 +68,6 @@ interface Render {
   onClick(ev: MouseEvent): void
   onMouseDown(ev: MouseEvent): void
   onMouseMove(): void
-  onDrop(ev: DragEvent): void
-  onDragOver(ev: DragEvent): void
 }
 
 export interface Selector extends Entity<Data, Render> {
@@ -103,6 +105,22 @@ export const createEntitySelect = (
   }
 
   const events = new EventEmitter<EntityEvents>()
+
+  const onDrop = (ev: DragEvent) => {
+    ev.preventDefault()
+    if (!selected) return
+
+    const url = ev.dataTransfer?.getData('text/plain')
+    if (!url) return
+
+    if ('spriteSource' in selected.argsSchema.shape) {
+      selected.args.spriteSource = url
+    } else if (selected.definition.entity === '@dreamlab/BackgroundTrigger') {
+      selected.args.onEnter = { action: 'set', textureURL: url }
+    }
+
+    events.emit('onArgsUpdate', selected.uid, selected.args)
+  }
 
   return createEntity<Selector, Data, Render>({
     get selected() {
@@ -306,25 +324,6 @@ export const createEntitySelect = (
         if (import.meta.env.DEV) window.entity = selected
       }
 
-      // eslint-disable-next-line unicorn/consistent-function-scoping
-      const onDrop = (ev: DragEvent) => {
-        ev.preventDefault()
-        if (!selected) return
-
-        const url = ev.dataTransfer?.getData('text/plain')
-        if (!url) return
-
-        if ('spriteSource' in selected.argsSchema.shape) {
-          selected.args.spriteSource = url
-        } else if (
-          selected.definition.entity === '@dreamlab/BackgroundTrigger'
-        ) {
-          selected.args.onEnter = { action: 'set', textureURL: url }
-        }
-
-        events.emit('onArgsUpdate', selected.uid, selected.args)
-      }
-
       const onMouseDown = (ev: MouseEvent) => {
         if (!editorEnabled.value) return
         const pos = camera.screenToWorld({ x: ev.offsetX, y: ev.offsetY })
@@ -457,11 +456,6 @@ export const createEntitySelect = (
         }
       }
 
-      // eslint-disable-next-line unicorn/consistent-function-scoping
-      const onDragOver = (ev: DragEvent) => {
-        ev.preventDefault()
-      }
-
       canvas.addEventListener('dragover', onDragOver)
       canvas.addEventListener('click', onClick)
       canvas.addEventListener('drop', onDrop)
@@ -504,8 +498,6 @@ export const createEntitySelect = (
         onClick,
         onMouseDown,
         onMouseMove,
-        onDrop,
-        onDragOver,
       }
     },
 
@@ -518,8 +510,6 @@ export const createEntitySelect = (
       container,
       onClick,
       onMouseDown,
-      onDrop,
-      onDragOver,
       // onMouseMove,
     }) {
       canvas.removeEventListener('click', onClick)
