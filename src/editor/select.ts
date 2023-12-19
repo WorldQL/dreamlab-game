@@ -271,7 +271,7 @@ export const createEntitySelect = (
 
       const onClick = (ev: MouseEvent) => {
         if (!editorEnabled.value) return
-        const pos = camera.localToWorld({ x: ev.offsetX, y: ev.offsetY })
+        const pos = camera.screenToWorld({ x: ev.offsetX, y: ev.offsetY })
         const query = game
           .queryPosition(pos)
           .filter(
@@ -327,7 +327,7 @@ export const createEntitySelect = (
 
       const onMouseDown = (ev: MouseEvent) => {
         if (!editorEnabled.value) return
-        const pos = camera.localToWorld({ x: ev.offsetX, y: ev.offsetY })
+        const pos = camera.screenToWorld({ x: ev.offsetX, y: ev.offsetY })
         const query = game
           .queryPosition(pos)
           .filter(
