@@ -128,6 +128,12 @@ export const createEditor = (
         })
       })
 
+      deferUntilPlayer(game, player => {
+        player.events.addListener('onTeleport', newPosition => {
+          if (enabled) navigator.setPosition(newPosition)
+        })
+      })
+
       return { unmount }
     },
 
