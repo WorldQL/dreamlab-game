@@ -20,8 +20,6 @@ interface Render {
   inputs: InputManager
   onMouseDown(ev: MouseEvent): void
   onMouseMove(): void
-  onMouseLeave(): void
-  onMouseUp(ev: MouseEvent): void
 }
 
 export interface Navigator extends Entity<Data, Render> {
@@ -102,8 +100,6 @@ export const createNavigator = (
         inputs: game.client.inputs,
         onMouseDown,
         onMouseMove,
-        onMouseUp,
-        onMouseLeave,
       }
     },
 
@@ -111,13 +107,7 @@ export const createNavigator = (
       // No-op
     },
 
-    teardownRenderContext({
-      canvas,
-      onMouseDown,
-      onMouseUp,
-      onMouseMove,
-      onMouseLeave,
-    }) {
+    teardownRenderContext({ canvas, onMouseDown, onMouseMove }) {
       canvas.removeEventListener('mousedown', onMouseDown)
       canvas.removeEventListener('mouseup', onMouseUp)
       canvas.removeEventListener('mousemove', onMouseMove)
