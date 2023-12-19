@@ -94,8 +94,10 @@ export const createEditor = (
       deferUntilPlayer(game, player => {
         player.events.addListener('onToggleNoclip', noclip => {
           enabled.value = noclip
-
-          if (!noclip) {
+          if (noclip) {
+            game.client?.render.camera.setSmoothing(0.02)
+          } else {
+            game.client?.render.camera.setSmoothing(0.125)
             inputs?.enable('mouse', 'editor')
             selector.deselect()
           }
