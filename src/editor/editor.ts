@@ -2,6 +2,7 @@ import type { LooseSpawnableDefinition } from '@dreamlab.gg/core'
 import { createEntity } from '@dreamlab.gg/core'
 import { deferUntilPlayer, ref } from '@dreamlab.gg/core/utils'
 import type { ToServerPacket } from '../packets'
+import { createNavigator } from './navigator'
 import { createEntitySelect } from './select'
 import { renderUI } from './ui'
 
@@ -38,6 +39,7 @@ export const createEditor = (
 ) => {
   const enabled = ref<boolean>(false)
   const selector = createEntitySelect(enabled, sendPacket)
+  const navigator = createNavigator(enabled)
   const actionHistory = { value: [] as Action[] }
 
   const history = {
@@ -53,6 +55,7 @@ export const createEditor = (
   return createEntity({
     async init({ game }) {
       await game.instantiate(selector)
+      await game.instantiate(navigator)
 
       const togglePhysics = (pressed: boolean) => {
         if (!pressed) return
@@ -96,7 +99,10 @@ export const createEditor = (
           enabled.value = noclip
           if (noclip) {
             game.client?.render.camera.setSmoothing(0.02)
+            navigator.setPosition(player.position)
           } else {
+            player.teleport(navigator.position)
+            game.client?.render.camera.setTarget(player)
             game.client?.render.camera.setSmoothing(0.125)
             inputs?.enable('mouse', 'editor')
             selector.deselect()
