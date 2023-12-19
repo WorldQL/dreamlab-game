@@ -6,6 +6,7 @@ import type { LooseVector } from '@dreamlab.gg/core/dist/math'
 import { Vec } from '@dreamlab.gg/core/dist/math'
 import type { Debug, Ref } from '@dreamlab.gg/core/dist/utils'
 import type { Vector } from 'matter-js'
+import type { Selector } from './select'
 
 interface Data {
   game: Game<false>
@@ -28,7 +29,10 @@ export interface Navigator extends Entity<Data, Render> {
   get position(): Vector
 }
 
-export const createNavigator = (editorEnabled: Ref<boolean>) => {
+export const createNavigator = (
+  editorEnabled: Ref<boolean>,
+  selector: Selector,
+) => {
   let _position = Vec.create()
   let isDragging = false
   let pressedEntity = false
@@ -62,15 +66,10 @@ export const createNavigator = (editorEnabled: Ref<boolean>) => {
       const camera = game.client.render.camera
       const inputs = game.client.inputs
 
-      const onMouseDown = (ev: MouseEvent) => {
-        if (!editorEnabled.value) return
-        const pos = camera.screenToWorld({ x: ev.offsetX, y: ev.offsetY })
-        const query = game.queryPosition(pos)
-        pressedEntity = query.length > 0
-        if (!pressedEntity) {
-          isDragging = true
-          previousCursorPosition = inputs.getCursor('screen')
-        }
+      const onMouseDown = () => {
+        if (!editorEnabled.value || selector.selected) return
+        isDragging = true
+        previousCursorPosition = inputs.getCursor('screen')
       }
 
       const onMouseMove = () => {
@@ -83,11 +82,12 @@ export const createNavigator = (editorEnabled: Ref<boolean>) => {
         const amplifiedMovement = Vec.div(cursorDelta, camera.scale)
         const newPosition = Vec.add(this.position, amplifiedMovement)
 
-        this.setPosition(newPosition)
         game.client?.render.camera.setTarget({
           position: newPosition,
         })
+
         previousCursorPosition = mousePosition
+        this.setPosition(newPosition)
       }
 
       canvas.addEventListener('mousemove', onMouseMove)

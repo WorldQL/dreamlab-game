@@ -39,7 +39,7 @@ export const createEditor = (
 ) => {
   const enabled = ref<boolean>(false)
   const selector = createEntitySelect(enabled, sendPacket)
-  const navigator = createNavigator(enabled)
+  const navigator = createNavigator(enabled, selector)
   const actionHistory = { value: [] as Action[] }
 
   const history = {
