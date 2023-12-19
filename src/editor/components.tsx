@@ -8,8 +8,7 @@ export const Container = styled.div`
   user-select: auto;
   z-index: 500;
 
-  width: max-content;
-  min-width: 22rem;
+  width: 20rem;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 
   padding: 1rem;

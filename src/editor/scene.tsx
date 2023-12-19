@@ -239,38 +239,86 @@ export const level: LooseSpawnableDefinition[] = ${json}
 
 const EntityButtons = styled.div`
   display: flex;
+  align-items: top;
   gap: 0.25rem;
+  position: relative;
 `
 
-interface SelectButtonProps {
-  isSelected: boolean
-}
+const ControlButtons = styled.div`
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+  position: absolute;
+  top: 0;
+  right: 0;
+  padding: 4px;
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity 0.3s ease,
+    visibility 0s linear 0.3s;
 
-const SelectButton = styled(Button)<SelectButtonProps>`
+  ${EntityButtons}:hover & {
+    opacity: 1;
+    visibility: visible;
+    transition:
+      opacity 0.3s ease,
+      visibility 0s;
+  }
+`
+
+const InfoDetails = styled.div<{ isSelected: boolean }>`
+  display: ${props => (props.isSelected ? 'block' : 'none')};
+  background-color: #f3f3f3;
+  padding: 8px;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  font-size: 0.8rem;
+  color: #333;
+  margin-top: 4px;
+  text-align: left;
+  width: 94%;
+  & > p {
+    margin: 0;
+    margin-bottom: 4px;
+  }
+`
+
+const SelectButton = styled(Button)<{ isSelected: boolean }>`
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
   flex-grow: 1;
   background-color: ${props =>
-    props.isSelected ? 'rgb(236 72 153)' : 'rgb(99 102 241)'};
+    props.isSelected ? 'rgb(236, 72, 153)' : 'rgb(99, 102, 241)'};
   color: white;
   transition: background-color 0.3s ease;
+  position: relative;
+  padding: 8px;
 
   &:hover {
     background-color: ${props =>
-      props.isSelected ? 'rgb(249 168 212)' : 'rgb(129 140 248)'};
+      props.isSelected ? 'rgb(244 114 182)' : 'rgb(129, 140, 248)'};
   }
 `
 
-const IconButton = styled(Button)`
+const IconButton = styled.div<{ isLocked?: boolean }>`
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0.5rem;
+  padding: 4px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+
+  &:hover {
+    background-color: #efefef;
+  }
 
   & svg {
-    width: 1.5rem;
-    height: 1.5rem;
-  }
-  &:hover {
-    transform: translateY(-2px);
+    width: 1rem;
+    height: 1rem;
   }
 `
 
@@ -279,7 +327,6 @@ export const DeleteButton = styled(IconButton)`
 
   &:hover {
     background-color: #b91c1c;
-    transform: translateY(-2px);
   }
 `
 
@@ -287,23 +334,15 @@ const LockButton = styled(IconButton)`
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0.5rem;
-
-  &.locked {
-    background-color: #ef4444;
-    &:hover {
-      background-color: #b91c1c;
-    }
-  }
-
-  & svg {
-    width: 1.5rem;
-    height: 1.5rem;
-    transition: transform 0.3s ease;
-  }
+  padding: 4px;
+  margin-left: 4px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  background-color: ${props => (props.isLocked ? '#ef4444' : '#999')};
 
   &:hover {
-    transform: translateY(-2px);
+    background-color: ${props => (props.isLocked ? '#b91c1c' : '#777')};
   }
 `
 
@@ -364,49 +403,58 @@ const EntityDisplay: FC<DisplayProps> = ({
 
   return (
     <EntityButtons id={entity.uid} ref={entityRef}>
-      <SelectButton isSelected={isSelected} onClick={onSelect}>
-        {entity.definition.entity} (z: {entity.transform.zIndex})
-      </SelectButton>
-
-      <LockButton
-        className={isLocked ? 'locked' : 'unlocked'}
-        onClick={onLockToggle}
-        title='Lock/Unlock'
-        type='button'
+      <SelectButton
+        className='select-button'
+        isSelected={isSelected}
+        onClick={onSelect}
       >
-        {isLocked ? (
-          <svg
-            fill='currentColor'
-            viewBox='0 0 448 512'
-            xmlns='http://www.w3.org/2000/svg'
-          >
-            <path d='M144 144v48H304V144c0-44.2-35.8-80-80-80s-80 35.8-80 80zM80 192V144C80 64.5 144.5 0 224 0s144 64.5 144 144v48h16c35.3 0 64 28.7 64 64V448c0 35.3-28.7 64-64 64H64c-35.3 0-64-28.7-64-64V256c0-35.3 28.7-64 64-64H80z' />
-          </svg>
-        ) : (
-          <svg
-            fill='currentColor'
-            viewBox='0 0 576 512'
-            xmlns='http://www.w3.org/2000/svg'
-          >
-            <path d='M352 144c0-44.2 35.8-80 80-80s80 35.8 80 80v48c0 17.7 14.3 32 32 32s32-14.3 32-32V144C576 64.5 511.5 0 432 0S288 64.5 288 144v48H64c-35.3 0-64 28.7-64 64V448c0 35.3 28.7 64 64 64H384c35.3 0 64-28.7 64-64V256c0-35.3-28.7-64-64-64H352V144z' />
-          </svg>
-        )}
-      </LockButton>
-
-      <DeleteButton onClick={onDelete} title='Delete' type='button'>
-        <svg
-          className='w-6 h-6'
-          fill='currentColor'
-          viewBox='0 0 24 24'
-          xmlns='http://www.w3.org/2000/svg'
+        <span>
+          {entity.definition.entity} (z: {entity.transform.zIndex})
+        </span>
+        <InfoDetails isSelected={isSelected}>
+          <p>Entity: {entity.definition.entity}</p>
+          <p>Z-Index: {entity.transform.zIndex}</p>
+        </InfoDetails>
+      </SelectButton>
+      <ControlButtons>
+        <LockButton
+          isLocked={isLocked}
+          onClick={onLockToggle}
+          title='Lock/Unlock'
         >
-          <path
-            clipRule='evenodd'
-            d='M16.5 4.478v.227a48.816 48.816 0 013.878.512.75.75 0 11-.256 1.478l-.209-.035-1.005 13.07a3 3 0 01-2.991 2.77H8.084a3 3 0 01-2.991-2.77L4.087 6.66l-.209.035a.75.75 0 01-.256-1.478A48.567 48.567 0 017.5 4.705v-.227c0-1.564 1.213-2.9 2.816-2.951a52.662 52.662 0 013.369 0c1.603.051 2.815 1.387 2.815 2.951zm-6.136-1.452a51.196 51.196 0 013.273 0C14.39 3.05 15 3.684 15 4.478v.113a49.488 49.488 0 00-6 0v-.113c0-.794.609-1.428 1.364-1.452zm-.355 5.945a.75.75 0 10-1.5.058l.347 9a.75.75 0 101.499-.058l-.346-9zm5.48.058a.75.75 0 10-1.498-.058l-.347 9a.75.75 0 001.5.058l.345-9z'
-            fillRule='evenodd'
-          />
-        </svg>
-      </DeleteButton>
+          {isLocked ? (
+            <svg
+              fill='currentColor'
+              viewBox='0 0 448 512'
+              xmlns='http://www.w3.org/2000/svg'
+            >
+              <path d='M144 144v48H304V144c0-44.2-35.8-80-80-80s-80 35.8-80 80zM80 192V144C80 64.5 144.5 0 224 0s144 64.5 144 144v48h16c35.3 0 64 28.7 64 64V448c0 35.3-28.7 64-64 64H64c-35.3 0-64-28.7-64-64V256c0-35.3 28.7-64 64-64H80z' />
+            </svg>
+          ) : (
+            <svg
+              fill='currentColor'
+              viewBox='0 0 576 512'
+              xmlns='http://www.w3.org/2000/svg'
+            >
+              <path d='M352 144c0-44.2 35.8-80 80-80s80 35.8 80 80v48c0 17.7 14.3 32 32 32s32-14.3 32-32V144C576 64.5 511.5 0 432 0S288 64.5 288 144v48H64c-35.3 0-64 28.7-64 64V448c0 35.3 28.7 64 64 64H384c35.3 0 64-28.7 64-64V256c0-35.3-28.7-64-64-64H352V144z' />
+            </svg>
+          )}
+        </LockButton>
+        <DeleteButton onClick={onDelete} title='Delete'>
+          <svg
+            className='w-6 h-6'
+            fill='currentColor'
+            viewBox='0 0 24 24'
+            xmlns='http://www.w3.org/2000/svg'
+          >
+            <path
+              clipRule='evenodd'
+              d='M16.5 4.478v.227a48.816 48.816 0 013.878.512.75.75 0 11-.256 1.478l-.209-.035-1.005 13.07a3 3 0 01-2.991 2.77H8.084a3 3 0 01-2.991-2.77L4.087 6.66l-.209.035a.75.75 0 01-.256-1.478A48.567 48.567 0 017.5 4.705v-.227c0-1.564 1.213-2.9 2.816-2.951a52.662 52.662 0 013.369 0c1.603.051 2.815 1.387 2.815 2.951zm-6.136-1.452a51.196 51.196 0 013.273 0C14.39 3.05 15 3.684 15 4.478v.113a49.488 49.488 0 00-6 0v-.113c0-.794.609-1.428 1.364-1.452zm-.355 5.945a.75.75 0 10-1.5.058l.347 9a.75.75 0 101.499-.058l-.346-9zm5.48.058a.75.75 0 10-1.498-.058l-.347 9a.75.75 0 001.5.058l.345-9z'
+              fillRule='evenodd'
+            />
+          </svg>
+        </DeleteButton>
+      </ControlButtons>
     </EntityButtons>
   )
 }
