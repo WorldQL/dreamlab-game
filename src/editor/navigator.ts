@@ -1,6 +1,7 @@
 import type { Entity, Game } from '@dreamlab.gg/core'
 import { createEntity } from '@dreamlab.gg/core'
 import type { Camera } from '@dreamlab.gg/core/dist/entities'
+import type { InputManager } from '@dreamlab.gg/core/dist/input'
 import type { LooseVector } from '@dreamlab.gg/core/dist/math'
 import { Vec } from '@dreamlab.gg/core/dist/math'
 import type { Debug, Ref } from '@dreamlab.gg/core/dist/utils'
@@ -15,6 +16,7 @@ interface Render {
   game: Game<false>
   canvas: HTMLCanvasElement
   camera: Camera
+  inputs: InputManager
   onMouseDown(ev: MouseEvent): void
   onMouseMove(): void
   onMouseLeave(): void
@@ -97,6 +99,7 @@ export const createNavigator = (editorEnabled: Ref<boolean>) => {
         game,
         canvas,
         camera,
+        inputs: game.client.inputs,
         onMouseDown,
         onMouseMove,
         onMouseUp,
@@ -119,6 +122,31 @@ export const createNavigator = (editorEnabled: Ref<boolean>) => {
       canvas.removeEventListener('mouseup', onMouseUp)
       canvas.removeEventListener('mousemove', onMouseMove)
       canvas.removeEventListener('mouseleave', onMouseLeave)
+    },
+
+    onRenderFrame(_, { game }, { inputs }) {
+      if (editorEnabled.value) {
+        const cursorPosition = inputs?.getCursor()
+        let cursorStyle = 'default'
+
+        if (cursorPosition) {
+          const query = game.queryPosition(cursorPosition)
+          const queryResults = query.map(({ definition: { tags } }) => tags)
+          const isCursorOverNonLockedEntity = queryResults.some(
+            tags => !tags?.includes('editorLocked'),
+          )
+
+          if (isDragging && !pressedEntity) {
+            cursorStyle = 'grabbing'
+          } else if (!isDragging && isCursorOverNonLockedEntity) {
+            cursorStyle = 'pointer'
+          } else if (!isDragging) {
+            cursorStyle = 'grab'
+          }
+        }
+
+        game.client.render.container.style.cursor = cursorStyle
+      } else game.client.render.container.style.cursor = 'default'
     },
   })
 
