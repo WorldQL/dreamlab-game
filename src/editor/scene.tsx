@@ -370,6 +370,8 @@ const EntityDisplay: FC<DisplayProps> = ({
   const [isLocked, setIsLocked] = useState(
     entity.definition.tags?.includes('editorLocked'),
   )
+  const [isEditing, setIsEditing] = useState(false)
+  const [editedLabel, setEditedLabel] = useState(entity.definition.entity)
 
   const onSelect = useCallback(() => {
     const locked = entity.tags?.includes('editorLocked')
@@ -395,6 +397,35 @@ const EntityDisplay: FC<DisplayProps> = ({
     entity.definition.tags = newTags
   }, [entity, isLocked])
 
+  const handleLabelChange = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      setEditedLabel(event.target.value)
+    },
+    [],
+  )
+
+  const handleDoubleClick = useCallback(() => {
+    if (isSelected) {
+      setIsEditing(true)
+    }
+  }, [isSelected])
+
+  const toggleEdit = useCallback(() => {
+    if (isEditing) {
+      entity.definition.label = editedLabel
+      setIsEditing(false)
+    }
+  }, [isEditing, editedLabel, entity.definition])
+
+  const handleKeyPress = useCallback(
+    (event: React.KeyboardEvent<HTMLInputElement>) => {
+      if (event.key === 'Enter') {
+        toggleEdit()
+      }
+    },
+    [toggleEdit],
+  )
+
   useEffect(() => {
     if (isSelected && entityRef.current) {
       entityRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
@@ -408,9 +439,20 @@ const EntityDisplay: FC<DisplayProps> = ({
         isSelected={isSelected}
         onClick={onSelect}
       >
-        <span>
-          {entity.definition.entity} (z: {entity.transform.zIndex})
-        </span>
+        {isEditing ? (
+          <input
+            autoFocus
+            onBlur={toggleEdit}
+            onChange={handleLabelChange}
+            onKeyDown={handleKeyPress}
+            type='text'
+            value={editedLabel}
+          />
+        ) : (
+          <span onDoubleClick={handleDoubleClick}>
+            {entity.label ? entity.label : entity.definition.entity}
+          </span>
+        )}
         <InfoDetails isSelected={isSelected}>
           <p>Entity: {entity.definition.entity}</p>
           <p>Z-Index: {entity.transform.zIndex}</p>
