@@ -92,6 +92,7 @@ export const createEntitySelect = (
 
   let selected: SpawnableEntity | undefined
   let action: ActionData | undefined
+  let initialPressEntity: SpawnableEntity | undefined
 
   const onMouseUp = () => {
     if (action !== undefined) action = { type: 'clear' }
@@ -282,7 +283,7 @@ export const createEntitySelect = (
         // Sort based on z-index
         query.sort((a, b) => b.transform.zIndex - a.transform.zIndex)
 
-        const newSelection =
+        let newSelection =
           action?.type === 'clear'
             ? selected
             : query.length > 0
@@ -290,6 +291,11 @@ export const createEntitySelect = (
             : isHandle(pos)
             ? selected
             : undefined
+
+        if (!initialPressEntity || initialPressEntity !== newSelection) {
+          initialPressEntity = undefined
+          newSelection = undefined
+        }
 
         this.select(newSelection)
         updateCursor(pos)
@@ -322,6 +328,24 @@ export const createEntitySelect = (
       const onMouseDown = (ev: MouseEvent) => {
         if (!editorEnabled.value) return
         const pos = camera.localToWorld({ x: ev.offsetX, y: ev.offsetY })
+        const query = game
+          .queryPosition(pos)
+          .filter(
+            entity =>
+              !entity.preview &&
+              !entity.definition.tags?.includes('editorLocked'),
+          )
+
+        // Sort based on z-index
+        query.sort((a, b) => b.transform.zIndex - a.transform.zIndex)
+        initialPressEntity =
+          action?.type === 'clear'
+            ? selected
+            : query.length > 0
+            ? query[0]
+            : isHandle(pos)
+            ? selected
+            : undefined
 
         const bounds = selected?.rectangleBounds()
         if (!selected || !bounds) return
