@@ -4,6 +4,7 @@ import type { Camera } from '@dreamlab.gg/core/dist/entities'
 import type { InputManager } from '@dreamlab.gg/core/dist/input'
 import type { LooseVector } from '@dreamlab.gg/core/dist/math'
 import { Vec } from '@dreamlab.gg/core/dist/math'
+import { deferUntilPlayer } from '@dreamlab.gg/core/dist/utils'
 import type { Debug, Ref } from '@dreamlab.gg/core/dist/utils'
 import type { Vector } from 'matter-js'
 import type { Selector } from './select'
@@ -63,6 +64,17 @@ export const createNavigator = (
     async initRenderContext({ game }, { canvas }) {
       const camera = game.client.render.camera
       const inputs = game.client.inputs
+
+      deferUntilPlayer(game, player => {
+        player.events.addListener('onTeleport', newPosition => {
+          if (editorEnabled) {
+            navigator.setPosition(newPosition)
+            game.client?.render.camera.setTarget({
+              position: newPosition,
+            })
+          }
+        })
+      })
 
       const onMouseDown = (ev: MouseEvent) => {
         if (!editorEnabled.value || ev.button === 2 || selector.selected) return
