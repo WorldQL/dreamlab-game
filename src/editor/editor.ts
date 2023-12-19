@@ -72,7 +72,7 @@ export const createEditor = (
       inputs?.registerInput(
         EditorInputs.DeleteEntity,
         'Delete Entity',
-        'Backspace',
+        'Delete',
       )
 
       inputs?.registerInput(
