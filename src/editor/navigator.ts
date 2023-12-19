@@ -64,8 +64,9 @@ export const createNavigator = (
       const camera = game.client.render.camera
       const inputs = game.client.inputs
 
-      const onMouseDown = () => {
-        if (!editorEnabled.value || selector.selected) return
+      const onMouseDown = (ev: MouseEvent) => {
+        if (!editorEnabled.value) return
+        if (ev.button === 2 || (ev.button === 0 && selector.selected)) return
         isDragging = true
         previousCursorPosition = inputs.getCursor('screen')
       }
