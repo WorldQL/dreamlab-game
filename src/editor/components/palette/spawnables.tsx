@@ -173,7 +173,12 @@ export const Spawnables: React.FC<SpawnablesProps> = ({
       <h1>Spawn Object</h1>
       <SpawnableList>
         {spawnable.map(([name]) => (
-          <Button key={name} onClick={async () => create(name)} type='button'>
+          <Button
+            key={name}
+            onClick={async () => create(name)}
+            style={{ textAlign: 'left' }}
+            type='button'
+          >
             {name}
           </Button>
         ))}

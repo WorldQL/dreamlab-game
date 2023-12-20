@@ -8,6 +8,7 @@ import {
 import type { FC } from 'https://esm.sh/v136/react@18.2.0'
 import { styled } from 'https://esm.sh/v136/styled-components@6.1.1'
 import type { EditDetails } from '../editor'
+import { Card } from './ui/card'
 
 const Container = styled.div`
   --margin: 1rem;
@@ -18,19 +19,6 @@ const Container = styled.div`
 
   margin: var(--margin);
   display: flex;
-`
-
-const Card = styled.div`
-  pointer-events: auto;
-  border-radius: 0.5rem;
-  outline: 1px rgba(200 200 200 / 1) solid;
-  background-color: rgba(230 230 230 / 1);
-  box-shadow:
-    0 4px 6px -1px rgb(0 0 0 / 0.3),
-    0 2px 4px -2px rgb(0 0 0 / 0.3);
-
-  display: flex;
-  align-items: center;
 `
 
 const Text = styled.span`
