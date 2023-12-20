@@ -35,7 +35,7 @@ const Popup = styled.div<{ readonly visible: boolean }>`
 
   width: 100%;
   max-height: 100%;
-  max-width: 28rem;
+  max-width: 30rem;
   padding: 1rem;
   border-radius: 1rem;
 
