@@ -7,7 +7,7 @@ import {
 } from 'https://esm.sh/v136/react@18.2.0'
 import type { FC } from 'https://esm.sh/v136/react@18.2.0'
 import { styled } from 'https://esm.sh/v136/styled-components@6.1.1'
-import type { EditDetails } from './editor'
+import type { EditDetails } from '../editor'
 
 const Container = styled.div`
   --margin: 1rem;

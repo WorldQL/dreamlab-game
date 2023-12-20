@@ -18,7 +18,7 @@ import type { Bounds, Vector } from '@dreamlab.gg/core/math'
 import type { Debug, Ref } from '@dreamlab.gg/core/utils'
 import { drawBox, drawCircle } from '@dreamlab.gg/core/utils'
 import { Container, Graphics } from 'pixi.js'
-import type { ToServerPacket } from '../packets'
+import type { ToServerPacket } from '../../packets'
 
 type CornerHandle = `${'bottom' | 'top'}${'Left' | 'Right'}`
 type Handle = CornerHandle | 'rotation'

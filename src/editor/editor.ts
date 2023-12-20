@@ -2,9 +2,9 @@ import type { LooseSpawnableDefinition } from '@dreamlab.gg/core'
 import { createEntity } from '@dreamlab.gg/core'
 import { deferUntilPlayer, ref } from '@dreamlab.gg/core/utils'
 import type { ToServerPacket } from '../packets'
-import { createNavigator } from './navigator'
-import { createEntitySelect } from './select'
-import { renderUI } from './ui'
+import { renderUI } from './components/ui'
+import { createNavigator } from './entities/navigator'
+import { createEntitySelect } from './entities/select'
 
 export enum EditorInputs {
   DeleteEntity = '@editor/DeleteEntity',
@@ -117,6 +117,7 @@ export const createEditor = (
       const { container, unmount } = renderUI(
         game,
         selector,
+        navigator,
         history,
         editDetails,
       )

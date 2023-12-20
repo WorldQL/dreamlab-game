@@ -1,15 +1,17 @@
 import type { Game } from '@dreamlab.gg/core'
 import { renderUI as render } from '@dreamlab.gg/ui/react'
 import { StyleSheetManager } from 'https://esm.sh/v136/styled-components@6.1.1'
+import type { Action, EditDetails } from '../editor'
+import type { Navigator } from '../entities/navigator'
+import type { Selector } from '../entities/select'
 import { CLICommand } from './command'
-import type { Action, EditDetails } from './editor'
-import { Palette } from './palette'
-import { SceneList } from './scene'
-import type { Selector } from './select'
+import { PaletteManager } from './palette/manager'
+import { SceneList } from './scene/list'
 
 export const renderUI = (
   game: Game<false>,
   selector: Selector,
+  navigator: Navigator,
   history: {
     record(action: Action): void
     undo(): void
@@ -24,7 +26,11 @@ export const renderUI = (
       {editDetails && <CLICommand details={editDetails} />}
 
       <SceneList history={history} selector={selector} />
-      <Palette history={history} selector={selector} />
+      <PaletteManager
+        history={history}
+        navigator={navigator}
+        selector={selector}
+      />
     </StyleSheetManager>,
     { interactable: false },
   )
