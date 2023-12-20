@@ -21,6 +21,7 @@ interface Render {
   inputs: InputManager
   onMouseDown(ev: MouseEvent): void
   onMouseMove(): void
+  onWheel(ev: WheelEvent): void
 }
 
 export interface Navigator extends Entity<Data, Render> {
@@ -100,6 +101,24 @@ export const createNavigator = (
         this.setPosition(newPosition)
       }
 
+      const onWheel = (ev: WheelEvent) => {
+        if (!editorEnabled.value || selector.selected) return
+        const isTouchpad = Math.abs(ev.deltaX) !== 0 || Math.abs(ev.deltaY) < 15
+
+        if (isTouchpad) {
+          ev.preventDefault()
+          const amplifiedMovement = Vec.div(
+            Vec.create(ev.deltaX, ev.deltaY),
+            camera.scale,
+          )
+          const newPosition = Vec.add(this.position, amplifiedMovement)
+
+          game.client?.render.camera.setTarget({ position: newPosition })
+          this.setPosition(newPosition)
+        }
+      }
+
+      canvas.addEventListener('wheel', onWheel)
       canvas.addEventListener('mousemove', onMouseMove)
       canvas.addEventListener('mousedown', onMouseDown)
       canvas.addEventListener('mouseup', onMouseUp)
@@ -112,6 +131,7 @@ export const createNavigator = (
         inputs: game.client.inputs,
         onMouseDown,
         onMouseMove,
+        onWheel,
       }
     },
 
@@ -119,11 +139,12 @@ export const createNavigator = (
       // No-op
     },
 
-    teardownRenderContext({ canvas, onMouseDown, onMouseMove }) {
+    teardownRenderContext({ canvas, onMouseDown, onMouseMove, onWheel }) {
       canvas.removeEventListener('mousedown', onMouseDown)
       canvas.removeEventListener('mouseup', onMouseUp)
       canvas.removeEventListener('mousemove', onMouseMove)
       canvas.removeEventListener('mouseleave', onMouseLeave)
+      canvas.removeEventListener('wheel', onWheel)
     },
 
     onRenderFrame(_, { game }, { inputs }) {
