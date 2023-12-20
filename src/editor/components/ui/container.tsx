@@ -8,12 +8,12 @@ export const Container = styled.div`
   user-select: auto;
   z-index: 500;
 
-  width: 18rem; // Initial width
-  min-width: 10rem; // Minimum width
-  max-width: 100%; // Maximum width to avoid overflowing the screen
-  height: auto; // Height to be determined by content initially
-  min-height: 5rem; // Minimum height
-  max-height: 100vh; // Maximum height
+  width: 18rem;
+  min-width: 10rem;
+  max-width: 100%;
+  height: auto;
+  min-height: 5rem;
+  max-height: 100vh;
 
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
   padding: 1rem;
@@ -27,6 +27,5 @@ export const Container = styled.div`
   display: flex;
   flex-direction: column;
 
-  resize: both; // Enables resizing both horizontally and vertically
-  overflow: auto; // Adds scrollbars when content overflows
+  overflow: auto;
 `
