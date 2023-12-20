@@ -124,6 +124,14 @@ export const EntityDisplay: FC<DisplayProps> = ({
   }, [selector, entity, player])
 
   const onDelete = useCallback(async () => {
+    if (!entity) return
+
+    // eslint-disable-next-line no-alert
+    const isConfirmed = window.confirm(
+      `Are you sure you want to delete "${entity.definition.entity}"?`,
+    )
+    if (!isConfirmed) return
+
     const id = entity.uid
     history.record({ type: 'delete', definition: entity.definition })
     await game.destroy(entity)
