@@ -19,7 +19,7 @@ const EntityButtons = styled.div`
   position: relative;
 `
 
-const ControlButtons = styled.div`
+const ControlButtons = styled.div<{ showLock: boolean }>`
   display: flex;
   align-items: flex-start;
   gap: 4px;
@@ -33,13 +33,22 @@ const ControlButtons = styled.div`
     opacity 0.3s ease,
     visibility 0s linear 0.3s;
 
-  ${EntityButtons}:hover & {
+  ${EntityButtons}:hover &,
+  &:hover {
     opacity: 1;
     visibility: visible;
     transition:
       opacity 0.3s ease,
       visibility 0s;
   }
+
+  ${props =>
+    props.showLock &&
+    `
+    opacity: 1;
+    visibility: visible;
+    transition: none;
+  `}
 `
 
 const InfoDetails = styled.div<{ isSelected: boolean }>`
@@ -100,8 +109,9 @@ export const EntityDisplay: FC<DisplayProps> = ({
   const player = usePlayer()
   const entityRef = useRef<HTMLDivElement>(null)
   const [isLocked, setIsLocked] = useState(
-    entity.definition.tags?.includes('editorLocked'),
+    Boolean(entity.definition.tags?.includes('editorLocked')),
   )
+
   const [isEditing, setIsEditing] = useState(false)
   const [editedLabel, setEditedLabel] = useState(entity.definition.entity)
 
@@ -190,10 +200,35 @@ export const EntityDisplay: FC<DisplayProps> = ({
           <p>Z-Index: {entity.transform.zIndex}</p>
         </InfoDetails>
       </SelectButton>
-      <ControlButtons>
+      <ControlButtons showLock={isLocked}>
+        <DeleteButton
+          onClick={onDelete}
+          style={{
+            opacity: isLocked ? 0 : undefined,
+            visibility: isLocked ? 'hidden' : undefined,
+          }}
+          title='Delete'
+        >
+          <svg
+            className='w-6 h-6'
+            fill='currentColor'
+            viewBox='0 0 24 24'
+            xmlns='http://www.w3.org/2000/svg'
+          >
+            <path
+              clipRule='evenodd'
+              d='M16.5 4.478v.227a48.816 48.816 0 013.878.512.75.75 0 11-.256 1.478l-.209-.035-1.005 13.07a3 3 0 01-2.991 2.77H8.084a3 3 0 01-2.991-2.77L4.087 6.66l-.209.035a.75.75 0 01-.256-1.478A48.567 48.567 0 017.5 4.705v-.227c0-1.564 1.213-2.9 2.816-2.951a52.662 52.662 0 013.369 0c1.603.051 2.815 1.387 2.815 2.951zm-6.136-1.452a51.196 51.196 0 013.273 0C14.39 3.05 15 3.684 15 4.478v.113a49.488 49.488 0 00-6 0v-.113c0-.794.609-1.428 1.364-1.452zm-.355 5.945a.75.75 0 10-1.5.058l.347 9a.75.75 0 101.499-.058l-.346-9zm5.48.058a.75.75 0 10-1.498-.058l-.347 9a.75.75 0 001.5.058l.345-9z'
+              fillRule='evenodd'
+            />
+          </svg>
+        </DeleteButton>
         <LockButton
           isLocked={isLocked}
           onClick={onLockToggle}
+          style={{
+            opacity: isLocked ? 1 : undefined,
+            visibility: isLocked ? 'visible' : undefined,
+          }}
           title='Lock/Unlock'
         >
           {isLocked ? (
@@ -214,20 +249,6 @@ export const EntityDisplay: FC<DisplayProps> = ({
             </svg>
           )}
         </LockButton>
-        <DeleteButton onClick={onDelete} title='Delete'>
-          <svg
-            className='w-6 h-6'
-            fill='currentColor'
-            viewBox='0 0 24 24'
-            xmlns='http://www.w3.org/2000/svg'
-          >
-            <path
-              clipRule='evenodd'
-              d='M16.5 4.478v.227a48.816 48.816 0 013.878.512.75.75 0 11-.256 1.478l-.209-.035-1.005 13.07a3 3 0 01-2.991 2.77H8.084a3 3 0 01-2.991-2.77L4.087 6.66l-.209.035a.75.75 0 01-.256-1.478A48.567 48.567 0 017.5 4.705v-.227c0-1.564 1.213-2.9 2.816-2.951a52.662 52.662 0 013.369 0c1.603.051 2.815 1.387 2.815 2.951zm-6.136-1.452a51.196 51.196 0 013.273 0C14.39 3.05 15 3.684 15 4.478v.113a49.488 49.488 0 00-6 0v-.113c0-.794.609-1.428 1.364-1.452zm-.355 5.945a.75.75 0 10-1.5.058l.347 9a.75.75 0 101.499-.058l-.346-9zm5.48.058a.75.75 0 10-1.498-.058l-.347 9a.75.75 0 001.5.058l.345-9z'
-              fillRule='evenodd'
-            />
-          </svg>
-        </DeleteButton>
       </ControlButtons>
     </EntityButtons>
   )
