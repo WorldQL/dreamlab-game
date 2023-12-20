@@ -200,11 +200,22 @@ export const EntityDisplay: FC<DisplayProps> = ({
           />
         ) : (
           <span onDoubleClick={handleDoubleClick}>
-            {entity.label ? entity.label : entity.definition.entity}
+            {entity.label
+              ? entity.label.length > 30
+                ? entity.label.slice(0, 30) + '...'
+                : entity.label
+              : entity.definition.entity.length > 30
+              ? entity.definition.entity.slice(0, 30) + '...'
+              : entity.definition.entity}
           </span>
         )}
         <InfoDetails isSelected={isSelected}>
-          <p>Entity: {entity.definition.entity}</p>
+          <p>
+            Entity:{' '}
+            {entity.definition.entity.length > 30
+              ? entity.definition.entity.slice(0, 30) + '...'
+              : entity.definition.entity}
+          </p>
           <p>Z-Index: {entity.transform.zIndex}</p>
         </InfoDetails>
       </SelectButton>
