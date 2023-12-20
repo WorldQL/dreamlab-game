@@ -78,7 +78,7 @@ export const createNavigator = (
       })
 
       const onMouseDown = (ev: MouseEvent) => {
-        if (!editorEnabled.value || ev.button === 2 || selector.selected) return
+        if (!editorEnabled.value || ev.button !== 1 || selector.selected) return
         isDragging = true
         previousCursorPosition = inputs.getCursor('screen')
       }
@@ -163,8 +163,6 @@ export const createNavigator = (
             cursorStyle = 'grabbing'
           } else if (!isDragging && isCursorOverNonLockedEntity) {
             cursorStyle = 'pointer'
-          } else if (!isDragging) {
-            cursorStyle = 'grab'
           }
         }
 
