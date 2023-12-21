@@ -65,7 +65,6 @@ interface Render {
   bottomRightGfx: Graphics
   rotStalkGfx: Graphics
   rotHandleGfx: Graphics
-  onClick(ev: MouseEvent): void
   onMouseDown(ev: MouseEvent): void
   onMouseMove(): void
 }
@@ -94,7 +93,6 @@ export const createEntitySelect = (
 
   let selected: SpawnableEntity | undefined
   let action: ActionData | undefined
-  let initialPressEntity: SpawnableEntity | undefined
 
   const onMouseUp = () => {
     if (action !== undefined) action = { type: 'clear' }
@@ -287,9 +285,10 @@ export const createEntitySelect = (
         canvas.style.cursor = validHover ? 'pointer' : ''
       }
 
-      const onClick = (ev: MouseEvent) => {
+      const onMouseDown = (ev: MouseEvent) => {
         if (!editorEnabled.value) return
         const pos = camera.screenToWorld({ x: ev.offsetX, y: ev.offsetY })
+
         const query = game
           .queryPosition(pos)
           .filter(
@@ -298,20 +297,16 @@ export const createEntitySelect = (
               !entity.definition.tags?.includes('editorLocked'),
           )
 
-        // Sort based on z-index
         query.sort((a, b) => b.transform.zIndex - a.transform.zIndex)
 
-        let newSelection =
-          action?.type === 'clear'
-            ? selected
-            : query.length > 0
-            ? query[0]
-            : isHandle(pos)
-            ? selected
-            : undefined
-
-        if (!initialPressEntity || initialPressEntity !== newSelection) {
-          initialPressEntity = undefined
+        let newSelection: SpawnableEntity | undefined
+        if (action?.type === 'clear' && query[0] === selected) {
+          newSelection = selected
+        } else if (query.length > 0) {
+          newSelection = query[0]
+        } else if (isHandle(pos)) {
+          newSelection = selected
+        } else {
           newSelection = undefined
         }
 
@@ -320,54 +315,31 @@ export const createEntitySelect = (
 
         if (action?.type === 'clear') action = undefined
 
-        // @ts-expect-error global assign in dev
-        if (import.meta.env.DEV) window.entity = selected
-      }
-
-      const onMouseDown = (ev: MouseEvent) => {
-        if (!editorEnabled.value) return
-        const pos = camera.screenToWorld({ x: ev.offsetX, y: ev.offsetY })
-        const query = game
-          .queryPosition(pos)
-          .filter(
-            entity =>
-              !entity.preview &&
-              !entity.definition.tags?.includes('editorLocked'),
-          )
-
-        // Sort based on z-index
-        query.sort((a, b) => b.transform.zIndex - a.transform.zIndex)
-        initialPressEntity =
-          action?.type === 'clear'
-            ? selected
-            : query.length > 0
-            ? query[0]
-            : isHandle(pos)
-            ? selected
-            : undefined
-
         const bounds = selected?.rectangleBounds()
-        if (!selected || !bounds) return
+        if (selected && bounds) {
+          const handle = isHandle(pos)
+          if (handle === 'rotation') {
+            action = { type: 'rotate' }
+          } else if (handle) {
+            const locked = getOppositeCorner(handle)
+            const opposite = getHandlePosition(selected, bounds, locked)
 
-        const handle = isHandle(pos)
-        if (handle === 'rotation') {
-          action = { type: 'rotate' }
-        } else if (handle) {
-          const locked = getOppositeCorner(handle)
-          const opposite = getHandlePosition(selected, bounds, locked)
-
-          action = {
-            type: 'scale',
-            origin: pos,
-            locked,
-            opposite,
-          }
-        } else if (selected.isPointInside(pos)) {
-          action = {
-            type: 'translate',
-            origin: Vec.sub(selected.transform.position, pos),
+            action = {
+              type: 'scale',
+              origin: pos,
+              locked,
+              opposite,
+            }
+          } else if (selected.isPointInside(pos)) {
+            action = {
+              type: 'translate',
+              origin: Vec.sub(selected.transform.position, pos),
+            }
           }
         }
+
+        // @ts-expect-error global assign in dev
+        if (import.meta.env.DEV) window.entity = selected
       }
 
       const onMouseMove = () => {
@@ -457,7 +429,6 @@ export const createEntitySelect = (
       }
 
       canvas.addEventListener('dragover', onDragOver)
-      canvas.addEventListener('click', onClick)
       canvas.addEventListener('drop', onDrop)
       canvas.addEventListener('mousedown', onMouseDown)
       canvas.addEventListener('mouseup', onMouseUp)
@@ -495,7 +466,6 @@ export const createEntitySelect = (
         bottomRightGfx,
         rotStalkGfx,
         rotHandleGfx,
-        onClick,
         onMouseDown,
         onMouseMove,
       }
@@ -505,19 +475,12 @@ export const createEntitySelect = (
       game.events.common.removeListener('onDestroy', onDestroy)
     },
 
-    teardownRenderContext({
-      canvas,
-      container,
-      onClick,
-      onMouseDown,
-      // onMouseMove,
-    }) {
-      canvas.removeEventListener('click', onClick)
+    teardownRenderContext({ canvas, container, onMouseDown, onMouseMove }) {
       canvas.removeEventListener('drop', onDrop)
       canvas.removeEventListener('dragover', onDragOver)
       canvas.removeEventListener('mousedown', onMouseDown)
       canvas.removeEventListener('mouseup', onMouseUp)
-      // canvas.removeEventListener('mousemove', onMouseMove)
+      canvas.removeEventListener('mousemove', onMouseMove)
 
       container.destroy({ children: true })
     },
