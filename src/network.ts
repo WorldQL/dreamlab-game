@@ -105,6 +105,26 @@ export const decodeParams = (): Params | undefined => {
   }
 }
 
+// Function to get the current reload count from local storage
+function getReloadCount(): number {
+  const count = localStorage.getItem('reloadCount')
+  return count !== null ? Number.parseInt(count, 10) : 0
+}
+
+// Function to set the reload count in local storage
+export function setReloadCount(count: number) {
+  localStorage.setItem('reloadCount', count.toString())
+}
+
+// Function to increment the reload count
+function incrementReloadCount() {
+  const count = getReloadCount() + 1
+  setReloadCount(count)
+  return count
+}
+
+incrementReloadCount()
+
 export const connect = async (
   params: Params | undefined,
 ): Promise<WebSocket | undefined> => {
@@ -124,8 +144,24 @@ export const connect = async (
 
     // ws.addEventListener('open', () => resolve(ws))
     ws.addEventListener('error', () => {
-      const worldDetails = localStorage.getItem('@dreamlab/worlds/fallbackUrl')
-      if (worldDetails) window.location.href = worldDetails
+      console.log('Got error in websocket event listener')
+      if (getReloadCount() > 10) {
+        const worldDetails = localStorage.getItem(
+          '@dreamlab/worlds/fallbackUrl',
+        )
+        if (worldDetails) window.location.href = worldDetails
+        return
+      }
+
+      if (getReloadCount() > 3) {
+        document.querySelector(
+          '#retrycount',
+        )!.innerHTML = `Retries: ${getReloadCount()}/10`
+      }
+
+      setTimeout(() => {
+        window.location.reload()
+      }, 1_000)
     })
   })
 }
@@ -152,10 +188,26 @@ export const createNetwork = (
       if (ws.readyState === WebSocket.OPEN) {
         ws.send(packet)
       } else {
+        const webSocketStates: { [key: number]: string } = {
+          0: 'CONNECTING',
+          1: 'OPEN',
+          2: 'CLOSING',
+          3: 'CLOSED',
+        }
+        console.log(
+          'Got websocket state ' +
+            webSocketStates[ws.readyState] +
+            ' and am going to reload in 1 second.',
+        )
+        setTimeout(() => {
+          window.location.reload()
+        }, 1_000)
+        /*
         const worldDetails = localStorage.getItem(
           '@dreamlab/worlds/fallbackUrl',
         )
         if (worldDetails) window.location.href = worldDetails
+        */
       }
     }
 

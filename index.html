@@ -1,24 +1,28 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Dreamlab</title>
 
-    <link
-      rel="stylesheet"
-      href="node_modules/modern-normalize/modern-normalize.css"
-    />
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dreamlab</title>
 
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@500;600&family=Inter:wght@500;600;700&display=swap"
-      rel="stylesheet"
-    />
-  </head>
-  <body>
-    <div id="app"></div>
-    <script type="module" src="/src/main.ts"></script>
-  </body>
+  <link rel="stylesheet" href="node_modules/modern-normalize/modern-normalize.css" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@500;600&family=Inter:wght@500;600;700&display=swap"
+    rel="stylesheet" />
+</head>
+
+<body>
+  <div id="app"></div>
+  <div id="connectingmessage"
+    style="position: absolute; top: 30%; width: 300px; left: 0; right: 0; z-index: 200; margin-left: auto; margin-right: auto; text-align: center;">
+    Connecting to server...
+    <div id="retrycount"></div>
+  </div>
+  <script type="module" src="/src/main.ts"></script>
+</body>
+
 </html>

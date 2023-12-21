@@ -4,7 +4,12 @@ import { isDebug } from './debug.js'
 import { createEditor } from './editor/editor.js'
 import { createKeybinds } from './keybinds/entity.js'
 import { bindInput, loadBindings } from './keybinds/persist.js'
-import { connect, createNetwork, decodeParams } from './network.js'
+import {
+  connect,
+  createNetwork,
+  decodeParams,
+  setReloadCount,
+} from './network.js'
 import { loadLevel, loadScript, spawnPlayer } from './scripting.js'
 
 export const init = async () => {
@@ -16,7 +21,11 @@ export const init = async () => {
   const ws = await connect(params)
   const worldDetails = localStorage.getItem('@dreamlab/worlds/fallbackUrl')
   if (!ws && worldDetails) {
-    window.location.href = worldDetails
+    console.log('Failed to connect in init()')
+    setTimeout(() => {
+      window.location.reload()
+    }, 1_000)
+    // window.location.href = worldDetails
     return
   }
 
@@ -70,6 +79,12 @@ export const init = async () => {
     game.initNetwork(network)
 
     await connected
+    console.log('connected successfully!')
+    setReloadCount(0)
+    const connectionMessage = document.querySelector(
+      '#connectingmessage',
+    ) as HTMLElement
+    connectionMessage.style.display = 'none'
   } else {
     if (import.meta.env.DEV) {
       const url = new URL(window.location.href)
