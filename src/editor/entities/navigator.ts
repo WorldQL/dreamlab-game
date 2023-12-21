@@ -37,6 +37,7 @@ export const createNavigator = (
   let isDragging = false
   let pressedEntity = false
   let previousCursorPosition: Vector | null | undefined = null
+  let isSpacePressed = false
 
   const onMouseUp = () => {
     isDragging = false
@@ -47,6 +48,10 @@ export const createNavigator = (
   const onMouseLeave = () => {
     isDragging = false
     previousCursorPosition = null
+  }
+
+  const onSpace = (pressed: boolean) => {
+    isSpacePressed = pressed
   }
 
   const navigator: Navigator = createEntity({
@@ -78,9 +83,12 @@ export const createNavigator = (
       })
 
       const onMouseDown = (ev: MouseEvent) => {
-        if (!editorEnabled.value || ev.button !== 1) return
-        isDragging = true
-        previousCursorPosition = inputs.getCursor('screen')
+        if (!editorEnabled.value || ev.button === 2) return
+        if (ev.button === 1 || (ev.button === 0 && isSpacePressed)) {
+          selector.deselect()
+          isDragging = true
+          previousCursorPosition = inputs.getCursor('screen')
+        }
       }
 
       const onMouseMove = () => {
@@ -102,22 +110,19 @@ export const createNavigator = (
       }
 
       const onWheel = (ev: WheelEvent) => {
-        if (!editorEnabled.value) return
-        const isTouchpad = Math.abs(ev.deltaX) !== 0 || Math.abs(ev.deltaY) < 15
+        if (!editorEnabled.value || ev.ctrlKey) return
+        ev.preventDefault()
+        const amplifiedMovement = Vec.div(
+          Vec.create(ev.deltaX, ev.deltaY),
+          camera.scale,
+        )
+        const newPosition = Vec.add(this.position, amplifiedMovement)
 
-        if (isTouchpad) {
-          ev.preventDefault()
-          const amplifiedMovement = Vec.div(
-            Vec.create(ev.deltaX, ev.deltaY),
-            camera.scale,
-          )
-          const newPosition = Vec.add(this.position, amplifiedMovement)
-
-          game.client?.render.camera.setTarget({ position: newPosition })
-          this.setPosition(newPosition)
-        }
+        game.client?.render.camera.setTarget({ position: newPosition })
+        this.setPosition(newPosition)
       }
 
+      game.client.inputs.addListener('Space', onSpace)
       canvas.addEventListener('wheel', onWheel)
       canvas.addEventListener('mousemove', onMouseMove)
       canvas.addEventListener('mousedown', onMouseDown)
@@ -139,12 +144,13 @@ export const createNavigator = (
       // No-op
     },
 
-    teardownRenderContext({ canvas, onMouseDown, onMouseMove, onWheel }) {
+    teardownRenderContext({ game, canvas, onMouseDown, onMouseMove, onWheel }) {
       canvas.removeEventListener('mousedown', onMouseDown)
       canvas.removeEventListener('mouseup', onMouseUp)
       canvas.removeEventListener('mousemove', onMouseMove)
       canvas.removeEventListener('mouseleave', onMouseLeave)
       canvas.removeEventListener('wheel', onWheel)
+      game.client.inputs.removeListener('Space', onSpace)
     },
 
     onRenderFrame(_, { game }, { inputs }) {
@@ -163,6 +169,8 @@ export const createNavigator = (
             cursorStyle = 'grabbing'
           } else if (!isDragging && isCursorOverNonLockedEntity) {
             cursorStyle = 'pointer'
+          } else if (isSpacePressed) {
+            cursorStyle = 'grab'
           }
         }
 
