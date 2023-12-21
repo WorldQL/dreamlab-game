@@ -78,7 +78,7 @@ export const createNavigator = (
       })
 
       const onMouseDown = (ev: MouseEvent) => {
-        if (!editorEnabled.value || ev.button !== 1 || selector.selected) return
+        if (!editorEnabled.value || ev.button !== 1) return
         isDragging = true
         previousCursorPosition = inputs.getCursor('screen')
       }
@@ -102,7 +102,7 @@ export const createNavigator = (
       }
 
       const onWheel = (ev: WheelEvent) => {
-        if (!editorEnabled.value || selector.selected) return
+        if (!editorEnabled.value) return
         const isTouchpad = Math.abs(ev.deltaX) !== 0 || Math.abs(ev.deltaY) < 15
 
         if (isTouchpad) {
