@@ -78,11 +78,14 @@ export const SceneList: FC<{
   const onDelete = useCallback(async () => {
     if (!selector.selected) return
 
+    /*
+    I disabled this because the use of confirm() was interfering with 
     // eslint-disable-next-line no-alert
     const confirmDeletion = confirm(
       `Are you sure you want to delete "${selector.selected.definition.entity}"?`,
     )
     if (!confirmDeletion) return
+    */
 
     const id = selector.selected.uid
     history.record({
