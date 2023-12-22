@@ -196,13 +196,12 @@ export const createNetwork = (
           2: 'CLOSING',
           3: 'CLOSED',
         }
-        console.log(
-          'Got websocket state ' +
-            webSocketStates[ws.readyState] +
-            ' and am going to reload in 1 second.',
-        )
         if (!didSetReloadTimeout) {
-          console.log('foobar')
+          console.log(
+            'Got websocket state ' +
+              webSocketStates[ws.readyState] +
+              ' and am going to reload in 1 second.',
+          )
           setTimeout(() => {
             window.location.reload()
           }, 1_000)
