@@ -181,6 +181,8 @@ export const createNetwork = (
   ws: WebSocket,
   game: Game<false>,
 ): [network: BareNetClient, ready: Promise<void>] => {
+  let didSetReloadTimeout = false
+
   const sendPacket = (_packet: ToServerPacket) => {
     const packet = JSON.stringify(_packet)
 
@@ -199,9 +201,13 @@ export const createNetwork = (
             webSocketStates[ws.readyState] +
             ' and am going to reload in 1 second.',
         )
-        setTimeout(() => {
-          window.location.reload()
-        }, 1_000)
+        if (!didSetReloadTimeout) {
+          console.log('foobar')
+          setTimeout(() => {
+            window.location.reload()
+          }, 1_000)
+          didSetReloadTimeout = true
+        }
         /*
         const worldDetails = localStorage.getItem(
           '@dreamlab/worlds/fallbackUrl',
