@@ -211,7 +211,10 @@ export const Assets: React.FC<AssetsProps> = ({ nextAPIBaseURL, jwt }) => {
               event.dataTransfer.setData('text/plain', asset.imageURL)
             }
           >
-            <ImagePreview alt={asset.name} src={asset.imageURL} />
+            <ImagePreview
+              alt={asset.name}
+              src={asset.imageURL + '?buster=123'}
+            />
             <div
               style={{
                 width: '250px',
