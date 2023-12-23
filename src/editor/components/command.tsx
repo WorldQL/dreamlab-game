@@ -67,7 +67,7 @@ export const CLICommand: FC<Props> = ({ details }) => {
     baseUrl.protocol = baseUrl.protocol === 'wss' ? 'https' : 'http'
     baseUrl.pathname = `/api/v1/edit/${details.instance}`
     const blob = encodeBlob(baseUrl.toString(), details.secret)
-    return `npx dreamlab-cli dev ${blob}`
+    return `npx dreamlab-cli@latest dev ${blob}`
   }, [details])
 
   const [copied, setCopied] = useState<boolean>(false)
