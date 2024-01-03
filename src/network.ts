@@ -154,9 +154,8 @@ export const connect = async (
       }
 
       if (getReloadCount() > 3) {
-        document.querySelector(
-          '#retrycount',
-        )!.innerHTML = `Retries: ${getReloadCount()}/15`
+        document.querySelector('#retrycount')!.innerHTML =
+          `Retries: ${getReloadCount()}/15`
       }
 
       setTimeout(() => {
