@@ -146,6 +146,12 @@ export const EntityDisplay: FC<DisplayProps> = ({
     }
   }
 
+  const handleDeleteTag = (tagToDelete: string) => {
+    const updatedTags = tags.filter(tag => tag !== tagToDelete)
+    setTags(updatedTags)
+    entity.definition.tags = updatedTags
+  }
+
   const handleArgChange = (key: string, value: unknown) => {
     setEditableArgs(prevArgs => ({ ...prevArgs, [key]: value }))
   }
@@ -279,22 +285,62 @@ export const EntityDisplay: FC<DisplayProps> = ({
           </div>
           <div>
             <p>Tags:</p>
-            <div>
+            <div
+              style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}
+            >
               {tags.map(tag => (
-                <p key={tag}>{tag}</p>
+                <div
+                  key={tag}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    fontSize: '0.75rem',
+                  }}
+                >
+                  <button
+                    onClick={() => handleDeleteTag(tag)}
+                    style={{
+                      marginRight: '4px',
+                      border: 'none',
+                      padding: 0,
+                      cursor: 'pointer',
+                    }}
+                    type='button'
+                  >
+                    <svg
+                      style={{ width: '16px', height: '16px', fill: 'red' }}
+                      viewBox='0 0 24 24'
+                      xmlns='http://www.w3.org/2000/svg'
+                    >
+                      <path
+                        clipRule='evenodd'
+                        d='M16.5 4.478v.227a48.816 48.816 0 013.878.512.75.75 0 11-.256 1.478l-.209-.035-1.005 13.07a3 3 0 01-2.991 2.77H8.084a3 3 0 01-2.991-2.77L4.087 6.66l-.209.035a.75.75 0 01-.256-1.478A48.567 48.567 0 017.5 4.705v-.227c0-1.564 1.213-2.9 2.816-2.951a52.662 52.662 0 013.369 0c1.603.051 2.815 1.387 2.815 2.951zm-6.136-1.452a51.196 51.196 0 013.273 0C14.39 3.05 15 3.684 15 4.478v.113a49.488 49.488 0 00-6 0v-.113c0-.794.609-1.428 1.364-1.452zm-.355 5.945a.75.75 0 10-1.5.058l.347 9a.75.75 0 101.499-.058l-.346-9zm5.48.058 a.75.75 0 10-1.498-.058l-.347 9 a.75.75 0 001.5.058l.345-9z'
+                        fillRule='evenodd'
+                      />
+                    </svg>
+                  </button>
+                  {tag.length > 20 ? `${tag.slice(0, 20)}...` : tag}
+                </div>
               ))}
-              <input
-                onChange={ev => setNewTag(ev.target.value)}
-                onKeyDown={ev => {
-                  if (ev.key === 'Enter' && newTag !== '') handleAddTag()
-                }}
-                placeholder='New tag'
-                style={{ marginRight: '4px' }}
-                value={newTag}
-              />
-              <button onClick={handleAddTag} type='button'>
-                +
-              </button>
+
+              <div style={{ display: 'flex', alignItems: 'center' }}>
+                <input
+                  onChange={ev => setNewTag(ev.target.value)}
+                  onKeyDown={ev => {
+                    if (ev.key === 'Enter' && newTag !== '') handleAddTag()
+                  }}
+                  placeholder='New tag'
+                  style={{ marginRight: '4px', fontSize: '0.75rem' }}
+                  value={newTag}
+                />
+                <button
+                  onClick={handleAddTag}
+                  style={{ fontSize: '0.75rem' }}
+                  type='button'
+                >
+                  +
+                </button>
+              </div>
             </div>
           </div>
         </InfoDetails>
