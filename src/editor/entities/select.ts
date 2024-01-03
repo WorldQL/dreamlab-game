@@ -79,6 +79,7 @@ export interface Selector extends Entity<Data, Render> {
 
 interface EntityEvents {
   onSelect: [string | undefined]
+  onArgsManualUpdate: [string, unknown]
   onArgsUpdate: [string, unknown]
 }
 
@@ -164,6 +165,27 @@ export const createEntitySelect = (
 
     init({ game }) {
       game.events.common.addListener('onDestroy', onDestroy)
+
+      this.events.addListener('onArgsManualUpdate', (entityId, args) => {
+        if (selected && selected.uid === entityId) {
+          const newArgs = args as Record<string, unknown>
+          const width = Number.parseFloat(newArgs.width as string)
+          const height = Number.parseFloat(newArgs.height as string)
+
+          if (
+            (width !== selected.args.width ||
+              height !== selected.args.height) &&
+            !Number.isNaN(width) &&
+            !Number.isNaN(height)
+          ) {
+            game.resize(selected, { width, height })
+            newArgs.width = width
+            newArgs.height = height
+          }
+
+          selected.definition.args = newArgs
+        }
+      })
 
       return { game, debug: game.debug }
     },

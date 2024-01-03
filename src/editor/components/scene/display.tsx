@@ -160,9 +160,12 @@ export const EntityDisplay: FC<DisplayProps> = ({
   }
 
   const handleArgSave = useCallback(() => {
-    // doesnt save on reload but will save locally
     entity.definition.args = editableArgs
-    selector.events.emit('onArgsUpdate', entity.uid, entity.definition.args)
+    selector.events.emit(
+      'onArgsManualUpdate',
+      entity.uid,
+      entity.definition.args,
+    )
   }, [editableArgs, entity.definition, entity.uid, selector.events])
 
   const onSelect = useCallback(() => {
