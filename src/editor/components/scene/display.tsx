@@ -122,7 +122,7 @@ export const EntityDisplay: FC<DisplayProps> = ({
   }
 
   const handleArgSave = useCallback(() => {
-    // doesnt save
+    // doesnt save on reload but will save locally
     entity.definition.args = editableArgs
     selector.events.emit('onArgsUpdate', entity.uid, entity.definition.args)
   }, [editableArgs, entity.definition, entity.uid, selector.events])
@@ -217,8 +217,8 @@ export const EntityDisplay: FC<DisplayProps> = ({
                 ? entity.label.slice(0, 30) + '...'
                 : entity.label
               : entity.definition.entity.length > 30
-                ? entity.definition.entity.slice(0, 30) + '...'
-                : entity.definition.entity}
+              ? entity.definition.entity.slice(0, 30) + '...'
+              : entity.definition.entity}
           </span>
         )}
         <InfoDetails isSelected={isSelected}>
