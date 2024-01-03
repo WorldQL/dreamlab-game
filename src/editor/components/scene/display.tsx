@@ -54,17 +54,35 @@ const ControlButtons = styled.div<{ showLock: boolean }>`
 const InfoDetails = styled.div<{ isSelected: boolean }>`
   display: ${props => (props.isSelected ? 'block' : 'none')};
   background-color: #f3f3f3;
-  padding: 8px;
-  border-radius: 4px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  font-size: 0.8rem;
-  color: #333;
+  padding: 4px;
   margin-top: 4px;
+  border-radius: 4px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  font-size: 0.75rem;
+  color: #333;
   text-align: left;
   width: 94%;
+
   & > p {
-    margin: 0;
-    margin-bottom: 4px;
+    margin: 2px 0;
+  }
+
+  input {
+    width: 80%;
+    padding: 4px;
+    margin: 1px 0;
+    border: 1px solid #c3dafe;
+    border-radius: 2px;
+    background-color: #eef2ff;
+    color: #1a202c;
+
+    &:focus {
+      border-color: #4c51bf;
+    }
+
+    &::placeholder {
+      color: #a0aec0;
+    }
   }
 `
 
@@ -241,13 +259,6 @@ export const EntityDisplay: FC<DisplayProps> = ({
                       if (ev.key === 'Enter') inputRefs.current[key]?.blur()
                     }}
                     ref={el => (inputRefs.current[key] = el)}
-                    style={{
-                      width: '80%',
-                      padding: '0.5em',
-                      marginTop: '0.25em',
-                      border: '1px solid #ccc',
-                      borderRadius: '4px',
-                    }}
                     type='text'
                     value={value}
                   />
