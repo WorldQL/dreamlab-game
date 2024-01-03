@@ -518,6 +518,30 @@ export const createNetwork = (
           break
         }
 
+        case 'LabelChanged': {
+          if (packet.peer_id === selfID) return
+
+          const entity = game.lookup(packet.entity_id)
+          if (!entity) return
+
+          const definition = onChange.target(entity.definition)
+          definition.label = packet.label
+
+          break
+        }
+
+        case 'TagsChanged': {
+          if (packet.peer_id === selfID) return
+
+          const entity = game.lookup(packet.entity_id)
+          if (!entity) return
+
+          const definition = onChange.target(entity.definition)
+          definition.tags = packet.tags
+
+          break
+        }
+
         case 'PhysicsSuspendResume': {
           if (packet.peer_id === selfID) return
 
