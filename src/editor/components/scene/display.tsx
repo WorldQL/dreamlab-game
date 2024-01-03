@@ -252,8 +252,8 @@ export const EntityDisplay: FC<DisplayProps> = ({
                 ? entity.label.slice(0, 30) + '...'
                 : entity.label
               : entity.definition.entity.length > 30
-              ? entity.definition.entity.slice(0, 30) + '...'
-              : entity.definition.entity}
+                ? entity.definition.entity.slice(0, 30) + '...'
+                : entity.definition.entity}
           </span>
         )}
         <InfoDetails isSelected={isSelected}>
@@ -286,7 +286,7 @@ export const EntityDisplay: FC<DisplayProps> = ({
           <div>
             <p>Tags:</p>
             <div
-              style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}
+              style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}
             >
               {tags.map(tag => (
                 <div
