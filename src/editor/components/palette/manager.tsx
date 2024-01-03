@@ -1,5 +1,5 @@
 import { useState } from 'https://esm.sh/v136/react@18.2.0'
-import { styled } from 'https://esm.sh/v136/styled-components@6.1.1'
+import { styled } from 'https://esm.sh/v136/styled-components@6.1.6'
 import type { Action } from '../../editor'
 import type { Navigator } from '../../entities/navigator'
 import type { Selector } from '../../entities/select'

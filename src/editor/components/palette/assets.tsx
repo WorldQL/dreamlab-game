@@ -9,7 +9,7 @@ import type {
   ChangeEventHandler,
   DragEventHandler,
 } from 'https://esm.sh/v136/react@18.2.0'
-import { styled } from 'https://esm.sh/v136/styled-components@6.1.1'
+import { styled } from 'https://esm.sh/v136/styled-components@6.1.6'
 import { DeleteButton } from '../ui/buttons'
 
 const AssetUploader = styled.div`
