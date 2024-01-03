@@ -39,12 +39,14 @@ import type {
   IncomingDestroyEntityPacket as DestroyEntityPacket,
   HandshakePacket,
   HandshakeReadyPacket,
+  IncomingLabelChangedPacket as LabelChangedPacket,
   PlayerAnimationChangePacket,
   PlayerCharacterIdChangePacket,
   PlayerGearChangePacket,
   PlayerInputsPacket,
   PlayerMotionPacket,
   IncomingSpawnEntityPacket as SpawnEntityPacket,
+  IncomingTagsChangedPacket as TagsChangedPacket,
   ToClientPacket,
   ToServerPacket,
   IncomingTransformChangedPacket as TransformChangedPacket,
@@ -773,6 +775,26 @@ export const createNetwork = (
         entity_id: entityID,
         path,
         value,
+      }
+
+      sendPacket(payload)
+    },
+
+    sendLabelUpdate(entityID, label) {
+      const payload: LabelChangedPacket = {
+        t: 'LabelChanged',
+        entity_id: entityID,
+        label,
+      }
+
+      sendPacket(payload)
+    },
+
+    sendTagsUpdate(entityID, tags) {
+      const payload: TagsChangedPacket = {
+        t: 'TagsChanged',
+        entity_id: entityID,
+        tags,
       }
 
       sendPacket(payload)
