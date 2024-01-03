@@ -133,7 +133,18 @@ export const EntityDisplay: FC<DisplayProps> = ({
   const [isEditing, setIsEditing] = useState(false)
   const [editedLabel, setEditedLabel] = useState(entity.definition.entity)
   const [editableArgs, setEditableArgs] = useState(entity.args)
-  const inputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({})
+  const [newTag, setNewTag] = useState('')
+  const [tags, setTags] = useState(entity.tags)
+  const argsInputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({})
+
+  const handleAddTag = () => {
+    if (newTag) {
+      const updatedTags = [...tags, newTag]
+      setTags(updatedTags)
+      entity.definition.tags = updatedTags
+      setNewTag('')
+    }
+  }
 
   const handleArgChange = (key: string, value: unknown) => {
     setEditableArgs(prevArgs => ({ ...prevArgs, [key]: value }))
@@ -256,14 +267,34 @@ export const EntityDisplay: FC<DisplayProps> = ({
                     onBlur={handleArgSave}
                     onChange={ev => handleArgChange(key, ev.target.value)}
                     onKeyDown={ev => {
-                      if (ev.key === 'Enter') inputRefs.current[key]?.blur()
+                      if (ev.key === 'Enter') argsInputRefs.current[key]?.blur()
                     }}
-                    ref={el => (inputRefs.current[key] = el)}
+                    ref={el => (argsInputRefs.current[key] = el)}
                     type='text'
                     value={value}
                   />
                 </div>
               ))}
+            </div>
+          </div>
+          <div>
+            <p>Tags:</p>
+            <div>
+              {tags.map(tag => (
+                <p key={tag}>{tag}</p>
+              ))}
+              <input
+                onChange={ev => setNewTag(ev.target.value)}
+                onKeyDown={ev => {
+                  if (ev.key === 'Enter' && newTag !== '') handleAddTag()
+                }}
+                placeholder='New tag'
+                style={{ marginRight: '4px' }}
+                value={newTag}
+              />
+              <button onClick={handleAddTag} type='button'>
+                +
+              </button>
             </div>
           </div>
         </InfoDetails>
