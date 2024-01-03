@@ -13,28 +13,28 @@
     "test": "npm run check && npm run lint"
   },
   "devDependencies": {
-    "@dreamlab.gg/core": "0.0.58-dev-1cbcc64",
-    "@dreamlab.gg/ui": "0.0.5-dev-212bc8e",
+    "@dreamlab.gg/core": "0.0.58-dev-ff92c9c",
+    "@dreamlab.gg/ui": "0.0.5-dev-e41f0c2",
     "@luludev/eslint-config": "^0.5.1",
-    "@types/matter-js": "^0.19.3",
-    "@types/react": "^18.2.37",
-    "eslint": "^8.53.0",
+    "@types/matter-js": "^0.19.5",
+    "@types/react": "^18.2.46",
+    "eslint": "^8.56.0",
     "import-meta-resolve": "^4.0.0",
-    "prettier": "^3.0.3",
-    "styled-components": "^6.1.1",
-    "typescript": "^5.2.2",
-    "vite": "^4.5.0"
+    "prettier": "^3.1.1",
+    "styled-components": "^6.1.6",
+    "typescript": "^5.3.3",
+    "vite": "^4.5.1"
   },
   "dependencies": {
     "@paralleldrive/cuid2": "^2.2.2",
-    "axios": "^1.6.2",
+    "axios": "^1.6.3",
     "base58-js": "^2.0.0",
     "copy-to-clipboard": "^3.3.3",
     "jwt-decode": "^4.0.0",
     "matter-js": "^0.19.0",
     "modern-normalize": "^2.0.0",
-    "pixi.js": "^7.3.2",
-    "type-fest": "^4.6.0",
+    "pixi.js": "^7.3.3",
+    "type-fest": "^4.9.0",
     "zod": "^3.22.4"
   }
 }

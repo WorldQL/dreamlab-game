@@ -9,7 +9,7 @@ import type { FC } from 'https://esm.sh/v136/react@18.2.0'
 import {
   styled,
   StyleSheetManager,
-} from 'https://esm.sh/v136/styled-components@6.1.1'
+} from 'https://esm.sh/v136/styled-components@6.1.6'
 import { Rebind } from './rebind'
 
 const Control = styled.div<{ readonly visible: boolean }>`

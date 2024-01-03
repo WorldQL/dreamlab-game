@@ -28,12 +28,12 @@ const getOppositeCorner = (handle: CornerHandle): CornerHandle => {
     handle === 'topLeft'
       ? 'bottomRight'
       : handle === 'topRight'
-      ? 'bottomLeft'
-      : handle === 'bottomLeft'
-      ? 'topRight'
-      : handle === 'bottomRight'
-      ? 'topLeft'
-      : undefined
+        ? 'bottomLeft'
+        : handle === 'bottomLeft'
+          ? 'topRight'
+          : handle === 'bottomRight'
+            ? 'topLeft'
+            : undefined
 
   if (!oppositeHandle) throw new Error('invalid handle')
   return oppositeHandle

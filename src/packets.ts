@@ -277,6 +277,26 @@ export const IncomingArgsChangedSchema = z.object({
   value: z.unknown(),
 })
 
+export type IncomingLabelChangedPacket = z.infer<
+  typeof IncomingLabelChangedSchema
+>
+export const IncomingLabelChangedSchema = z.object({
+  t: z.literal('LabelChanged'),
+
+  entity_id: z.string(),
+  label: z.string().optional(),
+})
+
+export type IncomingTagsChangedPacket = z.infer<
+  typeof IncomingTagsChangedSchema
+>
+export const IncomingTagsChangedSchema = z.object({
+  t: z.literal('TagsChanged'),
+
+  entity_id: z.string(),
+  tags: z.string().array().optional(),
+})
+
 export type IncomingPhysicsSuspendResumePacket = z.infer<
   typeof IncomingPhysicsSuspendResumeSchema
 >
@@ -311,6 +331,20 @@ export type OutgoingArgsChangedPacket = z.infer<
   typeof OutgoingArgsChangedSchema
 >
 export const OutgoingArgsChangedSchema = IncomingArgsChangedSchema.extend({
+  peer_id: z.string(),
+})
+
+export type OutgoingLabelChangedPacket = z.infer<
+  typeof OutgoingLabelChangedSchema
+>
+export const OutgoingLabelChangedSchema = IncomingLabelChangedSchema.extend({
+  peer_id: z.string(),
+})
+
+export type OutgoingTagsChangedPacket = z.infer<
+  typeof OutgoingTagsChangedSchema
+>
+export const OutgoingTagsChangedSchema = IncomingTagsChangedSchema.extend({
   peer_id: z.string(),
 })
 
@@ -359,6 +393,8 @@ export const ToClientPacketSchema = z.discriminatedUnion('t', [
   OutgoingDestroyEntitySchema,
   OutgoingTransformChangedSchema,
   OutgoingArgsChangedSchema,
+  OutgoingLabelChangedSchema,
+  OutgoingTagsChangedSchema,
   OutgoingPhysicsSuspendResumeSchema,
 ])
 
@@ -370,6 +406,8 @@ export const ToServerPacketSchema = z.discriminatedUnion('t', [
   IncomingSpawnEntitySchema,
   IncomingDestroyEntitySchema,
   IncomingArgsChangedSchema,
+  IncomingLabelChangedSchema,
+  IncomingTagsChangedSchema,
   IncomingTransformChangedSchema,
   IncomingPhysicsSuspendResumeSchema,
   PlayerCharacterIdChangeSchema,

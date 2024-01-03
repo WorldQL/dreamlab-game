@@ -7,7 +7,7 @@ import {
   useState,
 } from 'https://esm.sh/v136/react@18.2.0'
 import type { FC } from 'https://esm.sh/v136/react@18.2.0'
-import { styled } from 'https://esm.sh/v136/styled-components@6.1.1'
+import { styled } from 'https://esm.sh/v136/styled-components@6.1.6'
 import type { Action } from '../../editor'
 import type { Selector } from '../../entities/select'
 import { Button, DeleteButton, LockButton } from '../ui/buttons'
@@ -217,8 +217,8 @@ export const EntityDisplay: FC<DisplayProps> = ({
                 ? entity.label.slice(0, 30) + '...'
                 : entity.label
               : entity.definition.entity.length > 30
-              ? entity.definition.entity.slice(0, 30) + '...'
-              : entity.definition.entity}
+                ? entity.definition.entity.slice(0, 30) + '...'
+                : entity.definition.entity}
           </span>
         )}
         <InfoDetails isSelected={isSelected}>

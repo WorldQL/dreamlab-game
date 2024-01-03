@@ -11,7 +11,7 @@ import {
   useState,
 } from 'https://esm.sh/v136/react@18.2.0'
 import type { FC } from 'https://esm.sh/v136/react@18.2.0'
-import { styled } from 'https://esm.sh/v136/styled-components@6.1.1'
+import { styled } from 'https://esm.sh/v136/styled-components@6.1.6'
 import { Input } from './input'
 import { bindInput } from './persist'
 
@@ -162,8 +162,8 @@ export const Rebind: FC<Props> = ({ visible, setVisible }) => {
           ev.button === 0
             ? 'MouseLeft'
             : ev.button === 1
-            ? 'MouseMiddle'
-            : 'MouseRight'
+              ? 'MouseMiddle'
+              : 'MouseRight'
 
         bindInput(game, prev, undefined)
         bindInput(game, code, id)

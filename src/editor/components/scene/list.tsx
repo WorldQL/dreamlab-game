@@ -13,7 +13,7 @@ import {
   useState,
 } from 'https://esm.sh/v136/react@18.2.0'
 import type { FC } from 'https://esm.sh/v136/react@18.2.0'
-import { styled } from 'https://esm.sh/v136/styled-components@6.1.1'
+import { styled } from 'https://esm.sh/v136/styled-components@6.1.6'
 import type { Action } from '../../editor'
 import { EditorInputs } from '../../editor'
 import type { Selector } from '../../entities/select'
@@ -79,7 +79,7 @@ export const SceneList: FC<{
     if (!selector.selected) return
 
     /*
-    I disabled this because the use of confirm() was interfering with 
+    I disabled this because the use of confirm() was interfering with
     // eslint-disable-next-line no-alert
     const confirmDeletion = confirm(
       `Are you sure you want to delete "${selector.selected.definition.entity}"?`,
