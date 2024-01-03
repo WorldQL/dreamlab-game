@@ -114,6 +114,17 @@ export const EntityDisplay: FC<DisplayProps> = ({
 
   const [isEditing, setIsEditing] = useState(false)
   const [editedLabel, setEditedLabel] = useState(entity.definition.entity)
+  const [editableArgs, setEditableArgs] = useState(entity.args)
+
+  const handleArgChange = (key: string, value: unknown) => {
+    setEditableArgs(prevArgs => ({ ...prevArgs, [key]: value }))
+  }
+
+  const handleSave = useCallback(() => {
+    // doesnt save
+    entity.definition.args = editableArgs
+    selector.events.emit('onArgsUpdate', entity.uid, entity.definition.args)
+  }, [editableArgs, entity.definition, entity.uid, selector.events])
 
   const onSelect = useCallback(() => {
     const locked = entity.tags?.includes('editorLocked')
@@ -217,6 +228,42 @@ export const EntityDisplay: FC<DisplayProps> = ({
               : entity.definition.entity}
           </p>
           <p>Z-Index: {entity.transform.zIndex}</p>
+          <div>
+            <div>
+              {Object.entries(editableArgs).map(([key, value]) => (
+                <div key={key} style={{ marginBottom: '0.5em' }}>
+                  <p style={{ fontWeight: 'bold', margin: '0' }}>{key}:</p>
+                  <input
+                    onChange={ev => handleArgChange(key, ev.target.value)}
+                    style={{
+                      width: '80%',
+                      padding: '0.5em',
+                      marginTop: '0.25em',
+                      border: '1px solid #ccc',
+                      borderRadius: '4px',
+                    }}
+                    type='text'
+                    value={value}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+          <button
+            onClick={handleSave}
+            style={{
+              marginTop: '1em',
+              padding: '0.5em 1em',
+              border: 'none',
+              backgroundColor: '#007bff',
+              color: 'white',
+              borderRadius: '4px',
+              cursor: 'pointer',
+            }}
+            type='button'
+          >
+            Save
+          </button>
         </InfoDetails>
       </SelectButton>
       <ControlButtons showLock={isLocked}>
