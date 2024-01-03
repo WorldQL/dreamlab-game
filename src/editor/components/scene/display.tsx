@@ -115,12 +115,13 @@ export const EntityDisplay: FC<DisplayProps> = ({
   const [isEditing, setIsEditing] = useState(false)
   const [editedLabel, setEditedLabel] = useState(entity.definition.entity)
   const [editableArgs, setEditableArgs] = useState(entity.args)
+  const inputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({})
 
   const handleArgChange = (key: string, value: unknown) => {
     setEditableArgs(prevArgs => ({ ...prevArgs, [key]: value }))
   }
 
-  const handleSave = useCallback(() => {
+  const handleArgSave = useCallback(() => {
     // doesnt save
     entity.definition.args = editableArgs
     selector.events.emit('onArgsUpdate', entity.uid, entity.definition.args)
@@ -234,7 +235,12 @@ export const EntityDisplay: FC<DisplayProps> = ({
                 <div key={key} style={{ marginBottom: '0.5em' }}>
                   <p style={{ fontWeight: 'bold', margin: '0' }}>{key}:</p>
                   <input
+                    onBlur={handleArgSave}
                     onChange={ev => handleArgChange(key, ev.target.value)}
+                    onKeyDown={ev => {
+                      if (ev.key === 'Enter') inputRefs.current[key]?.blur()
+                    }}
+                    ref={el => (inputRefs.current[key] = el)}
                     style={{
                       width: '80%',
                       padding: '0.5em',
@@ -249,21 +255,6 @@ export const EntityDisplay: FC<DisplayProps> = ({
               ))}
             </div>
           </div>
-          <button
-            onClick={handleSave}
-            style={{
-              marginTop: '1em',
-              padding: '0.5em 1em',
-              border: 'none',
-              backgroundColor: '#007bff',
-              color: 'white',
-              borderRadius: '4px',
-              cursor: 'pointer',
-            }}
-            type='button'
-          >
-            Save
-          </button>
         </InfoDetails>
       </SelectButton>
       <ControlButtons showLock={isLocked}>
