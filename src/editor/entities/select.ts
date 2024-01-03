@@ -406,6 +406,7 @@ export const createEntitySelect = (
 
               selected.transform.position = newOrigin
               game.resize(selected, { width, height })
+              events.emit('onArgsUpdate', selected.uid, selected.args)
             }
 
             break

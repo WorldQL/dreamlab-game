@@ -152,8 +152,11 @@ export const EntityDisplay: FC<DisplayProps> = ({
     entity.definition.tags = updatedTags
   }
 
-  const handleArgChange = (key: string, value: unknown) => {
-    setEditableArgs(prevArgs => ({ ...prevArgs, [key]: value }))
+  const handleArgChange = (key: string, value: string) => {
+    setEditableArgs(prevArgs => ({
+      ...prevArgs,
+      [key]: value,
+    }))
   }
 
   const handleArgSave = useCallback(() => {
@@ -228,6 +231,23 @@ export const EntityDisplay: FC<DisplayProps> = ({
       entityRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
     }
   }, [isSelected])
+
+  useEffect(() => {
+    const handleArgsUpdate = (entityId: string, newArgs: unknown) => {
+      if (entityId === entity.uid) {
+        setEditableArgs(prevArgs => ({
+          ...prevArgs,
+          ...(newArgs as Record<string, unknown>),
+        }))
+      }
+    }
+
+    selector.events.addListener('onArgsUpdate', handleArgsUpdate)
+
+    return () => {
+      selector.events.removeListener('onArgsUpdate', handleArgsUpdate)
+    }
+  }, [entity.definition, entity.uid, selector.events])
 
   return (
     <EntityButtons id={entity.uid} ref={entityRef}>
