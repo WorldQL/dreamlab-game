@@ -131,7 +131,7 @@ export const EntityDisplay: FC<DisplayProps> = ({
     Boolean(entity.definition.tags?.includes('editorLocked')),
   )
 
-  const [isEditing, setIsEditing] = useState(false)
+  const [isEditingLabel, setIsEditingLabel] = useState(false)
   const [editedLabel, setEditedLabel] = useState(entity.definition.entity)
   const [editableArgs, setEditableArgs] = useState(entity.args)
   const [entityTransform, setEntityTransform] = useState(entity.transform)
@@ -160,6 +160,52 @@ export const EntityDisplay: FC<DisplayProps> = ({
       [key]: value,
     }))
   }
+
+  const handlePositionChange = (axis: 'x' | 'y', value: number) => {
+    setEntityTransform(prevTransform => ({
+      ...prevTransform,
+      position: {
+        ...prevTransform.position,
+        [axis]: value,
+      },
+    }))
+  }
+
+  const handleOtherTransformChange = (
+    property: 'rotation' | 'zIndex',
+    value: number,
+  ) => {
+    setEntityTransform(prevTransform => ({
+      ...prevTransform,
+      [property]: value,
+    }))
+  }
+
+  const handleTransformSave = useCallback(() => {
+    const newTransform = {
+      ...entityTransform,
+      position: {
+        x: Number.isNaN(entityTransform.position.x)
+          ? 0
+          : entityTransform.position.x,
+        y: Number.isNaN(entityTransform.position.y)
+          ? 0
+          : entityTransform.position.y,
+      },
+      rotation: Number.isNaN(entityTransform.rotation)
+        ? 0
+        : entityTransform.rotation,
+      zIndex: Number.isNaN(entityTransform.zIndex) ? 0 : entityTransform.zIndex,
+    }
+
+    setEntityTransform(prevTransform => ({
+      ...prevTransform,
+      ...newTransform,
+    }))
+
+    entity.definition.transform = newTransform
+    selector.events.emit('onTransformManualUpdate', entity.uid, newTransform)
+  }, [entity.definition, entity.uid, entityTransform, selector.events])
 
   const handleArgSave = useCallback(() => {
     entity.definition.args = editableArgs
@@ -211,16 +257,16 @@ export const EntityDisplay: FC<DisplayProps> = ({
 
   const handleDoubleClick = useCallback(() => {
     if (isSelected) {
-      setIsEditing(true)
+      setIsEditingLabel(true)
     }
   }, [isSelected])
 
   const toggleEdit = useCallback(() => {
-    if (isEditing) {
+    if (isEditingLabel) {
       entity.definition.label = editedLabel
-      setIsEditing(false)
+      setIsEditingLabel(false)
     }
-  }, [isEditing, editedLabel, entity.definition])
+  }, [isEditingLabel, editedLabel, entity.definition])
 
   const handleKeyPress = useCallback(
     (event: React.KeyboardEvent<HTMLInputElement>) => {
@@ -272,7 +318,7 @@ export const EntityDisplay: FC<DisplayProps> = ({
         isSelected={isSelected}
         onClick={onSelect}
       >
-        {isEditing ? (
+        {isEditingLabel ? (
           <input
             autoFocus
             onBlur={toggleEdit}
@@ -299,12 +345,75 @@ export const EntityDisplay: FC<DisplayProps> = ({
               ? entity.definition.entity.slice(0, 30) + '...'
               : entity.definition.entity}
           </p>
-          <p>
-            x: {Math.round(entityTransform.position.x)} y:{' '}
-            {Math.round(entityTransform.position.y)}
-          </p>
-          <p>angle: {Math.round(entityTransform.rotation)}</p>
-          <p>Z-Index: {entityTransform.zIndex}</p>
+          <div style={{ fontWeight: 'bold', margin: '0' }}>
+            <div>
+              <div>x:</div>
+              <input
+                onBlur={handleTransformSave}
+                onChange={ev =>
+                  handlePositionChange('x', Number.parseFloat(ev.target.value))
+                }
+                onKeyDown={ev => {
+                  if (ev.key === 'Enter') ev.currentTarget.blur()
+                }}
+                type='number'
+                value={Math.round(entityTransform.position.x)}
+              />
+            </div>
+            <div>
+              <div>y:</div>
+              <input
+                onBlur={handleTransformSave}
+                onChange={ev =>
+                  handlePositionChange('y', Number.parseFloat(ev.target.value))
+                }
+                onKeyDown={ev => {
+                  if (ev.key === 'Enter') ev.currentTarget.blur()
+                }}
+                type='number'
+                value={Math.round(entityTransform.position.y)}
+              />
+            </div>
+          </div>
+          <div style={{ fontWeight: 'bold', margin: '0' }}>
+            <div>
+              <div>angle:</div>
+              <input
+                onBlur={handleTransformSave}
+                onChange={ev =>
+                  handleOtherTransformChange(
+                    'rotation',
+                    Number.parseFloat(ev.target.value),
+                  )
+                }
+                onKeyDown={ev => {
+                  if (ev.key === 'Enter') ev.currentTarget.blur()
+                }}
+                type='number'
+                value={Math.round(entityTransform.rotation)}
+              />
+            </div>
+          </div>
+          <div style={{ fontWeight: 'bold', margin: '0' }}>
+            <div>
+              <div>Z-Index:</div>
+              <input
+                onBlur={handleTransformSave}
+                onChange={ev =>
+                  handleOtherTransformChange(
+                    'zIndex',
+                    Number.parseFloat(ev.target.value),
+                  )
+                }
+                onKeyDown={ev => {
+                  if (ev.key === 'Enter') ev.currentTarget.blur()
+                }}
+                type='number'
+                value={entityTransform.zIndex}
+              />
+            </div>
+          </div>
+
           <div>
             <div>
               {Object.entries(editableArgs).map(([key, value]) => (
@@ -318,7 +427,12 @@ export const EntityDisplay: FC<DisplayProps> = ({
                     }}
                     ref={el => (argsInputRefs.current[key] = el)}
                     type='text'
-                    value={value}
+                    value={
+                      (key === 'width' || key === 'height') &&
+                      !Number.isNaN(Number.parseFloat(value))
+                        ? Math.round(Number.parseFloat(value))
+                        : value
+                    }
                   />
                 </div>
               ))}

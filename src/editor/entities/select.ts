@@ -82,6 +82,7 @@ interface EntityEvents {
   onArgsUpdate: [string, unknown]
   onArgsManualUpdate: [string, unknown]
   onTransformUpdate: [string, Transform]
+  onTransformManualUpdate: [string, Transform]
 }
 
 export const createEntitySelect = (
@@ -168,25 +169,37 @@ export const createEntitySelect = (
       game.events.common.addListener('onDestroy', onDestroy)
 
       this.events.addListener('onArgsManualUpdate', (entityId, args) => {
-        if (selected && selected.uid === entityId) {
-          const newArgs = args as Record<string, unknown>
-          const width = Number.parseFloat(newArgs.width as string)
-          const height = Number.parseFloat(newArgs.height as string)
+        if (!selected || selected.uid !== entityId) return
+        const newArgs = args as Record<string, unknown>
+        const width = Number.parseFloat(newArgs.width as string)
+        const height = Number.parseFloat(newArgs.height as string)
 
-          if (
-            (width !== selected.args.width ||
-              height !== selected.args.height) &&
-            !Number.isNaN(width) &&
-            !Number.isNaN(height)
-          ) {
-            game.resize(selected, { width, height })
-            newArgs.width = width
-            newArgs.height = height
-          }
-
-          selected.definition.args = newArgs
+        if (
+          (width !== selected.args.width || height !== selected.args.height) &&
+          !Number.isNaN(width) &&
+          !Number.isNaN(height)
+        ) {
+          game.resize(selected, { width, height })
+          newArgs.width = width
+          newArgs.height = height
         }
+
+        selected.definition.args = newArgs
       })
+
+      this.events.addListener(
+        'onTransformManualUpdate',
+        (entityId, newTransform) => {
+          if (!selected || selected.uid !== entityId) return
+
+          const { position, zIndex, rotation } = newTransform
+
+          selected.definition.transform = newTransform
+          selected.transform.position = position
+          selected.transform.zIndex = zIndex
+          selected.transform.rotation = rotation
+        },
+      )
 
       return { game, debug: game.debug }
     },
