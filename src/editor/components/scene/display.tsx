@@ -1,4 +1,5 @@
 import type { SpawnableEntity } from '@dreamlab.gg/core'
+import type { Transform } from '@dreamlab.gg/core/dist/math'
 import { useGame, useNetwork, usePlayer } from '@dreamlab.gg/ui/react'
 import {
   useCallback,
@@ -8,7 +9,6 @@ import {
 } from 'https://esm.sh/v136/react@18.2.0'
 import type { FC } from 'https://esm.sh/v136/react@18.2.0'
 import { styled } from 'https://esm.sh/v136/styled-components@6.1.6'
-import type { Vector } from 'matter-js'
 import type { Action } from '../../editor'
 import type { Selector } from '../../entities/select'
 import { Button, DeleteButton, LockButton } from '../ui/buttons'
@@ -134,9 +134,7 @@ export const EntityDisplay: FC<DisplayProps> = ({
   const [isEditing, setIsEditing] = useState(false)
   const [editedLabel, setEditedLabel] = useState(entity.definition.entity)
   const [editableArgs, setEditableArgs] = useState(entity.args)
-  const [entityPosition, setEntityPosition] = useState(
-    entity.transform.position,
-  )
+  const [entityTransform, setEntityTransform] = useState(entity.transform)
   const [newTag, setNewTag] = useState('')
   const [tags, setTags] = useState(entity.tags)
   const argsInputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({})
@@ -249,21 +247,21 @@ export const EntityDisplay: FC<DisplayProps> = ({
       }
     }
 
-    const handlePosUpdate = (entityId: string, newPos: Vector) => {
+    const handleTransformUpdate = (entityId: string, transform: Transform) => {
       if (entityId === entity.uid) {
-        setEntityPosition(prevPos => ({
-          ...prevPos,
-          ...newPos,
+        setEntityTransform(prevTransform => ({
+          ...prevTransform,
+          ...transform,
         }))
       }
     }
 
     selector.events.addListener('onArgsUpdate', handleArgsUpdate)
-    selector.events.addListener('onPositionUpdate', handlePosUpdate)
+    selector.events.addListener('onTransformUpdate', handleTransformUpdate)
 
     return () => {
       selector.events.removeListener('onArgsUpdate', handleArgsUpdate)
-      selector.events.removeListener('onPositionUpdate', handlePosUpdate)
+      selector.events.removeListener('onTransformUpdate', handleTransformUpdate)
     }
   }, [entity.definition, entity.uid, selector.events])
 
@@ -302,9 +300,11 @@ export const EntityDisplay: FC<DisplayProps> = ({
               : entity.definition.entity}
           </p>
           <p>
-            x: {Math.round(entityPosition.x)} y: {Math.round(entityPosition.y)}
+            x: {Math.round(entityTransform.position.x)} y:{' '}
+            {Math.round(entityTransform.position.y)}
           </p>
-          <p>Z-Index: {entity.transform.zIndex}</p>
+          <p>angle: {Math.round(entityTransform.rotation)}</p>
+          <p>Z-Index: {entityTransform.zIndex}</p>
           <div>
             <div>
               {Object.entries(editableArgs).map(([key, value]) => (

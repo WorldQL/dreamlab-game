@@ -125,13 +125,23 @@ export const SceneList: FC<{
     if (!selector.selected) return
     selector.selected.transform.zIndex += ctrlHeldDown ? 25 : 1
     forceUpdate()
-  }, [selector.selected, ctrlHeldDown, forceUpdate])
+    selector.events.emit(
+      'onTransformUpdate',
+      selector.selected.uid,
+      selector.selected.transform,
+    )
+  }, [selector.selected, selector.events, ctrlHeldDown, forceUpdate])
 
   const onMoveBackwards = useCallback(async () => {
     if (!selector.selected) return
     selector.selected.transform.zIndex -= ctrlHeldDown ? 25 : 1
     forceUpdate()
-  }, [selector.selected, ctrlHeldDown, forceUpdate])
+    selector.events.emit(
+      'onTransformUpdate',
+      selector.selected.uid,
+      selector.selected.transform,
+    )
+  }, [selector.selected, selector.events, ctrlHeldDown, forceUpdate])
 
   const onChangeTiling = useCallback(async () => {
     if (!selector.selected) return

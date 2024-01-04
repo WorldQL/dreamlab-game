@@ -14,7 +14,7 @@ import {
   toRadians,
   Vec,
 } from '@dreamlab.gg/core/math'
-import type { Bounds, Vector } from '@dreamlab.gg/core/math'
+import type { Bounds, Transform, Vector } from '@dreamlab.gg/core/math'
 import type { Debug, Ref } from '@dreamlab.gg/core/utils'
 import { drawBox, drawCircle } from '@dreamlab.gg/core/utils'
 import { Container, Graphics } from 'pixi.js'
@@ -81,7 +81,7 @@ interface EntityEvents {
   onSelect: [string | undefined]
   onArgsUpdate: [string, unknown]
   onArgsManualUpdate: [string, unknown]
-  onPositionUpdate: [string, Vector]
+  onTransformUpdate: [string, Transform]
 }
 
 export const createEntitySelect = (
@@ -381,7 +381,7 @@ export const createEntitySelect = (
 
             const angle = shift ? snap(degrees, 15) : degrees
             selected.transform.rotation = angle
-
+            events.emit('onTransformUpdate', selected.uid, selected.transform)
             break
           }
 
@@ -442,11 +442,7 @@ export const createEntitySelect = (
             selected.transform.position.x = newPosition.x
             selected.transform.position.y = newPosition.y
 
-            events.emit(
-              'onPositionUpdate',
-              selected.uid,
-              selected.transform.position,
-            )
+            events.emit('onTransformUpdate', selected.uid, selected.transform)
 
             break
           }
