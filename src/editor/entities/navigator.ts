@@ -116,6 +116,13 @@ export const createNavigator = (
           Vec.create(ev.deltaX, ev.deltaY),
           camera.scale,
         )
+        if (ev.shiftKey) {
+          // swap the X and Y values so that it scrolls like Figma
+          const tempX = amplifiedMovement.x
+          amplifiedMovement.x = amplifiedMovement.y
+          amplifiedMovement.y = tempX
+        }
+
         const newPosition = Vec.add(this.position, amplifiedMovement)
 
         game.client?.render.camera.setTarget({ position: newPosition })
