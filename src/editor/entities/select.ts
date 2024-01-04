@@ -79,8 +79,9 @@ export interface Selector extends Entity<Data, Render> {
 
 interface EntityEvents {
   onSelect: [string | undefined]
-  onArgsManualUpdate: [string, unknown]
   onArgsUpdate: [string, unknown]
+  onArgsManualUpdate: [string, unknown]
+  onPositionUpdate: [string, Vector]
 }
 
 export const createEntitySelect = (
@@ -440,6 +441,12 @@ export const createEntitySelect = (
 
             selected.transform.position.x = newPosition.x
             selected.transform.position.y = newPosition.y
+
+            events.emit(
+              'onPositionUpdate',
+              selected.uid,
+              selected.transform.position,
+            )
 
             break
           }

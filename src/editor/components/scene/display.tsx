@@ -8,6 +8,7 @@ import {
 } from 'https://esm.sh/v136/react@18.2.0'
 import type { FC } from 'https://esm.sh/v136/react@18.2.0'
 import { styled } from 'https://esm.sh/v136/styled-components@6.1.6'
+import type { Vector } from 'matter-js'
 import type { Action } from '../../editor'
 import type { Selector } from '../../entities/select'
 import { Button, DeleteButton, LockButton } from '../ui/buttons'
@@ -133,6 +134,9 @@ export const EntityDisplay: FC<DisplayProps> = ({
   const [isEditing, setIsEditing] = useState(false)
   const [editedLabel, setEditedLabel] = useState(entity.definition.entity)
   const [editableArgs, setEditableArgs] = useState(entity.args)
+  const [entityPosition, setEntityPosition] = useState(
+    entity.transform.position,
+  )
   const [newTag, setNewTag] = useState('')
   const [tags, setTags] = useState(entity.tags)
   const argsInputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({})
@@ -245,10 +249,21 @@ export const EntityDisplay: FC<DisplayProps> = ({
       }
     }
 
+    const handlePosUpdate = (entityId: string, newPos: Vector) => {
+      if (entityId === entity.uid) {
+        setEntityPosition(prevPos => ({
+          ...prevPos,
+          ...newPos,
+        }))
+      }
+    }
+
     selector.events.addListener('onArgsUpdate', handleArgsUpdate)
+    selector.events.addListener('onPositionUpdate', handlePosUpdate)
 
     return () => {
       selector.events.removeListener('onArgsUpdate', handleArgsUpdate)
+      selector.events.removeListener('onPositionUpdate', handlePosUpdate)
     }
   }, [entity.definition, entity.uid, selector.events])
 
@@ -285,6 +300,9 @@ export const EntityDisplay: FC<DisplayProps> = ({
             {entity.definition.entity.length > 30
               ? entity.definition.entity.slice(0, 30) + '...'
               : entity.definition.entity}
+          </p>
+          <p>
+            x: {Math.round(entityPosition.x)} y: {Math.round(entityPosition.y)}
           </p>
           <p>Z-Index: {entity.transform.zIndex}</p>
           <div>
