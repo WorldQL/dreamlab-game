@@ -57,6 +57,7 @@ type RenderInputForZodSchemaFunctionType = (
   argsInputRefs: React.MutableRefObject<{
     [key: string]: HTMLInputElement | null
   }>,
+  depth: number,
 ) => JSX.Element
 
 const renderNumberInput: RenderInputFunctionType = (
@@ -282,8 +283,9 @@ export const renderInputForZodSchema: RenderInputForZodSchemaFunctionType = (
   handleArgChange,
   handleArgSave,
   argsInputRefs,
+  depth = 0,
 ) => {
-  if (!schema) {
+  if (!schema || depth > 10) {
     return null
   }
 
@@ -309,6 +311,7 @@ export const renderInputForZodSchema: RenderInputForZodSchemaFunctionType = (
         handleArgChange,
         handleArgSave,
         argsInputRefs,
+        depth + 1,
       )
     }
   }
@@ -339,6 +342,7 @@ export const renderInputForZodSchema: RenderInputForZodSchemaFunctionType = (
           handleArgChange,
           handleArgSave,
           argsInputRefs,
+          depth + 1,
         ),
       )
     case 'ZodObject': {
@@ -359,6 +363,7 @@ export const renderInputForZodSchema: RenderInputForZodSchemaFunctionType = (
               handleArgChange,
               handleArgSave,
               argsInputRefs,
+              depth + 1,
             )
           })}
         </div>
@@ -407,6 +412,7 @@ export const renderInputForZodSchema: RenderInputForZodSchemaFunctionType = (
         handleArgChange,
         handleArgSave,
         argsInputRefs,
+        depth + 1,
       )
   }
 }
