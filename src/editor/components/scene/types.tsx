@@ -135,22 +135,35 @@ const renderArrayInputs: RenderInputFunctionType = (
   handleArgChange,
   handleArgSave,
   argsInputRefs,
-) => (
-  <>
-    <p style={{ fontWeight: 'bold', margin: '0' }}>{key}:</p>
-    <input
-      onBlur={handleArgSave}
-      onChange={ev => handleArgChange(key, ev.target.value)}
-      onKeyDown={ev => {
-        if (ev.key === 'Enter') argsInputRefs.current[key]?.blur()
-        if (ev.key === 'Backspace') ev.stopPropagation()
-      }}
-      ref={el => (argsInputRefs.current[key] = el)}
-      type='text'
-      value={value}
-    />
-  </>
-)
+) => {
+  if (!Array.isArray(value)) {
+    return <p>{key}: Invalid array</p>
+  }
+
+  return (
+    <>
+      <p style={{ fontWeight: 'bold', margin: '0' }}>{key}:</p>
+      {value.map((item, index) => {
+        const itemKey = `${key}[${index}]`
+        return (
+          <div key={itemKey} style={{ marginBottom: '8px' }}>
+            <input
+              onBlur={handleArgSave}
+              onChange={ev => handleArgChange(itemKey, ev.target.value)}
+              onKeyDown={ev => {
+                if (ev.key === 'Enter') argsInputRefs.current[itemKey]?.blur()
+                if (ev.key === 'Backspace') ev.stopPropagation()
+              }}
+              ref={el => (argsInputRefs.current[itemKey] = el)}
+              type='text'
+              value={item}
+            />
+          </div>
+        )
+      })}
+    </>
+  )
+}
 
 const renderBooleanCheckbox: RenderBooleanCheckboxFunctionType = (
   key,
