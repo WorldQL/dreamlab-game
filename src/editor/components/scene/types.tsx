@@ -74,6 +74,7 @@ const renderNumberInput: RenderInputFunctionType = (
       onChange={ev => handleArgChange(key, ev.target.value)}
       onKeyDown={ev => {
         if (ev.key === 'Enter') argsInputRefs.current[key]?.blur()
+        if (ev.key === 'Backspace') ev.stopPropagation()
       }}
       ref={el => (argsInputRefs.current[key] = el)}
       type='number'
@@ -119,6 +120,7 @@ const renderStringInput: RenderInputFunctionType = (
       onChange={ev => handleArgChange(key, ev.target.value)}
       onKeyDown={ev => {
         if (ev.key === 'Enter') argsInputRefs.current[key]?.blur()
+        if (ev.key === 'Backspace') ev.stopPropagation()
       }}
       ref={el => (argsInputRefs.current[key] = el)}
       type='text'
@@ -141,6 +143,7 @@ const renderArrayInputs: RenderInputFunctionType = (
       onChange={ev => handleArgChange(key, ev.target.value)}
       onKeyDown={ev => {
         if (ev.key === 'Enter') argsInputRefs.current[key]?.blur()
+        if (ev.key === 'Backspace') ev.stopPropagation()
       }}
       ref={el => (argsInputRefs.current[key] = el)}
       type='text'

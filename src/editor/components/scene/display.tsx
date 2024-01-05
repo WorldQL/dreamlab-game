@@ -374,6 +374,7 @@ export const EntityDisplay: FC<DisplayProps> = ({
                 }
                 onKeyDown={ev => {
                   if (ev.key === 'Enter') ev.currentTarget.blur()
+                  if (ev.key === 'Backspace') ev.stopPropagation()
                 }}
                 type='number'
                 value={Math.round(entityTransform.position.x)}
@@ -388,6 +389,7 @@ export const EntityDisplay: FC<DisplayProps> = ({
                 }
                 onKeyDown={ev => {
                   if (ev.key === 'Enter') ev.currentTarget.blur()
+                  if (ev.key === 'Backspace') ev.stopPropagation()
                 }}
                 type='number'
                 value={Math.round(entityTransform.position.y)}
@@ -407,6 +409,7 @@ export const EntityDisplay: FC<DisplayProps> = ({
                 }
                 onKeyDown={ev => {
                   if (ev.key === 'Enter') ev.currentTarget.blur()
+                  if (ev.key === 'Backspace') ev.stopPropagation()
                 }}
                 type='number'
                 value={Math.round(entityTransform.rotation)}
@@ -426,6 +429,7 @@ export const EntityDisplay: FC<DisplayProps> = ({
                 }
                 onKeyDown={ev => {
                   if (ev.key === 'Enter') ev.currentTarget.blur()
+                  if (ev.key === 'Backspace') ev.stopPropagation()
                 }}
                 type='number'
                 value={entityTransform.zIndex}
@@ -447,6 +451,7 @@ export const EntityDisplay: FC<DisplayProps> = ({
                       handleArgChange,
                       handleArgSave,
                       argsInputRefs,
+                      0,
                     )}
                   </div>
                 )
@@ -498,6 +503,7 @@ export const EntityDisplay: FC<DisplayProps> = ({
                   onChange={ev => setNewTag(ev.target.value)}
                   onKeyDown={ev => {
                     if (ev.key === 'Enter' && newTag !== '') handleAddTag()
+                    if (ev.key === 'Backspace') ev.stopPropagation()
                   }}
                   placeholder='New tag'
                   style={{ marginRight: '4px', fontSize: '0.75rem' }}
