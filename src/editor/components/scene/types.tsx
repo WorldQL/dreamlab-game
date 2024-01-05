@@ -272,6 +272,10 @@ export const renderInputForZodSchema: RenderInputForZodSchemaFunctionType = (
   handleArgSave,
   argsInputRefs,
 ) => {
+  if (!schema) {
+    return null
+  }
+
   const unwrappedSchema =
     schema instanceof ZodDefault || schema instanceof ZodOptional
       ? schema._def.innerType
