@@ -73,16 +73,19 @@ const renderNumberInput: RenderInputFunctionType = (
   handleArgSave,
   argsInputRefs,
 ) => (
-  <input
-    onBlur={handleArgSave}
-    onChange={ev => handleArgChange(key, ev.target.value)}
-    onKeyDown={ev => {
-      if (ev.key === 'Enter') argsInputRefs.current[key]?.blur()
-    }}
-    ref={el => (argsInputRefs.current[key] = el)}
-    type='number'
-    value={value as number}
-  />
+  <>
+    <p style={{ fontWeight: 'bold', margin: '0' }}>{key}:</p>
+    <input
+      onBlur={handleArgSave}
+      onChange={ev => handleArgChange(key, ev.target.value)}
+      onKeyDown={ev => {
+        if (ev.key === 'Enter') argsInputRefs.current[key]?.blur()
+      }}
+      ref={el => (argsInputRefs.current[key] = el)}
+      type='number'
+      value={value as number}
+    />
+  </>
 )
 
 const renderEnumSelect: RenderEnumSelectFunctionType = (
@@ -92,17 +95,20 @@ const renderEnumSelect: RenderEnumSelectFunctionType = (
   handleArgChange,
   handleArgSave,
 ) => (
-  <select
-    onBlur={handleArgSave}
-    onChange={ev => handleArgChange(key, ev.target.value)}
-    value={value}
-  >
-    {schema.options.map((enumValue: unknown) => (
-      <option key={String(enumValue)} value={String(enumValue)}>
-        {String(enumValue)}
-      </option>
-    ))}
-  </select>
+  <>
+    <p style={{ fontWeight: 'bold', margin: '0' }}>{key}:</p>
+    <select
+      onBlur={handleArgSave}
+      onChange={ev => handleArgChange(key, ev.target.value)}
+      value={value}
+    >
+      {schema.options.map((enumValue: unknown) => (
+        <option key={String(enumValue)} value={String(enumValue)}>
+          {String(enumValue)}
+        </option>
+      ))}
+    </select>
+  </>
 )
 
 const renderStringInput: RenderInputFunctionType = (
@@ -112,16 +118,19 @@ const renderStringInput: RenderInputFunctionType = (
   handleArgSave,
   argsInputRefs,
 ) => (
-  <input
-    onBlur={handleArgSave}
-    onChange={ev => handleArgChange(key, ev.target.value)}
-    onKeyDown={ev => {
-      if (ev.key === 'Enter') argsInputRefs.current[key]?.blur()
-    }}
-    ref={el => (argsInputRefs.current[key] = el)}
-    type='text'
-    value={value as string}
-  />
+  <>
+    <p style={{ fontWeight: 'bold', margin: '0' }}>{key}:</p>
+    <input
+      onBlur={handleArgSave}
+      onChange={ev => handleArgChange(key, ev.target.value)}
+      onKeyDown={ev => {
+        if (ev.key === 'Enter') argsInputRefs.current[key]?.blur()
+      }}
+      ref={el => (argsInputRefs.current[key] = el)}
+      type='text'
+      value={value as string}
+    />
+  </>
 )
 
 const renderArrayInputs: RenderInputFunctionType = (
@@ -131,16 +140,19 @@ const renderArrayInputs: RenderInputFunctionType = (
   handleArgSave,
   argsInputRefs,
 ) => (
-  <input
-    onBlur={handleArgSave}
-    onChange={ev => handleArgChange(key, ev.target.value)}
-    onKeyDown={ev => {
-      if (ev.key === 'Enter') argsInputRefs.current[key]?.blur()
-    }}
-    ref={el => (argsInputRefs.current[key] = el)}
-    type='text'
-    value={value}
-  />
+  <>
+    <p style={{ fontWeight: 'bold', margin: '0' }}>{key}:</p>
+    <input
+      onBlur={handleArgSave}
+      onChange={ev => handleArgChange(key, ev.target.value)}
+      onKeyDown={ev => {
+        if (ev.key === 'Enter') argsInputRefs.current[key]?.blur()
+      }}
+      ref={el => (argsInputRefs.current[key] = el)}
+      type='text'
+      value={value}
+    />
+  </>
 )
 
 const renderBooleanCheckbox: RenderBooleanCheckboxFunctionType = (
@@ -150,13 +162,16 @@ const renderBooleanCheckbox: RenderBooleanCheckboxFunctionType = (
   handleArgSave,
   argsInputRefs,
 ) => (
-  <input
-    checked={value}
-    onBlur={handleArgSave}
-    onChange={ev => handleArgChange(key, ev.target.checked)}
-    ref={el => (argsInputRefs.current[key] = el)}
-    type='checkbox'
-  />
+  <>
+    <p style={{ fontWeight: 'bold', margin: '0' }}>{key}:</p>
+    <input
+      checked={value}
+      onBlur={handleArgSave}
+      onChange={ev => handleArgChange(key, ev.target.checked)}
+      ref={el => (argsInputRefs.current[key] = el)}
+      type='checkbox'
+    />
+  </>
 )
 
 const renderFallbackInput: RenderInputFunctionType = (
@@ -165,8 +180,25 @@ const renderFallbackInput: RenderInputFunctionType = (
   handleArgChange,
   handleArgSave,
   argsInputRefs,
-) =>
-  renderStringInput(key, value, handleArgChange, handleArgSave, argsInputRefs)
+) => {
+  if (typeof value === 'number') {
+    return renderNumberInput(
+      key,
+      value,
+      handleArgChange,
+      handleArgSave,
+      argsInputRefs,
+    )
+  }
+
+  return renderStringInput(
+    key,
+    value,
+    handleArgChange,
+    handleArgSave,
+    argsInputRefs,
+  )
+}
 
 const renderComplexObject: RenderComplexObjectFunctionType = (
   key,

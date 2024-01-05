@@ -422,7 +422,6 @@ export const EntityDisplay: FC<DisplayProps> = ({
 
                 return (
                   <div key={key} style={{ marginBottom: '0.5em' }}>
-                    <p style={{ fontWeight: 'bold', margin: '0' }}>{key}:</p>
                     {renderInputForZodSchema(
                       key,
                       value,
