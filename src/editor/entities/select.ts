@@ -85,6 +85,32 @@ interface EntityEvents {
   onTransformManualUpdate: [string, Transform]
 }
 
+async function getPngDimensions(
+  url: string,
+): Promise<{ width: number; height: number }> {
+  return new Promise((resolve, reject) => {
+    const img = new Image()
+
+    // eslint-disable-next-line unicorn/prefer-add-event-listener
+    img.onload = () => {
+      const dimensions = { width: img.width, height: img.height }
+      resolve(dimensions)
+    }
+
+    // eslint-disable-next-line unicorn/prefer-add-event-listener
+    img.onerror = () => {
+      reject(new Error('An error occurred loading the image.'))
+    }
+
+    img.src = url
+
+    if (img.complete) {
+      // @ts-expect-error: I don't need to pass an ev
+      img.onload()
+    }
+  })
+}
+
 export const createEntitySelect = (
   editorEnabled: Ref<boolean>,
   sendPacket?: (packet: ToServerPacket) => void,
@@ -96,6 +122,7 @@ export const createEntitySelect = (
 
   let selected: SpawnableEntity | undefined
   let action: ActionData | undefined
+  let _game: Game<false> | undefined
 
   const onMouseUp = () => {
     if (action !== undefined) action = { type: 'clear' }
@@ -109,10 +136,45 @@ export const createEntitySelect = (
 
   const onDrop = (ev: DragEvent) => {
     ev.preventDefault()
-    if (!selected) return
 
-    const url = ev.dataTransfer?.getData('text/plain')
-    if (!url) return
+    // due to a weird interaction between CORS and the cache we have to do this. remove the buster param and see what happens.
+    const url = ev.dataTransfer?.getData('text/plain') + '?buster=123'
+    if (!url) {
+      console.log('Returning from drop event because no url')
+      return
+    }
+
+    if (!selected) {
+      setTimeout(async () => {
+        const dimensions = await getPngDimensions(url)
+        console.log(dimensions)
+
+        const cursorPosition = _game?.client.inputs.getCursor('world')
+        if (!cursorPosition) {
+          console.log('Returning from drop event because no cursorPosition')
+          return
+        }
+
+        const definition = {
+          entity: '@dreamlab/Nonsolid',
+          args: {
+            width: dimensions.width / 2,
+            height: dimensions.height / 2,
+            spriteSource: url,
+          },
+          transform: {
+            position: {
+              x: cursorPosition.x,
+              y: cursorPosition.y,
+            },
+          },
+          tags: [],
+        }
+        void _game?.client?.network?.sendEntityCreate(definition)
+        await _game?.spawn(definition)
+      }, 5) // this is so stupid but when you're dragging the cursor doesn't exist but it immediately reappears after dropping
+      return
+    }
 
     if ('spriteSource' in selected.argsSchema.shape) {
       selected.args.spriteSource = url
@@ -166,6 +228,7 @@ export const createEntitySelect = (
     },
 
     init({ game }) {
+      _game = game
       game.events.common.addListener('onDestroy', onDestroy)
 
       this.events.addListener('onArgsManualUpdate', (entityId, args) => {
