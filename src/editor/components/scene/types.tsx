@@ -1,17 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import type { ZodType } from 'zod'
-import {
-  z,
-  ZodArray,
-  ZodBoolean,
-  ZodDefault,
-  ZodEnum,
-  ZodNumber,
-  ZodObject,
-  ZodOptional,
-  ZodString,
-  ZodUnion,
-} from 'zod'
+import type { ZodEnum, ZodObject, ZodType } from 'zod'
+import { z, ZodDefault, ZodOptional } from 'zod'
+
+interface ZodTypeDef {
+  typeName: string
+}
 
 // Types for renderNumberInput, renderStringInput, renderArrayInputs, and renderFallbackInput
 type RenderInputFunctionType = (
@@ -301,6 +294,8 @@ export const renderInputForZodSchema: RenderInputForZodSchemaFunctionType = (
         ? schema._def.schema
         : schema
 
+  const zodTypeDef = (unwrappedSchema as any)._def as ZodTypeDef
+
   if (unwrappedSchema instanceof z.ZodDiscriminatedUnion) {
     const discriminatorKey = unwrappedSchema._def.discriminator
     const discriminatorValue = value[discriminatorKey]
@@ -318,8 +313,8 @@ export const renderInputForZodSchema: RenderInputForZodSchemaFunctionType = (
     }
   }
 
-  switch (unwrappedSchema.constructor) {
-    case ZodNumber:
+  switch (zodTypeDef.typeName) {
+    case 'ZodNumber':
       return renderNumberInput(
         key,
         value,
@@ -327,7 +322,7 @@ export const renderInputForZodSchema: RenderInputForZodSchemaFunctionType = (
         handleArgSave,
         argsInputRefs,
       )
-    case ZodEnum:
+    case 'ZodEnum':
       return renderEnumSelect(
         key,
         value,
@@ -335,7 +330,7 @@ export const renderInputForZodSchema: RenderInputForZodSchemaFunctionType = (
         handleArgChange,
         handleArgSave,
       )
-    case ZodUnion:
+    case 'ZodUnion':
       return unwrappedSchema.options.map((unionType: unknown) =>
         renderInputForZodSchema(
           key,
@@ -346,7 +341,7 @@ export const renderInputForZodSchema: RenderInputForZodSchemaFunctionType = (
           argsInputRefs,
         ),
       )
-    case ZodObject: {
+    case 'ZodObject': {
       const objectSchema = schema as ZodObject<any>
       return (
         <div key={key} style={{ marginBottom: '16px' }}>
@@ -370,7 +365,7 @@ export const renderInputForZodSchema: RenderInputForZodSchemaFunctionType = (
       )
     }
 
-    case ZodString:
+    case 'ZodString':
       return renderStringInput(
         key,
         value,
@@ -378,7 +373,7 @@ export const renderInputForZodSchema: RenderInputForZodSchemaFunctionType = (
         handleArgSave,
         argsInputRefs,
       )
-    case ZodArray:
+    case 'ZodArray':
       return renderArrayInputs(
         key,
         value,
@@ -386,7 +381,7 @@ export const renderInputForZodSchema: RenderInputForZodSchemaFunctionType = (
         handleArgSave,
         argsInputRefs,
       )
-    case ZodBoolean:
+    case 'ZodBoolean':
       return renderBooleanCheckbox(
         key,
         value,
@@ -405,9 +400,10 @@ export const renderInputForZodSchema: RenderInputForZodSchemaFunctionType = (
         )
       }
 
-      return renderFallbackInput(
+      return renderInputForZodSchema(
         key,
         value,
+        schema._def.innerType,
         handleArgChange,
         handleArgSave,
         argsInputRefs,
