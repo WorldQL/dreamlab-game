@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import type { ZodEnum, ZodObject, ZodType } from 'zod'
-import { z, ZodDefault, ZodOptional } from 'zod'
+import type { ZodEnum, ZodType } from 'zod'
+import { z, ZodDefault, ZodObject, ZodOptional } from 'zod'
 
 interface ZodTypeDef {
   typeName: string
@@ -285,7 +285,13 @@ export const renderInputForZodSchema: RenderInputForZodSchemaFunctionType = (
   argsInputRefs,
   depth = 0,
 ) => {
-  if (!schema || depth > 10) {
+  if (!schema) {
+    console.error(`Invalid schema provided for key: ${key}`)
+    return null
+  }
+
+  if (depth > 10) {
+    console.error(`Maximum depth exceeded for key: ${key}`)
     return null
   }
 
@@ -346,8 +352,20 @@ export const renderInputForZodSchema: RenderInputForZodSchemaFunctionType = (
         ),
       )
     case 'ZodObject': {
-      let objectSchema = schema as ZodObject<any>
-      if (!objectSchema.shape) objectSchema = schema._def.innerType
+      const objectSchema =
+        schema instanceof ZodObject
+          ? schema
+          : schema instanceof ZodDefault || schema instanceof ZodOptional
+            ? schema._def.innerType
+            : null
+
+      if (!objectSchema?.shape) {
+        console.error(
+          `Invalid or undefined object schema detected for key: ${key}`,
+        )
+        return <p>Invalid Schema</p>
+      }
+
       return (
         <div key={key} style={{ marginBottom: '16px' }}>
           {Object.keys(objectSchema.shape).map(propertyKey => {
