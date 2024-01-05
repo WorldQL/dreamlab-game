@@ -350,21 +350,24 @@ export const renderInputForZodSchema: RenderInputForZodSchemaFunctionType = (
       if (!objectSchema.shape) objectSchema = schema._def.innerType
       return (
         <div key={key} style={{ marginBottom: '16px' }}>
-          <div style={{ fontWeight: 'bold' }}>{key}</div>
           {Object.keys(objectSchema.shape).map(propertyKey => {
             const propertySchema = objectSchema.shape[propertyKey]
             const propertyValue =
               typeof value === 'object' && value
                 ? value[propertyKey]
                 : undefined
-            return renderInputForZodSchema(
-              `${key}.${propertyKey}`,
-              propertyValue,
-              propertySchema,
-              handleArgChange,
-              handleArgSave,
-              argsInputRefs,
-              depth + 1,
+            return (
+              <div key={`${key}.${propertyKey}`}>
+                {renderInputForZodSchema(
+                  `${key}.${propertyKey}`,
+                  propertyValue,
+                  propertySchema,
+                  handleArgChange,
+                  handleArgSave,
+                  argsInputRefs,
+                  depth + 1,
+                )}
+              </div>
             )
           })}
         </div>
