@@ -218,7 +218,7 @@ const renderComplexObject: RenderComplexObjectFunctionType = (
                 return renderNumberInput(
                   fullKey,
                   subValue,
-                  handleArgChange as (arg0: unknown, arg1: string) => void,
+                  handleArgChange,
                   handleArgSave,
                   argsInputRefs,
                 )
@@ -226,7 +226,7 @@ const renderComplexObject: RenderComplexObjectFunctionType = (
                 return renderBooleanCheckbox(
                   fullKey,
                   subValue,
-                  handleArgChange as (arg0: unknown, arg1: boolean) => void,
+                  handleArgChange,
                   handleArgSave,
                   argsInputRefs,
                 )
@@ -234,7 +234,7 @@ const renderComplexObject: RenderComplexObjectFunctionType = (
                 return renderStringInput(
                   fullKey,
                   subValue,
-                  handleArgChange as (arg0: unknown, arg1: string) => void,
+                  handleArgChange,
                   handleArgSave,
                   argsInputRefs,
                 )
@@ -250,7 +250,7 @@ const renderComplexObject: RenderComplexObjectFunctionType = (
                 return renderFallbackInput(
                   fullKey,
                   subValue,
-                  handleArgChange as (arg0: unknown, arg1: string) => void,
+                  handleArgChange,
                   handleArgSave,
                   argsInputRefs,
                 )

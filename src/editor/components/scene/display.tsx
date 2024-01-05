@@ -155,11 +155,29 @@ export const EntityDisplay: FC<DisplayProps> = ({
     entity.definition.tags = updatedTags
   }
 
-  const handleArgChange = (key: string, value: string) => {
-    setEditableArgs(prevArgs => ({
-      ...prevArgs,
-      [key]: value,
-    }))
+  const handleArgChange = (key: string, value: unknown) => {
+    setEditableArgs(prevArgs => {
+      const updatedArgs = { ...prevArgs }
+      const keys = key.split('.')
+      let currentLevel = updatedArgs
+
+      for (let idx = 0; idx < keys.length - 1; idx++) {
+        const currentKey = keys[idx]
+
+        if (
+          !currentLevel[currentKey] ||
+          typeof currentLevel[currentKey] !== 'object'
+        ) {
+          currentLevel[currentKey] = {}
+        }
+
+        currentLevel = currentLevel[currentKey]
+      }
+
+      currentLevel[keys[keys.length - 1]] = value
+
+      return updatedArgs
+    })
   }
 
   const handlePositionChange = (axis: 'x' | 'y', value: number) => {
