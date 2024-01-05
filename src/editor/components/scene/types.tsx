@@ -346,7 +346,8 @@ export const renderInputForZodSchema: RenderInputForZodSchemaFunctionType = (
         ),
       )
     case 'ZodObject': {
-      const objectSchema = schema as ZodObject<any>
+      let objectSchema = schema as ZodObject<any>
+      if (!objectSchema.shape) objectSchema = schema._def.innerType
       return (
         <div key={key} style={{ marginBottom: '16px' }}>
           <div style={{ fontWeight: 'bold' }}>{key}</div>
