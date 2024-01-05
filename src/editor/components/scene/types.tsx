@@ -1,0 +1,364 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import type { ZodType } from 'zod'
+import {
+  z,
+  ZodArray,
+  ZodBoolean,
+  ZodDefault,
+  ZodEnum,
+  ZodNumber,
+  ZodObject,
+  ZodOptional,
+  ZodString,
+  ZodUnion,
+} from 'zod'
+
+// Types for renderNumberInput, renderStringInput, renderArrayInputs, and renderFallbackInput
+type RenderInputFunctionType = (
+  key: string,
+  value: any | number | string,
+  handleArgChange: (
+    key: string,
+    newValue: any | boolean | number | string,
+  ) => void,
+  handleArgSave: () => void,
+  argsInputRefs: React.MutableRefObject<{
+    [key: string]: HTMLInputElement | null
+  }>,
+) => JSX.Element
+
+type RenderEnumSelectFunctionType = (
+  key: string,
+  value: string,
+  schema: ZodEnum<any>,
+  handleArgChange: (key: string, newValue: string) => void,
+  handleArgSave: () => void,
+) => JSX.Element
+
+type RenderBooleanCheckboxFunctionType = (
+  key: string,
+  value: boolean,
+  handleArgChange: (key: string, newValue: boolean) => void,
+  handleArgSave: () => void,
+  argsInputRefs: React.MutableRefObject<{
+    [key: string]: HTMLInputElement | null
+  }>,
+) => JSX.Element
+
+type RenderComplexObjectFunctionType = (
+  key: string,
+  value: any,
+  handleArgChange: (key: string, newValue: any) => void,
+  handleArgSave: () => void,
+  argsInputRefs: React.MutableRefObject<{
+    [key: string]: HTMLInputElement | null
+  }>,
+) => JSX.Element
+
+type RenderInputForZodSchemaFunctionType = (
+  key: string,
+  value: any,
+  schema: ZodType<any, any>,
+  handleArgChange: (key: string, newValue: any) => void,
+  handleArgSave: () => void,
+  argsInputRefs: React.MutableRefObject<{
+    [key: string]: HTMLInputElement | null
+  }>,
+) => JSX.Element
+
+const renderNumberInput: RenderInputFunctionType = (
+  key,
+  value,
+  handleArgChange,
+  handleArgSave,
+  argsInputRefs,
+) => (
+  <input
+    onBlur={handleArgSave}
+    onChange={ev => handleArgChange(key, ev.target.value)}
+    onKeyDown={ev => {
+      if (ev.key === 'Enter') argsInputRefs.current[key]?.blur()
+    }}
+    ref={el => (argsInputRefs.current[key] = el)}
+    type='number'
+    value={value as number}
+  />
+)
+
+const renderEnumSelect: RenderEnumSelectFunctionType = (
+  key,
+  value,
+  schema,
+  handleArgChange,
+  handleArgSave,
+) => (
+  <select
+    onBlur={handleArgSave}
+    onChange={ev => handleArgChange(key, ev.target.value)}
+    value={value}
+  >
+    {schema.options.map((enumValue: unknown) => (
+      <option key={String(enumValue)} value={String(enumValue)}>
+        {String(enumValue)}
+      </option>
+    ))}
+  </select>
+)
+
+const renderStringInput: RenderInputFunctionType = (
+  key,
+  value,
+  handleArgChange,
+  handleArgSave,
+  argsInputRefs,
+) => (
+  <input
+    onBlur={handleArgSave}
+    onChange={ev => handleArgChange(key, ev.target.value)}
+    onKeyDown={ev => {
+      if (ev.key === 'Enter') argsInputRefs.current[key]?.blur()
+    }}
+    ref={el => (argsInputRefs.current[key] = el)}
+    type='text'
+    value={value as string}
+  />
+)
+
+const renderArrayInputs: RenderInputFunctionType = (
+  key,
+  value,
+  handleArgChange,
+  handleArgSave,
+  argsInputRefs,
+) => (
+  <input
+    onBlur={handleArgSave}
+    onChange={ev => handleArgChange(key, ev.target.value)}
+    onKeyDown={ev => {
+      if (ev.key === 'Enter') argsInputRefs.current[key]?.blur()
+    }}
+    ref={el => (argsInputRefs.current[key] = el)}
+    type='text'
+    value={value}
+  />
+)
+
+const renderBooleanCheckbox: RenderBooleanCheckboxFunctionType = (
+  key,
+  value,
+  handleArgChange,
+  handleArgSave,
+  argsInputRefs,
+) => (
+  <input
+    checked={value}
+    onBlur={handleArgSave}
+    onChange={ev => handleArgChange(key, ev.target.checked)}
+    ref={el => (argsInputRefs.current[key] = el)}
+    type='checkbox'
+  />
+)
+
+const renderFallbackInput: RenderInputFunctionType = (
+  key,
+  value,
+  handleArgChange,
+  handleArgSave,
+  argsInputRefs,
+) =>
+  renderStringInput(key, value, handleArgChange, handleArgSave, argsInputRefs)
+
+const renderComplexObject: RenderComplexObjectFunctionType = (
+  key,
+  value,
+  handleArgChange,
+  handleArgSave,
+  argsInputRefs,
+) => {
+  if (typeof value === 'object' && value !== null) {
+    return (
+      <div className='complex-object' key={key}>
+        <div className='complex-object-properties'>
+          {Object.entries(value).map(([subKey, subValue]) => {
+            const fullKey = `${key}.${subKey}`
+            switch (typeof subValue) {
+              case 'number':
+                return renderNumberInput(
+                  fullKey,
+                  subValue,
+                  handleArgChange as (arg0: unknown, arg1: string) => void,
+                  handleArgSave,
+                  argsInputRefs,
+                )
+              case 'boolean':
+                return renderBooleanCheckbox(
+                  fullKey,
+                  subValue,
+                  handleArgChange as (arg0: unknown, arg1: boolean) => void,
+                  handleArgSave,
+                  argsInputRefs,
+                )
+              case 'string':
+                return renderStringInput(
+                  fullKey,
+                  subValue,
+                  handleArgChange as (arg0: unknown, arg1: string) => void,
+                  handleArgSave,
+                  argsInputRefs,
+                )
+              case 'object':
+                return renderComplexObject(
+                  fullKey,
+                  subValue,
+                  handleArgChange,
+                  handleArgSave,
+                  argsInputRefs,
+                )
+              default:
+                return renderFallbackInput(
+                  fullKey,
+                  subValue,
+                  handleArgChange as (arg0: unknown, arg1: string) => void,
+                  handleArgSave,
+                  argsInputRefs,
+                )
+            }
+          })}
+        </div>
+      </div>
+    )
+  }
+
+  return <span>Invalid object value</span>
+}
+
+export const renderInputForZodSchema: RenderInputForZodSchemaFunctionType = (
+  key,
+  value,
+  schema,
+  handleArgChange,
+  handleArgSave,
+  argsInputRefs,
+) => {
+  const unwrappedSchema =
+    schema instanceof ZodDefault || schema instanceof ZodOptional
+      ? schema._def.innerType
+      : schema instanceof z.ZodEffects || schema instanceof z.ZodTransformer
+        ? schema._def.schema
+        : schema
+
+  if (unwrappedSchema instanceof z.ZodDiscriminatedUnion) {
+    const discriminatorKey = unwrappedSchema._def.discriminator
+    const discriminatorValue = value[discriminatorKey]
+    const selectedSchema = unwrappedSchema.options[discriminatorValue]
+
+    if (selectedSchema) {
+      return renderInputForZodSchema(
+        key,
+        value,
+        selectedSchema,
+        handleArgChange,
+        handleArgSave,
+        argsInputRefs,
+      )
+    }
+  }
+
+  switch (unwrappedSchema.constructor) {
+    case ZodNumber:
+      return renderNumberInput(
+        key,
+        value,
+        handleArgChange,
+        handleArgSave,
+        argsInputRefs,
+      )
+    case ZodEnum:
+      return renderEnumSelect(
+        key,
+        value,
+        unwrappedSchema,
+        handleArgChange,
+        handleArgSave,
+      )
+    case ZodUnion:
+      return unwrappedSchema.options.map((unionType: unknown) =>
+        renderInputForZodSchema(
+          key,
+          value,
+          unionType as ZodType<any, any, any>,
+          handleArgChange,
+          handleArgSave,
+          argsInputRefs,
+        ),
+      )
+    case ZodObject: {
+      const objectSchema = schema as ZodObject<any>
+      return (
+        <div key={key}>
+          <fieldset>
+            <legend>{key}</legend>
+            {Object.keys(objectSchema.shape).map(propertyKey => {
+              const propertySchema = objectSchema.shape[propertyKey]
+              const propertyValue =
+                typeof value === 'object' && value
+                  ? value[propertyKey]
+                  : undefined
+              return renderInputForZodSchema(
+                `${key}.${propertyKey}`,
+                propertyValue,
+                propertySchema,
+                handleArgChange,
+                handleArgSave,
+                argsInputRefs,
+              )
+            })}
+          </fieldset>
+        </div>
+      )
+    }
+
+    case ZodString:
+      return renderStringInput(
+        key,
+        value,
+        handleArgChange,
+        handleArgSave,
+        argsInputRefs,
+      )
+    case ZodArray:
+      return renderArrayInputs(
+        key,
+        value,
+        handleArgChange,
+        handleArgSave,
+        argsInputRefs,
+      )
+    case ZodBoolean:
+      return renderBooleanCheckbox(
+        key,
+        value,
+        handleArgChange,
+        handleArgSave,
+        argsInputRefs,
+      )
+    default:
+      if (typeof value === 'object' && value !== null) {
+        return renderComplexObject(
+          key,
+          value,
+          handleArgChange,
+          handleArgSave,
+          argsInputRefs,
+        )
+      }
+
+      return renderFallbackInput(
+        key,
+        value,
+        handleArgChange,
+        handleArgSave,
+        argsInputRefs,
+      )
+  }
+}

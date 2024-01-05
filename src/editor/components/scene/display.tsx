@@ -12,6 +12,7 @@ import { styled } from 'https://esm.sh/v136/styled-components@6.1.6'
 import type { Action } from '../../editor'
 import type { Selector } from '../../entities/select'
 import { Button, DeleteButton, LockButton } from '../ui/buttons'
+import { renderInputForZodSchema } from './types'
 
 const EntityButtons = styled.div`
   display: flex;
@@ -416,26 +417,23 @@ export const EntityDisplay: FC<DisplayProps> = ({
 
           <div>
             <div>
-              {Object.entries(editableArgs).map(([key, value]) => (
-                <div key={key} style={{ marginBottom: '0.5em' }}>
-                  <p style={{ fontWeight: 'bold', margin: '0' }}>{key}:</p>
-                  <input
-                    onBlur={handleArgSave}
-                    onChange={ev => handleArgChange(key, ev.target.value)}
-                    onKeyDown={ev => {
-                      if (ev.key === 'Enter') argsInputRefs.current[key]?.blur()
-                    }}
-                    ref={el => (argsInputRefs.current[key] = el)}
-                    type='text'
-                    value={
-                      (key === 'width' || key === 'height') &&
-                      !Number.isNaN(Number.parseFloat(value))
-                        ? Math.round(Number.parseFloat(value))
-                        : value
-                    }
-                  />
-                </div>
-              ))}
+              {Object.entries(editableArgs).map(([key, value]) => {
+                const schemaType = entity.argsSchema.shape[key]
+
+                return (
+                  <div key={key} style={{ marginBottom: '0.5em' }}>
+                    <p style={{ fontWeight: 'bold', margin: '0' }}>{key}:</p>
+                    {renderInputForZodSchema(
+                      key,
+                      value,
+                      schemaType,
+                      handleArgChange,
+                      handleArgSave,
+                      argsInputRefs,
+                    )}
+                  </div>
+                )
+              })}
             </div>
           </div>
           <div>
