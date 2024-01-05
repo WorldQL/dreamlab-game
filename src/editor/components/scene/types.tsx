@@ -209,55 +209,73 @@ const renderComplexObject: RenderComplexObjectFunctionType = (
 ) => {
   if (typeof value === 'object' && value !== null) {
     return (
-      <div className='complex-object' key={key}>
-        <div className='complex-object-properties'>
-          {Object.entries(value).map(([subKey, subValue]) => {
-            const fullKey = `${key}.${subKey}`
-            switch (typeof subValue) {
-              case 'number':
-                return renderNumberInput(
-                  fullKey,
-                  subValue,
-                  handleArgChange,
-                  handleArgSave,
-                  argsInputRefs,
-                )
-              case 'boolean':
-                return renderBooleanCheckbox(
-                  fullKey,
-                  subValue,
-                  handleArgChange,
-                  handleArgSave,
-                  argsInputRefs,
-                )
-              case 'string':
-                return renderStringInput(
-                  fullKey,
-                  subValue,
-                  handleArgChange,
-                  handleArgSave,
-                  argsInputRefs,
-                )
-              case 'object':
-                return renderComplexObject(
-                  fullKey,
-                  subValue,
-                  handleArgChange,
-                  handleArgSave,
-                  argsInputRefs,
-                )
-              default:
-                return renderFallbackInput(
-                  fullKey,
-                  subValue,
-                  handleArgChange,
-                  handleArgSave,
-                  argsInputRefs,
-                )
-            }
-          })}
-        </div>
-      </div>
+      <>
+        {Object.entries(value).map(([subKey, subValue]) => {
+          const fullKey = `${key}.${subKey}`
+          switch (typeof subValue) {
+            case 'number':
+              return (
+                <div key={fullKey}>
+                  {renderNumberInput(
+                    fullKey,
+                    subValue,
+                    handleArgChange,
+                    handleArgSave,
+                    argsInputRefs,
+                  )}
+                </div>
+              )
+            case 'boolean':
+              return (
+                <div key={fullKey}>
+                  {renderBooleanCheckbox(
+                    fullKey,
+                    subValue,
+                    handleArgChange,
+                    handleArgSave,
+                    argsInputRefs,
+                  )}
+                </div>
+              )
+            case 'string':
+              return (
+                <div key={fullKey}>
+                  {renderStringInput(
+                    fullKey,
+                    subValue,
+                    handleArgChange,
+                    handleArgSave,
+                    argsInputRefs,
+                  )}
+                </div>
+              )
+            case 'object':
+              return (
+                <div key={fullKey}>
+                  {renderComplexObject(
+                    fullKey,
+                    subValue,
+                    handleArgChange,
+                    handleArgSave,
+                    argsInputRefs,
+                  )}
+                </div>
+              )
+            default:
+              return (
+                <div key={fullKey}>
+                  {renderFallbackInput(
+                    fullKey,
+                    subValue,
+                    handleArgChange,
+                    handleArgSave,
+                    argsInputRefs,
+                  )}
+                </div>
+              )
+          }
+        })}
+      </>
     )
   }
 
@@ -331,25 +349,23 @@ export const renderInputForZodSchema: RenderInputForZodSchemaFunctionType = (
     case ZodObject: {
       const objectSchema = schema as ZodObject<any>
       return (
-        <div key={key}>
-          <fieldset>
-            <legend>{key}</legend>
-            {Object.keys(objectSchema.shape).map(propertyKey => {
-              const propertySchema = objectSchema.shape[propertyKey]
-              const propertyValue =
-                typeof value === 'object' && value
-                  ? value[propertyKey]
-                  : undefined
-              return renderInputForZodSchema(
-                `${key}.${propertyKey}`,
-                propertyValue,
-                propertySchema,
-                handleArgChange,
-                handleArgSave,
-                argsInputRefs,
-              )
-            })}
-          </fieldset>
+        <div key={key} style={{ marginBottom: '16px' }}>
+          <div style={{ fontWeight: 'bold' }}>{key}</div>
+          {Object.keys(objectSchema.shape).map(propertyKey => {
+            const propertySchema = objectSchema.shape[propertyKey]
+            const propertyValue =
+              typeof value === 'object' && value
+                ? value[propertyKey]
+                : undefined
+            return renderInputForZodSchema(
+              `${key}.${propertyKey}`,
+              propertyValue,
+              propertySchema,
+              handleArgChange,
+              handleArgSave,
+              argsInputRefs,
+            )
+          })}
         </div>
       )
     }

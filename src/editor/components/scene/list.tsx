@@ -145,7 +145,6 @@ export const SceneList: FC<{
 
   const onChangeTiling = useCallback(async () => {
     if (!selector.selected) return
-    // console.log(selector.selected.args)
     if (typeof selector.selected.args.spriteSource === 'string') {
       const originalSpritesource = selector.selected.args.spriteSource
       const newSpritesource: SpriteSource = {
