@@ -146,7 +146,9 @@ export const createEntitySelect = (
 
     if (!selected) {
       setTimeout(async () => {
-        const dimensions = await getPngDimensions(url)
+        // try removing otherbuster and clearing your cache then adding an image. breaks there too.
+        // weird browser cache and CORS race condition I think.
+        const dimensions = await getPngDimensions(url + '&otherbuster=456')
         console.log(dimensions)
 
         const cursorPosition = _game?.client.inputs.getCursor('world')
