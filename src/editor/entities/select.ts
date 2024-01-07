@@ -162,7 +162,7 @@ export const createEntitySelect = (
           args: {
             width: dimensions.width / 2,
             height: dimensions.height / 2,
-            spriteSource: url,
+            spriteSource: { url },
           },
           transform: {
             position: {
