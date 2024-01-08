@@ -1,3 +1,6 @@
+/* eslint-disable typescript-sort-keys/string-enum */
+// The order of my enums affects the order they're rendered on the UI!
+import type { SpawnableEntity } from '@dreamlab.gg/core'
 import type { SpriteSource } from '@dreamlab.gg/core/textures'
 import {
   useEventListener,
@@ -10,13 +13,15 @@ import {
 import {
   useCallback,
   useEffect,
+  useMemo,
   useState,
 } from 'https://esm.sh/v136/react@18.2.0'
-import type { FC } from 'https://esm.sh/v136/react@18.2.0'
+import type { ChangeEvent, FC } from 'https://esm.sh/v136/react@18.2.0'
 import { styled } from 'https://esm.sh/v136/styled-components@6.1.6'
 import type { Action } from '../../editor'
 import { EditorInputs } from '../../editor'
 import type { Selector } from '../../entities/select'
+import CollapsibleSection from '../palette/collapsablesection'
 import { Button, CollapseButton } from '../ui/buttons'
 import { Container } from '../ui/container'
 import { EntityDisplay } from './display'
@@ -44,10 +49,18 @@ const EntityList = styled.div`
   margin-bottom: 1rem;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.2rem;
   overflow-y: overlay;
-  padding: 0.5rem 0;
 `
+
+enum GroupByOptions {
+  None = 'No Grouping',
+  Type = 'Type',
+  Tag = 'Tag',
+}
+interface GroupedSpawnableEntities {
+  [key: string]: SpawnableEntity[]
+}
 
 export const SceneList: FC<{
   readonly selector: Selector
@@ -62,9 +75,51 @@ export const SceneList: FC<{
   const forceUpdate = useForceUpdate()
 
   const etys = useSpawnableEntities()
-  const entities = [...etys].sort((a, b) =>
-    a.definition.entity.localeCompare(b.definition.entity),
-  )
+
+  const entities = useMemo(() => {
+    return [...etys].sort((a, b) =>
+      a.definition.entity.localeCompare(b.definition.entity),
+    )
+  }, [etys])
+
+  const entitiesGroupedByType = useMemo(() => {
+    const grouped: GroupedSpawnableEntities = {}
+    for (const _entity of entities) {
+      const entityType = _entity.definition.entity
+
+      if (grouped[entityType]) {
+        grouped[entityType].push(_entity)
+      } else {
+        grouped[entityType] = [_entity]
+      }
+    }
+
+    return grouped
+  }, [entities])
+
+  const entitiesGroupedByTag = useMemo(() => {
+    const grouped: GroupedSpawnableEntities = {}
+    const taglessEntities = []
+
+    for (const _entity of entities) {
+      const entityTags = _entity.tags
+      for (const tag of entityTags) {
+        if (grouped[tag]) {
+          grouped[tag].push(_entity)
+        } else {
+          grouped[tag] = [_entity]
+        }
+      }
+
+      if (entityTags.length === 0) {
+        taglessEntities.push(_entity)
+      }
+    }
+
+    grouped['No tags'] = taglessEntities
+
+    return grouped
+  }, [entities])
 
   const [isCollapsed, setIsCollapsed] = useState(false)
   const toggleCollapse = useCallback(() => setIsCollapsed(prev => !prev), [])
@@ -74,6 +129,22 @@ export const SceneList: FC<{
     (id: string | undefined) => setSelected(id),
     [setSelected],
   )
+
+  const [groupBy, setGroupBy] = useState<GroupByOptions>(GroupByOptions.None)
+  const onChangeGroupBy = useCallback(
+    (event: ChangeEvent<HTMLSelectElement>) => {
+      const newValue = event.target.value as GroupByOptions
+      if (Object.values(GroupByOptions).includes(newValue)) {
+        setGroupBy(newValue)
+      }
+    },
+    [],
+  )
+  const groupingOptions = Object.entries(GroupByOptions).map(([key, value]) => (
+    <option key={key} value={value}>
+      {value}
+    </option>
+  ))
 
   const onDelete = useCallback(async () => {
     if (!selector.selected) return
@@ -217,18 +288,65 @@ export const level: LooseSpawnableDefinition[] = ${json}
       </CollapseButton>
       {!isCollapsed && (
         <>
-          <h1>Object List</h1>
-          <EntityList>
-            {entities.map(entity => (
-              <EntityDisplay
-                entity={entity}
-                history={history}
-                isSelected={entity.uid === selected}
-                key={entity.uid}
-                selector={selector}
-              />
-            ))}
-          </EntityList>
+          Object List
+          <select
+            onChange={onChangeGroupBy}
+            style={{ marginBottom: '5px' }}
+            value={groupBy}
+          >
+            {groupingOptions}
+          </select>
+          {groupBy === GroupByOptions.None && (
+            <EntityList>
+              {entities.map(entity => (
+                <EntityDisplay
+                  entity={entity}
+                  history={history}
+                  isSelected={entity.uid === selected}
+                  key={entity.uid}
+                  selector={selector}
+                />
+              ))}
+            </EntityList>
+          )}
+          {groupBy === GroupByOptions.Type && (
+            <>
+              {Object.keys(entitiesGroupedByType).map(group => (
+                <CollapsibleSection key={group} title={group}>
+                  <EntityList>
+                    {entitiesGroupedByType[group].map(entity => (
+                      <EntityDisplay
+                        entity={entity}
+                        history={history}
+                        isSelected={entity.uid === selected}
+                        key={entity.uid}
+                        selector={selector}
+                      />
+                    ))}
+                  </EntityList>
+                </CollapsibleSection>
+              ))}
+            </>
+          )}
+          {groupBy === GroupByOptions.Tag && (
+            <>
+              {Object.keys(entitiesGroupedByTag).map(group => (
+                <CollapsibleSection key={group} title={group}>
+                  <EntityList>
+                    {entitiesGroupedByTag[group].map(entity => (
+                      <EntityDisplay
+                        entity={entity}
+                        history={history}
+                        isSelected={entity.uid === selected}
+                        key={entity.uid}
+                        selector={selector}
+                      />
+                    ))}
+                  </EntityList>
+                </CollapsibleSection>
+              ))}
+            </>
+          )}
           <Button onClick={onSave} type='button'>
             Save
           </Button>
