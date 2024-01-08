@@ -146,7 +146,9 @@ export const createEntitySelect = (
 
     if (!selected) {
       setTimeout(async () => {
-        const dimensions = await getPngDimensions(url)
+        // try removing otherbuster and clearing your cache then adding an image. breaks there too.
+        // weird browser cache and CORS race condition I think.
+        const dimensions = await getPngDimensions(url + '&otherbuster=456')
         console.log(dimensions)
 
         const cursorPosition = _game?.client.inputs.getCursor('world')
@@ -160,7 +162,7 @@ export const createEntitySelect = (
           args: {
             width: dimensions.width / 2,
             height: dimensions.height / 2,
-            spriteSource: url,
+            spriteSource: { url },
           },
           transform: {
             position: {
@@ -171,7 +173,6 @@ export const createEntitySelect = (
           tags: [],
         }
         void _game?.client?.network?.sendEntityCreate(definition)
-        await _game?.spawn(definition)
       }, 20) // this is so stupid but when you're dragging the cursor doesn't exist but it immediately reappears after dropping
       return
     }
