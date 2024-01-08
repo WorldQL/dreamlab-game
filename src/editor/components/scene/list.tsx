@@ -22,6 +22,7 @@ import type { Action } from '../../editor'
 import { EditorInputs } from '../../editor'
 import type { Selector } from '../../entities/select'
 import CollapsibleSection from '../palette/collapsablesection'
+import type { History } from '../palette/spawnables'
 import { Button, CollapseButton } from '../ui/buttons'
 import { Container } from '../ui/container'
 import { EntityDisplay } from './display'
@@ -60,6 +61,46 @@ enum GroupByOptions {
 }
 interface GroupedSpawnableEntities {
   [key: string]: SpawnableEntity[]
+}
+
+function setContainsSelected(
+  set: SpawnableEntity[],
+  selected: string | undefined,
+): boolean {
+  for (const _e of set) {
+    if (_e.uid === selected) {
+      return true
+    }
+  }
+
+  return false
+}
+
+const GroupedEntitySet = (
+  groupedEntities: GroupedSpawnableEntities,
+  history: History,
+  selector: Selector,
+  selected: string | undefined,
+) => {
+  return Object.keys(groupedEntities).map(group => (
+    <CollapsibleSection
+      forceOpen={setContainsSelected(groupedEntities[group], selected)}
+      key={group}
+      title={group}
+    >
+      <EntityList>
+        {groupedEntities[group].map(entity => (
+          <EntityDisplay
+            entity={entity}
+            history={history}
+            isSelected={entity.uid === selected}
+            key={entity.uid}
+            selector={selector}
+          />
+        ))}
+      </EntityList>
+    </CollapsibleSection>
+  ))
 }
 
 export const SceneList: FC<{
@@ -136,9 +177,10 @@ export const SceneList: FC<{
       const newValue = event.target.value as GroupByOptions
       if (Object.values(GroupByOptions).includes(newValue)) {
         setGroupBy(newValue)
+        selector.deselect()
       }
     },
-    [],
+    [selector],
   )
   const groupingOptions = Object.entries(GroupByOptions).map(([key, value]) => (
     <option key={key} value={value}>
@@ -150,8 +192,8 @@ export const SceneList: FC<{
     if (!selector.selected) return
 
     /*
-    I disabled this because the use of confirm() was interfering with
-    // eslint-disable-next-line no-alert
+    I disabled this because the use of confirm() was interfering with the input handlers.
+
     const confirmDeletion = confirm(
       `Are you sure you want to delete "${selector.selected.definition.entity}"?`,
     )
@@ -309,44 +351,15 @@ export const level: LooseSpawnableDefinition[] = ${json}
               ))}
             </EntityList>
           )}
-          {groupBy === GroupByOptions.Type && (
-            <>
-              {Object.keys(entitiesGroupedByType).map(group => (
-                <CollapsibleSection key={group} title={group}>
-                  <EntityList>
-                    {entitiesGroupedByType[group].map(entity => (
-                      <EntityDisplay
-                        entity={entity}
-                        history={history}
-                        isSelected={entity.uid === selected}
-                        key={entity.uid}
-                        selector={selector}
-                      />
-                    ))}
-                  </EntityList>
-                </CollapsibleSection>
-              ))}
-            </>
-          )}
-          {groupBy === GroupByOptions.Tag && (
-            <>
-              {Object.keys(entitiesGroupedByTag).map(group => (
-                <CollapsibleSection key={group} title={group}>
-                  <EntityList>
-                    {entitiesGroupedByTag[group].map(entity => (
-                      <EntityDisplay
-                        entity={entity}
-                        history={history}
-                        isSelected={entity.uid === selected}
-                        key={entity.uid}
-                        selector={selector}
-                      />
-                    ))}
-                  </EntityList>
-                </CollapsibleSection>
-              ))}
-            </>
-          )}
+          {groupBy === GroupByOptions.Type &&
+            GroupedEntitySet(
+              entitiesGroupedByType,
+              history,
+              selector,
+              selected,
+            )}
+          {groupBy === GroupByOptions.Tag &&
+            GroupedEntitySet(entitiesGroupedByTag, history, selector, selected)}
           <Button onClick={onSave} type='button'>
             Save
           </Button>

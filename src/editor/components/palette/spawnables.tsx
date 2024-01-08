@@ -32,11 +32,13 @@ const SpawnableList = styled.div`
 interface SpawnablesProps {
   selector: Selector
   navigator: Navigator
-  history: {
-    record(action: Action): void
-    undo(): void
-    getActions(): Action[]
-  }
+  history: History
+}
+
+export interface History {
+  record(action: Action): void
+  undo(): void
+  getActions(): Action[]
 }
 
 export const Spawnables: React.FC<SpawnablesProps> = ({

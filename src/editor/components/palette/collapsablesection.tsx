@@ -1,5 +1,5 @@
 import type { ReactNode } from 'https://esm.sh/v136/react@18.2.0'
-import { useState } from 'https://esm.sh/v136/react@18.2.0'
+import { useEffect, useState } from 'https://esm.sh/v136/react@18.2.0'
 import { styled } from 'https://esm.sh/v136/styled-components@6.1.6'
 
 const CollapsibleContainer = styled.div`
@@ -35,13 +35,21 @@ const CollapsibleContent = styled.div<{ isOpen: boolean }>`
 interface CollapsibleSectionProps {
   readonly title: string
   readonly children: ReactNode
+  readonly forceOpen: boolean
 }
 
 const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
   title,
   children,
+  forceOpen,
 }) => {
   const [isOpen, setIsOpen] = useState(false)
+
+  useEffect(() => {
+    if (forceOpen) {
+      setIsOpen(forceOpen)
+    }
+  }, [forceOpen])
 
   const toggle = () => {
     setIsOpen(!isOpen)

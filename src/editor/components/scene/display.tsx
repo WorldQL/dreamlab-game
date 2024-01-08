@@ -283,7 +283,13 @@ export const EntityDisplay: FC<DisplayProps> = ({
 
   useEffect(() => {
     if (isSelected && entityRef.current) {
-      entityRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+      setTimeout(
+        () =>
+          entityRef.current?.scrollIntoView({
+            behavior: 'smooth',
+            block: 'nearest',
+          }),
+      )
     }
   }, [isSelected])
 
