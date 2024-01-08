@@ -178,7 +178,7 @@ export const createEntitySelect = (
     }
 
     if ('spriteSource' in selected.argsSchema.shape) {
-      selected.args.spriteSource = url
+      selected.args.spriteSource = { url }
     } else if (selected.definition.entity === '@dreamlab/BackgroundTrigger') {
       selected.args.onEnter = { action: 'set', textureURL: url }
     }
