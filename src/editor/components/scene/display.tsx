@@ -224,9 +224,6 @@ export const EntityDisplay: FC<DisplayProps> = ({
   )
 
   const onSelect = useCallback(() => {
-    const locked = entity.tags?.includes('editorLocked')
-    if (locked) return
-
     selector.select(entity)
     if (player) player.teleport(entity.transform.position, true)
   }, [selector, entity, player])
