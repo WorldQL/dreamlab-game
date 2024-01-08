@@ -177,7 +177,10 @@ const renderBooleanCheckbox: RenderBooleanCheckboxFunctionType = (
     <input
       checked={value}
       onBlur={handleArgSave}
-      onChange={ev => handleArgChange(key, ev.target.checked)}
+      onChange={ev => {
+        handleArgChange(key, ev.target.checked)
+        handleArgSave()
+      }}
       ref={el => (argsInputRefs.current[key] = el)}
       type='checkbox'
     />
