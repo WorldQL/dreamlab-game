@@ -100,7 +100,7 @@ const SelectButton = styled(Button)<{ isSelected: boolean }>`
   color: white;
   transition: background-color 0.3s ease;
   position: relative;
-  padding: 8px;
+  padding: 6px;
 
   &:hover {
     background-color: ${props =>
@@ -441,7 +441,7 @@ export const EntityDisplay: FC<DisplayProps> = ({
                 const schemaType = entity.argsSchema.shape[key]
 
                 return (
-                  <div key={key} style={{ marginBottom: '0.5em' }}>
+                  <div key={key}>
                     {renderInputForZodSchema(
                       key,
                       value,

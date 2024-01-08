@@ -48,8 +48,8 @@ export const IconButton = styled.div<{ isLocked?: boolean }>`
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 4px;
-  border-radius: 4px;
+  padding: 2px;
+  border-radius: 2px;
   cursor: pointer;
   transition: background-color 0.3s ease;
 
@@ -67,8 +67,8 @@ export const LockButton = styled(IconButton)`
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 4px;
-  margin-left: 4px;
+  padding: 2px;
+  margin-left: 2px;
   border-radius: 4px;
   cursor: pointer;
   transition: background-color 0.3s ease;
