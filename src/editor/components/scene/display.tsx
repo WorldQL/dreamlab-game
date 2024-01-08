@@ -274,6 +274,7 @@ export const EntityDisplay: FC<DisplayProps> = ({
 
   const handleKeyPress = useCallback(
     (event: React.KeyboardEvent<HTMLInputElement>) => {
+      event.stopPropagation()
       if (event.key === 'Enter') {
         toggleEdit()
       }
