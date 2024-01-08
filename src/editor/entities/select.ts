@@ -248,7 +248,9 @@ export const createEntitySelect = (
           newArgs.height = height
         }
 
-        selected.definition.args = newArgs
+        for (const key of Object.keys(newArgs)) {
+          selected.args[key] = newArgs[key]
+        }
       })
 
       this.events.addListener(
