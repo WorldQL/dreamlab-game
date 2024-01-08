@@ -107,6 +107,7 @@ export const createEditor = (
             game.client?.render.camera.setSmoothing(0.125)
             inputs?.enable('mouse', 'editor')
             selector.deselect()
+            game.client?.inputs.setKey('MouseLeft', false)
           }
         })
       })
