@@ -144,29 +144,23 @@ export const SceneList: FC<{
   }, [selector.selected, selector.events, ctrlHeldDown, forceUpdate])
 
   const onChangeTiling = useCallback(async () => {
-    if (!selector.selected) return
-    if (typeof selector.selected.args.spriteSource === 'string') {
-      const originalSpritesource = selector.selected.args.spriteSource
-      const newSpritesource: SpriteSource = {
-        url: originalSpritesource,
-        tile: true,
-      }
-      selector.selected.args.spriteSource = newSpritesource
-      selector.events.emit(
-        'onArgsUpdate',
-        selector.selected.uid,
-        selector.selected.args,
-      )
-    } else if (typeof selector.selected.args.spriteSource === 'object') {
-      const originalSpritesource = selector.selected.args.spriteSource
-      const newSpritesource: SpriteSource = originalSpritesource.url
-      selector.selected.args.spriteSource = newSpritesource
-      selector.events.emit(
-        'onArgsUpdate',
-        selector.selected.uid,
-        selector.selected.args,
-      )
+    if (
+      !selector.selected ||
+      typeof selector.selected.args.spriteSource !== 'object'
+    )
+      return
+    const originalSpritesource = selector.selected.args.spriteSource.url
+    const originalTiling = selector.selected.args.spriteSource.tile
+    const newSpritesource: SpriteSource = {
+      url: originalSpritesource,
+      tile: !originalTiling,
     }
+    selector.selected.args.spriteSource = newSpritesource
+    selector.events.emit(
+      'onArgsUpdate',
+      selector.selected.uid,
+      selector.selected.args,
+    )
     // forceUpdate()
   }, [selector.events, selector.selected])
 

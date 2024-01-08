@@ -173,7 +173,7 @@ export const createEntitySelect = (
           tags: [],
         }
         void _game?.client?.network?.sendEntityCreate(definition)
-      }, 20) // this is so stupid but when you're dragging the cursor doesn't exist but it immediately reappears after dropping
+      }, 20) // when dragging the cursor doesn't exist but it immediately reappears after dropping
       return
     }
 
