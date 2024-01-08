@@ -1,5 +1,6 @@
 import type { SpawnableEntity } from '@dreamlab.gg/core'
-import type { Transform } from '@dreamlab.gg/core/dist/math'
+import type { Transform } from '@dreamlab.gg/core/math'
+import { getProperty, setProperty } from '@dreamlab.gg/core/utils'
 import { useGame, useNetwork, usePlayer } from '@dreamlab.gg/ui/react'
 import {
   useCallback,
@@ -158,23 +159,7 @@ export const EntityDisplay: FC<DisplayProps> = ({
   const handleArgChange = (key: string, value: unknown) => {
     setEditableArgs(prevArgs => {
       const updatedArgs = { ...prevArgs }
-      const keys = key.split('.')
-      let currentLevel = updatedArgs
-
-      for (let idx = 0; idx < keys.length - 1; idx++) {
-        const currentKey = keys[idx]
-
-        if (
-          !currentLevel[currentKey] ||
-          typeof currentLevel[currentKey] !== 'object'
-        ) {
-          currentLevel[currentKey] = {}
-        }
-
-        currentLevel = currentLevel[currentKey]
-      }
-
-      currentLevel[keys[keys.length - 1]] = value
+      setProperty(updatedArgs, key, value)
 
       return updatedArgs
     })
@@ -226,14 +211,17 @@ export const EntityDisplay: FC<DisplayProps> = ({
     selector.events.emit('onTransformManualUpdate', entity.uid, newTransform)
   }, [entity.definition, entity.uid, entityTransform, selector.events])
 
-  const handleArgSave = useCallback(() => {
-    entity.definition.args = editableArgs
-    selector.events.emit(
-      'onArgsManualUpdate',
-      entity.uid,
-      entity.definition.args,
-    )
-  }, [editableArgs, entity.definition, entity.uid, selector.events])
+  const handleArgSave = useCallback(
+    (key: string, value?: { _v: unknown }) => {
+      const val =
+        value !== undefined
+          ? value._v
+          : (getProperty(editableArgs, key) as unknown)
+
+      selector.events.emit('onArgsManualUpdate', entity.uid, key, val)
+    },
+    [editableArgs, entity.uid, selector.events],
+  )
 
   const onSelect = useCallback(() => {
     const locked = entity.tags?.includes('editorLocked')
@@ -370,7 +358,7 @@ export const EntityDisplay: FC<DisplayProps> = ({
               <input
                 onBlur={handleTransformSave}
                 onChange={ev =>
-                  handlePositionChange('x', Number.parseFloat(ev.target.value))
+                  handlePositionChange('x', ev.target.valueAsNumber)
                 }
                 onKeyDown={ev => {
                   if (ev.key === 'Enter') {
@@ -389,7 +377,7 @@ export const EntityDisplay: FC<DisplayProps> = ({
               <input
                 onBlur={handleTransformSave}
                 onChange={ev =>
-                  handlePositionChange('y', Number.parseFloat(ev.target.value))
+                  handlePositionChange('y', ev.target.valueAsNumber)
                 }
                 onKeyDown={ev => {
                   if (ev.key === 'Enter') {
@@ -412,7 +400,7 @@ export const EntityDisplay: FC<DisplayProps> = ({
                 onChange={ev =>
                   handleOtherTransformChange(
                     'rotation',
-                    Number.parseFloat(ev.target.value),
+                    ev.target.valueAsNumber,
                   )
                 }
                 onKeyDown={ev => {
@@ -434,10 +422,7 @@ export const EntityDisplay: FC<DisplayProps> = ({
               <input
                 onBlur={handleTransformSave}
                 onChange={ev =>
-                  handleOtherTransformChange(
-                    'zIndex',
-                    Number.parseFloat(ev.target.value),
-                  )
+                  handleOtherTransformChange('zIndex', ev.target.valueAsNumber)
                 }
                 onKeyDown={ev => {
                   if (ev.key === 'Enter') {

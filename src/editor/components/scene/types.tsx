@@ -6,6 +6,8 @@ interface ZodTypeDef {
   typeName: string
 }
 
+type HandleArgSave = (key: string, value?: { _v: unknown }) => void
+
 // Types for renderNumberInput, renderStringInput, renderArrayInputs, and renderFallbackInput
 type RenderInputFunctionType = (
   key: string,
@@ -14,7 +16,7 @@ type RenderInputFunctionType = (
     key: string,
     newValue: any | boolean | number | string,
   ) => void,
-  handleArgSave: () => void,
+  handleArgSave: HandleArgSave,
   argsInputRefs: React.MutableRefObject<{
     [key: string]: HTMLInputElement | null
   }>,
@@ -25,14 +27,14 @@ type RenderEnumSelectFunctionType = (
   value: string,
   schema: ZodEnum<any>,
   handleArgChange: (key: string, newValue: string) => void,
-  handleArgSave: () => void,
+  handleArgSave: HandleArgSave,
 ) => JSX.Element
 
 type RenderBooleanCheckboxFunctionType = (
   key: string,
   value: boolean,
   handleArgChange: (key: string, newValue: boolean) => void,
-  handleArgSave: () => void,
+  handleArgSave: HandleArgSave,
   argsInputRefs: React.MutableRefObject<{
     [key: string]: HTMLInputElement | null
   }>,
@@ -42,7 +44,7 @@ type RenderComplexObjectFunctionType = (
   key: string,
   value: any,
   handleArgChange: (key: string, newValue: any) => void,
-  handleArgSave: () => void,
+  handleArgSave: HandleArgSave,
   argsInputRefs: React.MutableRefObject<{
     [key: string]: HTMLInputElement | null
   }>,
@@ -53,7 +55,7 @@ type RenderInputForZodSchemaFunctionType = (
   value: any,
   schema: ZodType<any, any>,
   handleArgChange: (key: string, newValue: any) => void,
-  handleArgSave: () => void,
+  handleArgSave: HandleArgSave,
   argsInputRefs: React.MutableRefObject<{
     [key: string]: HTMLInputElement | null
   }>,
@@ -70,8 +72,8 @@ const renderNumberInput: RenderInputFunctionType = (
   <>
     <p style={{ fontWeight: 'bold', margin: '0' }}>{key}:</p>
     <input
-      onBlur={handleArgSave}
-      onChange={ev => handleArgChange(key, ev.target.value)}
+      onBlur={() => handleArgSave(key)}
+      onChange={ev => handleArgChange(key, ev.target.valueAsNumber)}
       onKeyDown={ev => {
         if (ev.key === 'Enter') {
           argsInputRefs.current[key]?.blur()
@@ -97,7 +99,7 @@ const renderEnumSelect: RenderEnumSelectFunctionType = (
   <>
     <p style={{ fontWeight: 'bold', margin: '0' }}>{key}:</p>
     <select
-      onBlur={handleArgSave}
+      onBlur={() => handleArgSave(key)}
       onChange={ev => handleArgChange(key, ev.target.value)}
       value={value}
     >
@@ -120,7 +122,7 @@ const renderStringInput: RenderInputFunctionType = (
   <>
     <p style={{ fontWeight: 'bold', margin: '0' }}>{key}:</p>
     <input
-      onBlur={handleArgSave}
+      onBlur={() => handleArgSave(key)}
       onChange={ev => handleArgChange(key, ev.target.value)}
       onKeyDown={ev => {
         if (ev.key === 'Enter') {
@@ -156,7 +158,7 @@ const renderArrayInputs: RenderInputFunctionType = (
         return (
           <div key={itemKey} style={{ marginBottom: '8px' }}>
             <input
-              onBlur={handleArgSave}
+              onBlur={() => handleArgSave(key)}
               onChange={ev => handleArgChange(itemKey, ev.target.value)}
               onKeyDown={ev => {
                 if (ev.key === 'Enter') {
@@ -188,10 +190,10 @@ const renderBooleanCheckbox: RenderBooleanCheckboxFunctionType = (
     <p style={{ fontWeight: 'bold', margin: '0' }}>{key}:</p>
     <input
       checked={value}
-      onBlur={handleArgSave}
+      onBlur={() => handleArgSave(key)}
       onChange={ev => {
         handleArgChange(key, ev.target.checked)
-        handleArgSave()
+        handleArgSave(key, { _v: ev.target.checked })
       }}
       ref={el => (argsInputRefs.current[key] = el)}
       type='checkbox'

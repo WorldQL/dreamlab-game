@@ -16,7 +16,7 @@ import {
 } from '@dreamlab.gg/core/math'
 import type { Bounds, Transform, Vector } from '@dreamlab.gg/core/math'
 import type { Debug, Ref } from '@dreamlab.gg/core/utils'
-import { drawBox, drawCircle } from '@dreamlab.gg/core/utils'
+import { drawBox, drawCircle, setProperty } from '@dreamlab.gg/core/utils'
 import { Container, Graphics } from 'pixi.js'
 import type { ToServerPacket } from '../../packets'
 
@@ -78,11 +78,11 @@ export interface Selector extends Entity<Data, Render> {
 }
 
 interface EntityEvents {
-  onSelect: [string | undefined]
-  onArgsUpdate: [string, unknown]
-  onArgsManualUpdate: [string, unknown]
-  onTransformUpdate: [string, Transform]
-  onTransformManualUpdate: [string, Transform]
+  onSelect: [id: string | undefined]
+  onArgsUpdate: [id: string, args: Record<string, unknown>]
+  onArgsManualUpdate: [id: string, key: string, value: unknown]
+  onTransformUpdate: [id: string, transform: Transform]
+  onTransformManualUpdate: [id: string, transform: Transform]
 }
 
 async function getPngDimensions(
@@ -232,25 +232,9 @@ export const createEntitySelect = (
       _game = game
       game.events.common.addListener('onDestroy', onDestroy)
 
-      this.events.addListener('onArgsManualUpdate', (entityId, args) => {
+      this.events.addListener('onArgsManualUpdate', (entityId, key, value) => {
         if (!selected || selected.uid !== entityId) return
-        const newArgs = args as Record<string, unknown>
-        const width = Number.parseFloat(newArgs.width as string)
-        const height = Number.parseFloat(newArgs.height as string)
-
-        if (
-          (width !== selected.args.width || height !== selected.args.height) &&
-          !Number.isNaN(width) &&
-          !Number.isNaN(height)
-        ) {
-          game.resize(selected, { width, height })
-          newArgs.width = width
-          newArgs.height = height
-        }
-
-        for (const key of Object.keys(newArgs)) {
-          selected.args[key] = newArgs[key]
-        }
+        setProperty(selected.args, key, value)
       })
 
       this.events.addListener(
