@@ -85,28 +85,25 @@ interface EntityEvents {
   onTransformManualUpdate: [id: string, transform: Transform]
 }
 
-async function getPngDimensions(
+const getPngDimensions = async (
   url: string,
-): Promise<{ width: number; height: number }> {
+): Promise<{ width: number; height: number }> => {
   return new Promise((resolve, reject) => {
     const img = new Image()
 
-    // eslint-disable-next-line unicorn/prefer-add-event-listener
-    img.onload = () => {
+    img.addEventListener('load', () => {
       const dimensions = { width: img.width, height: img.height }
       resolve(dimensions)
-    }
+    })
 
-    // eslint-disable-next-line unicorn/prefer-add-event-listener
-    img.onerror = () => {
+    img.addEventListener('error', () => {
       reject(new Error('An error occurred loading the image.'))
-    }
+    })
 
     img.src = url
 
     if (img.complete) {
-      // @ts-expect-error: I don't need to pass an ev
-      img.onload()
+      img.dispatchEvent(new Event('load'))
     }
   })
 }
