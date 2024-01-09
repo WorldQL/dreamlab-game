@@ -1,5 +1,5 @@
 /* eslint-disable id-length */
-import { createEntity, dataManager } from '@dreamlab.gg/core'
+import { createEntity, dataManager, isSpawnableEntity } from '@dreamlab.gg/core'
 import type { Entity, Game, SpawnableEntity } from '@dreamlab.gg/core'
 import type { Camera } from '@dreamlab.gg/core/entities'
 import type { EventHandler } from '@dreamlab.gg/core/events'
@@ -9,7 +9,6 @@ import {
   angleBetween,
   distance,
   snap,
-  snapVector,
   toDegrees,
   toRadians,
   Vec,
@@ -109,6 +108,163 @@ async function getPngDimensions(
       img.onload()
     }
   })
+}
+
+function getEntityEdges(entity: SpawnableEntity) {
+  const { width, height } = entity.args
+  const { position, rotation } = entity.transform
+  const halfWidth = width / 2
+  const halfHeight = height / 2
+  const corners = [
+    { x: position.x - halfWidth, y: position.y - halfHeight },
+    { x: position.x + halfWidth, y: position.y - halfHeight },
+    { x: position.x + halfWidth, y: position.y + halfHeight },
+    { x: position.x - halfWidth, y: position.y + halfHeight },
+  ]
+
+  return corners.map(corner => rotatePoint(corner, rotation, position))
+}
+
+function getEntityEdgeMidpoints(entity: SpawnableEntity) {
+  const corners = getEntityEdges(entity)
+  const midpoints = []
+  for (let i = 0; i < corners.length; i++) {
+    const nextIndex = (i + 1) % corners.length
+    midpoints.push(midpoint(corners[i], corners[nextIndex]))
+  }
+
+  return midpoints
+}
+
+function queryEntitiesInRange(
+  game: Game<false>,
+  entity: SpawnableEntity,
+  range: number,
+) {
+  const allEntities = game.entities.filter(isSpawnableEntity)
+  const entitiesInRange = []
+
+  const selectedBoundingBox = getBoundingBox(entity)
+
+  for (const otherEntity of allEntities) {
+    if (
+      otherEntity === entity ||
+      otherEntity.definition.tags?.includes('editorIgnoreSnap')
+    ) {
+      continue
+    }
+
+    const otherBoundingBox = getBoundingBox(otherEntity)
+    if (boundingBoxesInRange(selectedBoundingBox, otherBoundingBox, range)) {
+      entitiesInRange.push(otherEntity)
+    }
+  }
+
+  return entitiesInRange
+}
+
+function getBoundingBox(entity: SpawnableEntity) {
+  const edges = getEntityEdges(entity)
+  const minX = Math.min(...edges.map(e => e.x))
+  const maxX = Math.max(...edges.map(e => e.x))
+  const minY = Math.min(...edges.map(e => e.y))
+  const maxY = Math.max(...edges.map(e => e.y))
+
+  return { minX, maxX, minY, maxY }
+}
+
+function boundingBoxesInRange(
+  box1: { minX: number; maxX: number; minY: number; maxY: number },
+  box2: { minX: number; maxX: number; minY: number; maxY: number },
+  range: number,
+): boolean {
+  const overlapX = Math.max(
+    0,
+    Math.min(box1.maxX, box2.maxX) - Math.max(box1.minX, box2.minX),
+  )
+  const overlapY = Math.max(
+    0,
+    Math.min(box1.maxY, box2.maxY) - Math.max(box1.minY, box2.minY),
+  )
+  const overlap = overlapX > 0 && overlapY > 0
+
+  return overlap || distanceBetweenBoxes(box1, box2) <= range
+}
+
+function distanceBetweenBoxes(
+  box1: { minX: number; maxX: number; minY: number; maxY: number },
+  box2: { minX: number; maxX: number; minY: number; maxY: number },
+): number {
+  const dx =
+    box1.minX > box2.maxX
+      ? box1.minX - box2.maxX
+      : box2.minX > box1.maxX
+        ? box2.minX - box1.maxX
+        : 0
+  const dy =
+    box1.minY > box2.maxY
+      ? box1.minY - box2.maxY
+      : box2.minY > box1.maxY
+        ? box2.minY - box1.maxY
+        : 0
+
+  return Math.hypot(dx, dy)
+}
+
+function calculateTranslationSnap(
+  game: Game<false>,
+  selected: SpawnableEntity,
+  snapThreshold: number,
+): Vector | null {
+  let closestSnapPoint = null
+  let minDistance = Number.MAX_VALUE
+
+  // Get edges and midpoints of the selected entity
+  const selectedEdges = getEntityEdges(selected)
+  const selectedMidpoints = getEntityEdgeMidpoints(selected)
+
+  // Iterate over nearby entities
+  for (const entity of queryEntitiesInRange(game, selected, snapThreshold)) {
+    if (entity === selected) continue
+
+    const entityEdges = getEntityEdges(entity)
+    const entityMidpoints = getEntityEdgeMidpoints(entity)
+
+    // Compare all combinations of points between the two entities
+    for (const point1 of [...selectedEdges, ...selectedMidpoints]) {
+      for (const point2 of [...entityEdges, ...entityMidpoints]) {
+        const dist = distance(point1, point2)
+        if (dist < minDistance) {
+          minDistance = dist
+          closestSnapPoint = point2 // Choose the point on the nearby entity
+        }
+      }
+    }
+  }
+
+  if (closestSnapPoint && minDistance <= snapThreshold) {
+    // Calculate the snap offset
+    return Vec.sub(closestSnapPoint, selected.transform.position)
+  }
+
+  return null // No snapping if no suitable point found
+}
+
+function rotatePoint(point: Vector, angle: number, center: Vector) {
+  const cosTheta = Math.cos(angle)
+  const sinTheta = Math.sin(angle)
+  const translatedPoint = { x: point.x - center.x, y: point.y - center.y }
+  return {
+    x: translatedPoint.x * cosTheta - translatedPoint.y * sinTheta + center.x,
+    y: translatedPoint.x * sinTheta + translatedPoint.y * cosTheta + center.y,
+  }
+}
+
+function midpoint(point1: Vector, point2: Vector) {
+  return {
+    x: (point1.x + point2.x) / 2,
+    y: (point1.y + point2.y) / 2,
+  }
 }
 
 export const createEntitySelect = (
@@ -499,11 +655,27 @@ export const createEntitySelect = (
           }
 
           case 'translate': {
-            const offset = Vec.add(pos, action.origin)
-            const newPosition = shift ? snapVector(offset, 10) : offset
+            if (shift) {
+              const snapOffset = calculateTranslationSnap(game, selected, 15)
+              if (snapOffset) {
+                selected.transform.position = Vec.add(
+                  selected.transform.position,
+                  snapOffset,
+                )
+                events.emit(
+                  'onTransformUpdate',
+                  selected.uid,
+                  selected.transform,
+                )
 
-            selected.transform.position.x = newPosition.x
-            selected.transform.position.y = newPosition.y
+                break
+              }
+            }
+
+            const offset = Vec.add(pos, action.origin)
+
+            selected.transform.position.x = offset.x
+            selected.transform.position.y = offset.y
 
             events.emit('onTransformUpdate', selected.uid, selected.transform)
 
