@@ -514,6 +514,7 @@ export const createNetwork = (
           const data = dataManager.getData(entity)
           const render = dataManager.getRenderData(entity)
           entity.onArgsUpdate?.(packet.path, previousArgs, data, render)
+          game.events.common.emit('onArgsChanged', entity)
 
           break
         }
@@ -526,6 +527,7 @@ export const createNetwork = (
 
           const definition = onChange.target(entity.definition)
           definition.label = packet.label
+          game.events.common.emit('onDefinitionChanged', entity)
 
           break
         }
