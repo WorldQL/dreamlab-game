@@ -144,7 +144,7 @@ export const EntityDisplay: FC<DisplayProps> = ({
   const argsInputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({})
 
   const handleAddTag = () => {
-    if (newTag) {
+    if (newTag && !entity.definition.tags?.includes(newTag)) {
       entity.definition.tags?.push(newTag)
       setTags(entity.definition.tags ?? [])
       setNewTag('')
