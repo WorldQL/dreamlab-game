@@ -1,6 +1,6 @@
 import type { SpawnableEntity } from '@dreamlab.gg/core'
 import type { Transform } from '@dreamlab.gg/core/math'
-import { getProperty, setProperty } from '@dreamlab.gg/core/utils'
+import { getProperty, onChange, setProperty } from '@dreamlab.gg/core/utils'
 import { useGame, useNetwork, usePlayer } from '@dreamlab.gg/ui/react'
 import {
   useCallback,
@@ -134,7 +134,9 @@ export const EntityDisplay: FC<DisplayProps> = ({
   )
 
   const [isEditingLabel, setIsEditingLabel] = useState(false)
-  const [editedLabel, setEditedLabel] = useState(entity.definition.entity)
+  const [editedLabel, setEditedLabel] = useState(
+    entity.definition.label ?? entity.definition.entity,
+  )
   const [editableArgs, setEditableArgs] = useState(entity.args)
   const [entityTransform, setEntityTransform] = useState(entity.transform)
   const [newTag, setNewTag] = useState('')
@@ -143,9 +145,8 @@ export const EntityDisplay: FC<DisplayProps> = ({
 
   const handleAddTag = () => {
     if (newTag) {
-      const updatedTags = [...tags, newTag]
-      setTags(updatedTags)
-      entity.definition.tags = updatedTags
+      entity.definition.tags?.push(newTag)
+      setTags(entity.definition.tags ?? [])
       setNewTag('')
     }
   }
