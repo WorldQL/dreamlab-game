@@ -143,6 +143,21 @@ export const EntityDisplay: FC<DisplayProps> = ({
   const [tags, setTags] = useState(entity.definition.tags)
   const argsInputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({})
 
+  const [propertiesAreOpen, setPropertiesAreOpen] = useState(false)
+  const openProperties = () => {
+    setPropertiesAreOpen(true)
+    setTimeout(() => {
+      entityRef.current?.scrollIntoView({
+        behavior: 'instant',
+        block: 'nearest',
+      })
+    }, 1)
+  }
+
+  useEffect(() => {
+    setPropertiesAreOpen(false)
+  }, [isSelected])
+
   const handleAddTag = () => {
     if (newTag && !entity.definition.tags?.includes(newTag)) {
       entity.definition.tags?.push(newTag)
@@ -299,6 +314,7 @@ export const EntityDisplay: FC<DisplayProps> = ({
             behavior: 'smooth',
             block: 'nearest',
           }),
+        1,
       )
     }
   }, [isSelected])
@@ -358,7 +374,23 @@ export const EntityDisplay: FC<DisplayProps> = ({
                 : entity.definition.entity}
           </span>
         )}
-        <InfoDetails isSelected={isSelected}>
+        {isSelected && !propertiesAreOpen && (
+          <div
+            onClick={openProperties}
+            style={{
+              width: '100%',
+              backgroundColor: '#f3f3f3',
+              marginTop: '5px',
+              padding: '3px',
+              cursor: 'pointer',
+              boxSizing: 'border-box',
+              color: 'black',
+            }}
+          >
+            View / Edit Properties
+          </div>
+        )}
+        <InfoDetails isSelected={propertiesAreOpen}>
           <p>
             Entity:{' '}
             {entity.definition.entity.length > 30
