@@ -122,6 +122,11 @@ export const createEntitySelect = (
   const strokeWidth = 2
   const handleSize = 10
   const rotStalkHeight = 30
+  let isSpacePressed = false
+
+  const onSpace = (pressed: boolean) => {
+    isSpacePressed = pressed
+  }
 
   let selected: SpawnableEntity | undefined
   let action: ActionData | undefined
@@ -375,7 +380,12 @@ export const createEntitySelect = (
       }
 
       const onMouseDown = (ev: MouseEvent) => {
-        if (!editorEnabled.value) return
+        if (!editorEnabled.value || ev.button === 2) return
+        if (ev.button === 1 || (ev.button === 0 && isSpacePressed)) {
+          this.deselect()
+          return
+        }
+
         const pos = camera.screenToWorld({ x: ev.offsetX, y: ev.offsetY })
 
         const query = game
@@ -522,6 +532,7 @@ export const createEntitySelect = (
         }
       }
 
+      game.client.inputs.addListener('Space', onSpace)
       canvas.addEventListener('dragover', onDragOver)
       canvas.addEventListener('drop', onDrop)
       canvas.addEventListener('mousedown', onMouseDown)
@@ -567,6 +578,7 @@ export const createEntitySelect = (
 
     teardown({ game }) {
       game.events.common.removeListener('onDestroy', onDestroy)
+      game.client?.inputs.removeListener('Space', onSpace)
     },
 
     teardownRenderContext({ canvas, container, onMouseDown, onMouseMove }) {
