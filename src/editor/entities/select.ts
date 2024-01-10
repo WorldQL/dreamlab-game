@@ -40,9 +40,15 @@ const getOppositeCorner = (handle: CornerHandle): CornerHandle => {
 }
 
 type ActionData =
+  | {
+      type: 'scale'
+      origin: Vector
+      locked: CornerHandle
+      opposite: Vector
+      aspect: number
+    }
   | { type: 'clear' }
   | { type: 'rotate' }
-  | { type: 'scale'; origin: Vector; locked: CornerHandle; opposite: Vector }
   | { type: 'translate'; origin: Vector }
 
 interface Data {
@@ -412,6 +418,7 @@ export const createEntitySelect = (
               origin: pos,
               locked,
               opposite,
+              aspect: bounds.width / bounds.height,
             }
           } else if (selected.isPointInside(pos)) {
             action = {
@@ -465,7 +472,7 @@ export const createEntitySelect = (
 
               const size = Math.max(width, height)
               const bounds: Bounds = shift
-                ? { width: size, height: size }
+                ? { width: size, height: size / action.aspect }
                 : { width, height }
 
               game.resize(selected, bounds)
@@ -479,7 +486,8 @@ export const createEntitySelect = (
               const edge = Vec.sub(rotated, action.opposite)
               const abs = absolute(edge)
               const width = Math.max(abs.x, 1)
-              const height = Math.max(abs.y, 1)
+              const height = shift ? width / action.aspect : Math.max(abs.y, 1)
+              edge.y *= height / abs.y
 
               const newOrigin = Vec.rotateAbout(
                 Vec.add(action.opposite, Vec.div(edge, 2)),
