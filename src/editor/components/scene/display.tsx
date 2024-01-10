@@ -157,6 +157,14 @@ export const EntityDisplay: FC<DisplayProps> = ({
     entity.definition.tags = updatedTags
   }
 
+  useEffect(() => {
+    if (tags.includes('editorLocked')) {
+      setIsLocked(true)
+    } else {
+      setIsLocked(false)
+    }
+  }, [tags])
+
   const handleArgChange = (key: string, value: unknown) => {
     setEditableArgs(prevArgs => {
       const updatedArgs = { ...prevArgs }
@@ -249,7 +257,6 @@ export const EntityDisplay: FC<DisplayProps> = ({
       ? entity.definition.tags.filter(tag => tag !== 'editorLocked')
       : [...entity.definition.tags, 'editorLocked']
 
-    setIsLocked(!isLocked)
     entity.definition.tags = newTags
     setTags(entity.definition.tags)
   }, [entity, isLocked])
