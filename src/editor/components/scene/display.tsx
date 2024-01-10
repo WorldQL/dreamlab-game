@@ -1,6 +1,6 @@
 import type { SpawnableEntity } from '@dreamlab.gg/core'
 import type { Transform } from '@dreamlab.gg/core/math'
-import { getProperty, onChange, setProperty } from '@dreamlab.gg/core/utils'
+import { getProperty, setProperty } from '@dreamlab.gg/core/utils'
 import { useGame, useNetwork, usePlayer } from '@dreamlab.gg/ui/react'
 import {
   useCallback,
@@ -140,7 +140,7 @@ export const EntityDisplay: FC<DisplayProps> = ({
   const [editableArgs, setEditableArgs] = useState(entity.args)
   const [entityTransform, setEntityTransform] = useState(entity.transform)
   const [newTag, setNewTag] = useState('')
-  const [tags, setTags] = useState(entity.tags)
+  const [tags, setTags] = useState(entity.definition.tags)
   const argsInputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({})
 
   const handleAddTag = () => {
@@ -246,8 +246,8 @@ export const EntityDisplay: FC<DisplayProps> = ({
 
   const onLockToggle = useCallback(() => {
     const newTags = isLocked
-      ? entity.tags.filter(tag => tag !== 'editorLocked')
-      : [...entity.tags, 'editorLocked']
+      ? entity.definition.tags.filter(tag => tag !== 'editorLocked')
+      : [...entity.definition.tags, 'editorLocked']
 
     setIsLocked(!isLocked)
     entity.definition.tags = newTags

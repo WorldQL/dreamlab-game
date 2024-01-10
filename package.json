@@ -13,7 +13,7 @@
     "test": "npm run check && npm run lint"
   },
   "devDependencies": {
-    "@dreamlab.gg/core": "0.0.63-dev-79a03de",
+    "@dreamlab.gg/core": "^0.0.63-dev-75e7b4f",
     "@dreamlab.gg/ui": "0.0.5-dev-2ed2150",
     "@luludev/eslint-config": "^0.5.1",
     "@types/matter-js": "^0.19.5",
@@ -27,8 +27,8 @@
   },
   "dependencies": {
     "@paralleldrive/cuid2": "^2.2.2",
+    "@scure/base": "^1.1.5",
     "axios": "^1.6.3",
-    "base58-js": "^2.0.0",
     "copy-to-clipboard": "^3.3.3",
     "jwt-decode": "^4.0.0",
     "matter-js": "^0.19.0",

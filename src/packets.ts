@@ -294,7 +294,7 @@ export const IncomingTagsChangedSchema = z.object({
   t: z.literal('TagsChanged'),
 
   entity_id: z.string(),
-  tags: z.string().array().optional(),
+  tags: z.string().array(),
 })
 
 export type IncomingPhysicsSuspendResumePacket = z.infer<

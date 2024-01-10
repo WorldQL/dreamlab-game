@@ -1,4 +1,4 @@
-import { binary_to_base58 } from 'base58-js'
+import { base58 } from '@scure/base'
 import copy from 'copy-to-clipboard'
 import {
   useCallback,
@@ -58,7 +58,7 @@ const encodeBlob = (baseUrl: string, editToken: string) => {
   view.setInt16(2 + encodedBaseUrl.byteLength, encodedEditToken.byteLength)
   array.set(encodedEditToken, 4 + encodedBaseUrl.byteLength)
 
-  return binary_to_base58(array)
+  return base58.encode(array)
 }
 
 export const CLICommand: FC<Props> = ({ details }) => {

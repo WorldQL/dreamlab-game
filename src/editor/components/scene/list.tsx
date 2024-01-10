@@ -143,7 +143,7 @@ export const SceneList: FC<{
     const taglessEntities = []
 
     for (const _entity of entities) {
-      const entityTags = _entity.tags
+      const entityTags = _entity.definition.tags
       for (const tag of entityTags) {
         if (grouped[tag]) {
           grouped[tag].push(_entity)
@@ -286,7 +286,7 @@ export const SceneList: FC<{
   const onSave = useCallback(() => {
     // Filter out entities tagged as "do not save"
     const toSave = entities
-      .filter(entity => !entity.tags.includes('editor/doNotSave'))
+      .filter(entity => !entity.definition.tags.includes('editor/doNotSave'))
       .map(entity => entity.definition)
 
     const json = JSON.stringify(toSave, null, 2)
