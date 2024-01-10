@@ -251,6 +251,7 @@ export const EntityDisplay: FC<DisplayProps> = ({
 
     setIsLocked(!isLocked)
     entity.definition.tags = newTags
+    setTags(entity.definition.tags)
   }, [entity, isLocked])
 
   const handleLabelChange = useCallback(
