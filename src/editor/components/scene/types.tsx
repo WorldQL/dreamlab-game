@@ -390,7 +390,7 @@ export const renderInputForZodSchema: RenderInputForZodSchemaFunctionType = (
           ? schema
           : schema instanceof ZodDefault || schema instanceof ZodOptional
             ? schema._def.innerType
-            : null
+            : schema
 
       if (!objectSchema?.shape) {
         console.error(
