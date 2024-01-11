@@ -174,10 +174,10 @@ export const createNavigator = (
 
           if (isDragging && !pressedEntity) {
             cursorStyle = 'grabbing'
-          } else if (!isDragging && isCursorOverNonLockedEntity) {
-            cursorStyle = 'pointer'
           } else if (isSpacePressed) {
             cursorStyle = 'grab'
+          } else if (!isDragging && isCursorOverNonLockedEntity) {
+            cursorStyle = 'pointer'
           }
         }
 

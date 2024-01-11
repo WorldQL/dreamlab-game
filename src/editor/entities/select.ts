@@ -39,9 +39,15 @@ const getOppositeCorner = (handle: CornerHandle): CornerHandle => {
 }
 
 type ActionData =
+  | {
+      type: 'scale'
+      origin: Vector
+      locked: CornerHandle
+      opposite: Vector
+      aspect: number
+    }
   | { type: 'clear' }
   | { type: 'rotate' }
-  | { type: 'scale'; origin: Vector; locked: CornerHandle; opposite: Vector }
   | { type: 'translate'; origin: Vector }
 
 interface Data {
@@ -84,28 +90,25 @@ interface EntityEvents {
   onTransformManualUpdate: [id: string, transform: Transform]
 }
 
-async function getPngDimensions(
+const getPngDimensions = async (
   url: string,
-): Promise<{ width: number; height: number }> {
+): Promise<{ width: number; height: number }> => {
   return new Promise((resolve, reject) => {
     const img = new Image()
 
-    // eslint-disable-next-line unicorn/prefer-add-event-listener
-    img.onload = () => {
+    img.addEventListener('load', () => {
       const dimensions = { width: img.width, height: img.height }
       resolve(dimensions)
-    }
+    })
 
-    // eslint-disable-next-line unicorn/prefer-add-event-listener
-    img.onerror = () => {
+    img.addEventListener('error', () => {
       reject(new Error('An error occurred loading the image.'))
-    }
+    })
 
     img.src = url
 
     if (img.complete) {
-      // @ts-expect-error: I don't need to pass an ev
-      img.onload()
+      img.dispatchEvent(new Event('load'))
     }
   })
 }
@@ -275,6 +278,11 @@ export const createEntitySelect = (
   const strokeWidth = 2
   const handleSize = 10
   const rotStalkHeight = 30
+  let isSpacePressed = false
+
+  const onSpace = (pressed: boolean) => {
+    isSpacePressed = pressed
+  }
 
   let selected: SpawnableEntity | undefined
   let action: ActionData | undefined
@@ -528,7 +536,12 @@ export const createEntitySelect = (
       }
 
       const onMouseDown = (ev: MouseEvent) => {
-        if (!editorEnabled.value) return
+        if (!editorEnabled.value || ev.button === 2) return
+        if (ev.button === 1 || (ev.button === 0 && isSpacePressed)) {
+          this.deselect()
+          return
+        }
+
         const pos = camera.screenToWorld({ x: ev.offsetX, y: ev.offsetY })
 
         const query = game
@@ -571,6 +584,7 @@ export const createEntitySelect = (
               origin: pos,
               locked,
               opposite,
+              aspect: bounds.width / bounds.height,
             }
           } else if (selected.isPointInside(pos)) {
             action = {
@@ -624,7 +638,7 @@ export const createEntitySelect = (
 
               const size = Math.max(width, height)
               const bounds: Bounds = shift
-                ? { width: size, height: size }
+                ? { width: size, height: size / action.aspect }
                 : { width, height }
 
               game.resize(selected, bounds)
@@ -638,7 +652,8 @@ export const createEntitySelect = (
               const edge = Vec.sub(rotated, action.opposite)
               const abs = absolute(edge)
               const width = Math.max(abs.x, 1)
-              const height = Math.max(abs.y, 1)
+              const height = shift ? width / action.aspect : Math.max(abs.y, 1)
+              edge.y *= height / abs.y
 
               const newOrigin = Vec.rotateAbout(
                 Vec.add(action.opposite, Vec.div(edge, 2)),
@@ -689,6 +704,7 @@ export const createEntitySelect = (
         }
       }
 
+      game.client.inputs.addListener('Space', onSpace)
       canvas.addEventListener('dragover', onDragOver)
       canvas.addEventListener('drop', onDrop)
       canvas.addEventListener('mousedown', onMouseDown)
@@ -734,6 +750,7 @@ export const createEntitySelect = (
 
     teardown({ game }) {
       game.events.common.removeListener('onDestroy', onDestroy)
+      game.client?.inputs.removeListener('Space', onSpace)
     },
 
     teardownRenderContext({ canvas, container, onMouseDown, onMouseMove }) {

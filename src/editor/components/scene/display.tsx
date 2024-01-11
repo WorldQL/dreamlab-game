@@ -134,18 +134,34 @@ export const EntityDisplay: FC<DisplayProps> = ({
   )
 
   const [isEditingLabel, setIsEditingLabel] = useState(false)
-  const [editedLabel, setEditedLabel] = useState(entity.definition.entity)
+  const [editedLabel, setEditedLabel] = useState(
+    entity.definition.label ?? entity.definition.entity,
+  )
   const [editableArgs, setEditableArgs] = useState(entity.args)
   const [entityTransform, setEntityTransform] = useState(entity.transform)
   const [newTag, setNewTag] = useState('')
-  const [tags, setTags] = useState(entity.tags)
+  const [tags, setTags] = useState(entity.definition.tags)
   const argsInputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({})
 
+  const [propertiesAreOpen, setPropertiesAreOpen] = useState(false)
+  const openProperties = () => {
+    setPropertiesAreOpen(true)
+    setTimeout(() => {
+      entityRef.current?.scrollIntoView({
+        behavior: 'instant',
+        block: 'nearest',
+      })
+    }, 1)
+  }
+
+  useEffect(() => {
+    setPropertiesAreOpen(false)
+  }, [isSelected])
+
   const handleAddTag = () => {
-    if (newTag) {
-      const updatedTags = [...tags, newTag]
-      setTags(updatedTags)
-      entity.definition.tags = updatedTags
+    if (newTag && !entity.definition.tags?.includes(newTag)) {
+      entity.definition.tags?.push(newTag)
+      setTags(entity.definition.tags ?? [])
       setNewTag('')
     }
   }
@@ -155,6 +171,14 @@ export const EntityDisplay: FC<DisplayProps> = ({
     setTags(updatedTags)
     entity.definition.tags = updatedTags
   }
+
+  useEffect(() => {
+    if (tags.includes('editorLocked')) {
+      setIsLocked(true)
+    } else {
+      setIsLocked(false)
+    }
+  }, [tags])
 
   const handleArgChange = (key: string, value: unknown) => {
     setEditableArgs(prevArgs => {
@@ -245,11 +269,11 @@ export const EntityDisplay: FC<DisplayProps> = ({
 
   const onLockToggle = useCallback(() => {
     const newTags = isLocked
-      ? entity.tags.filter(tag => tag !== 'editorLocked')
-      : [...entity.tags, 'editorLocked']
+      ? entity.definition.tags.filter(tag => tag !== 'editorLocked')
+      : [...entity.definition.tags, 'editorLocked']
 
-    setIsLocked(!isLocked)
     entity.definition.tags = newTags
+    setTags(entity.definition.tags)
   }, [entity, isLocked])
 
   const handleLabelChange = useCallback(
@@ -290,6 +314,7 @@ export const EntityDisplay: FC<DisplayProps> = ({
             behavior: 'smooth',
             block: 'nearest',
           }),
+        1,
       )
     }
   }, [isSelected])
@@ -349,7 +374,23 @@ export const EntityDisplay: FC<DisplayProps> = ({
                 : entity.definition.entity}
           </span>
         )}
-        <InfoDetails isSelected={isSelected}>
+        {isSelected && !propertiesAreOpen && (
+          <div
+            onClick={openProperties}
+            style={{
+              width: '100%',
+              backgroundColor: '#f3f3f3',
+              marginTop: '5px',
+              padding: '3px',
+              cursor: 'pointer',
+              boxSizing: 'border-box',
+              color: 'black',
+            }}
+          >
+            View / Edit Properties
+          </div>
+        )}
+        <InfoDetails isSelected={propertiesAreOpen}>
           <p>
             Entity:{' '}
             {entity.definition.entity.length > 30
