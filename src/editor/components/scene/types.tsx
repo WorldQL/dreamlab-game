@@ -57,26 +57,30 @@ const renderNumberInput: RenderInputFunctionType = (
   handleArgChange,
   handleArgSave,
   argsInputRefs,
-) => (
-  <>
-    <p style={{ fontWeight: 'bold', margin: '0' }}>{key}:</p>
-    <input
-      onBlur={() => handleArgSave(key)}
-      onChange={ev => handleArgChange(key, ev.target.valueAsNumber)}
-      onKeyDown={ev => {
-        if (ev.key === 'Enter') {
-          argsInputRefs.current[key]?.blur()
-          return
-        }
+) => {
+  const keys = key.split('.')
+  const title = keys[keys.length - 1]
+  return (
+    <>
+      <p style={{ fontWeight: 'bold', margin: '0' }}>{title}:</p>
+      <input
+        onBlur={() => handleArgSave(key)}
+        onChange={ev => handleArgChange(key, ev.target.valueAsNumber)}
+        onKeyDown={ev => {
+          if (ev.key === 'Enter') {
+            argsInputRefs.current[key]?.blur()
+            return
+          }
 
-        ev.stopPropagation()
-      }}
-      ref={el => (argsInputRefs.current[key] = el)}
-      type='number'
-      value={value as number}
-    />
-  </>
-)
+          ev.stopPropagation()
+        }}
+        ref={el => (argsInputRefs.current[key] = el)}
+        type='number'
+        value={value as number}
+      />
+    </>
+  )
+}
 
 const renderEnumSelect: RenderEnumSelectFunctionType = (
   key,
@@ -84,22 +88,26 @@ const renderEnumSelect: RenderEnumSelectFunctionType = (
   schema,
   handleArgChange,
   handleArgSave,
-) => (
-  <>
-    <p style={{ fontWeight: 'bold', margin: '0' }}>{key}:</p>
-    <select
-      onBlur={() => handleArgSave(key)}
-      onChange={ev => handleArgChange(key, ev.target.value)}
-      value={value}
-    >
-      {schema.options.map((enumValue: unknown) => (
-        <option key={String(enumValue)} value={String(enumValue)}>
-          {String(enumValue)}
-        </option>
-      ))}
-    </select>
-  </>
-)
+) => {
+  const keys = key.split('.')
+  const title = keys[keys.length - 1]
+  return (
+    <>
+      <p style={{ fontWeight: 'bold', margin: '0' }}>{title}:</p>
+      <select
+        onBlur={() => handleArgSave(key)}
+        onChange={ev => handleArgChange(key, ev.target.value)}
+        value={value}
+      >
+        {schema.options.map((enumValue: unknown) => (
+          <option key={String(enumValue)} value={String(enumValue)}>
+            {String(enumValue)}
+          </option>
+        ))}
+      </select>
+    </>
+  )
+}
 
 const renderStringInput: RenderInputFunctionType = (
   key,
@@ -107,26 +115,30 @@ const renderStringInput: RenderInputFunctionType = (
   handleArgChange,
   handleArgSave,
   argsInputRefs,
-) => (
-  <>
-    <p style={{ fontWeight: 'bold', margin: '0' }}>{key}:</p>
-    <input
-      onBlur={() => handleArgSave(key)}
-      onChange={ev => handleArgChange(key, ev.target.value)}
-      onKeyDown={ev => {
-        if (ev.key === 'Enter') {
-          argsInputRefs.current[key]?.blur()
-          return
-        }
+) => {
+  const keys = key.split('.')
+  const title = keys[keys.length - 1]
+  return (
+    <>
+      <p style={{ fontWeight: 'bold', margin: '0' }}>{title}:</p>
+      <input
+        onBlur={() => handleArgSave(key)}
+        onChange={ev => handleArgChange(key, ev.target.value)}
+        onKeyDown={ev => {
+          if (ev.key === 'Enter') {
+            argsInputRefs.current[key]?.blur()
+            return
+          }
 
-        ev.stopPropagation()
-      }}
-      ref={el => (argsInputRefs.current[key] = el)}
-      type='text'
-      value={value as string}
-    />
-  </>
-)
+          ev.stopPropagation()
+        }}
+        ref={el => (argsInputRefs.current[key] = el)}
+        type='text'
+        value={value as string}
+      />
+    </>
+  )
+}
 
 const renderBooleanCheckbox: RenderBooleanCheckboxFunctionType = (
   key,
@@ -134,21 +146,25 @@ const renderBooleanCheckbox: RenderBooleanCheckboxFunctionType = (
   handleArgChange,
   handleArgSave,
   argsInputRefs,
-) => (
-  <>
-    <p style={{ fontWeight: 'bold', margin: '0' }}>{key}:</p>
-    <input
-      checked={value}
-      onBlur={() => handleArgSave(key)}
-      onChange={ev => {
-        handleArgChange(key, ev.target.checked)
-        handleArgSave(key, { _v: ev.target.checked })
-      }}
-      ref={el => (argsInputRefs.current[key] = el)}
-      type='checkbox'
-    />
-  </>
-)
+) => {
+  const keys = key.split('.')
+  const title = keys[keys.length - 1]
+  return (
+    <>
+      <p style={{ fontWeight: 'bold', margin: '0' }}>{title}:</p>
+      <input
+        checked={value}
+        onBlur={() => handleArgSave(key)}
+        onChange={ev => {
+          handleArgChange(key, ev.target.checked)
+          handleArgSave(key, { _v: ev.target.checked })
+        }}
+        ref={el => (argsInputRefs.current[key] = el)}
+        type='checkbox'
+      />
+    </>
+  )
+}
 
 export const renderInputForZodSchema: RenderInputForZodSchemaFunctionType = (
   key,
@@ -227,26 +243,48 @@ export const renderInputForZodSchema: RenderInputForZodSchemaFunctionType = (
       }
 
       return (
-        <div key={key}>
-          {Array.isArray(value)
-            ? value.map((item, index) => (
-                <div key={`${key}[${item}]`}>
-                  {renderInputForZodSchema(
-                    `${key}[${index}]`,
-                    item,
-                    arraySchema.element,
-                    handleArgChange,
-                    handleArgSave,
-                    argsInputRefs,
-                    depth + 1,
-                  )}
+        <div key={key} style={{ marginBottom: '10px' }}>
+          <p style={{ fontWeight: 'bold', margin: '0' }}>{key}:</p>
+          {Array.isArray(value) &&
+            value.map((item, index) => (
+              <div
+                key={`${key}[${item}]`}
+                style={{
+                  paddingLeft: '20px',
+                  paddingTop: '5px',
+                  borderLeft: '2px solid #ddd',
+                }}
+              >
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    marginBottom: '5px',
+                  }}
+                >
+                  <span style={{ marginRight: '10px' }}>{`Item ${
+                    index + 1
+                  }`}</span>
                   <button onClick={() => handleRemoveItem(index)} type='button'>
                     Remove
                   </button>
                 </div>
-              ))
-            : null}
-          <button onClick={handleAddItem} type='button'>
+                {renderInputForZodSchema(
+                  `${key}[${index}]`,
+                  item,
+                  arraySchema.element,
+                  handleArgChange,
+                  handleArgSave,
+                  argsInputRefs,
+                  depth + 1,
+                )}
+              </div>
+            ))}
+          <button
+            onClick={handleAddItem}
+            style={{ marginTop: '5px' }}
+            type='button'
+          >
             Add Item
           </button>
         </div>
@@ -331,8 +369,12 @@ export const renderInputForZodSchema: RenderInputForZodSchemaFunctionType = (
         return <p>Invalid Schema</p>
       }
 
+      const keys = key.split('.')
+      const title = keys[keys.length - 1]
+
       return (
         <div key={key} style={{ marginBottom: '16px' }}>
+          <p style={{ fontWeight: 'bold', margin: '0' }}>{title}:</p>
           {Object.keys(objectSchema.shape).map(propertyKey => {
             const propertySchema = objectSchema.shape[propertyKey]
             const propertyValue =
@@ -340,7 +382,14 @@ export const renderInputForZodSchema: RenderInputForZodSchemaFunctionType = (
                 ? value[propertyKey]
                 : undefined
             return (
-              <div key={`${key}.${propertyKey}`}>
+              <div
+                key={`${key}.${propertyKey}`}
+                style={{
+                  paddingLeft: '20px',
+                  paddingTop: '5px',
+                  borderLeft: '2px solid #ddd',
+                }}
+              >
                 {renderInputForZodSchema(
                   `${key}.${propertyKey}`,
                   propertyValue,
