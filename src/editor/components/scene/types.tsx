@@ -128,46 +128,6 @@ const renderStringInput: RenderInputFunctionType = (
   </>
 )
 
-const renderArrayInputs: RenderInputFunctionType = (
-  key,
-  value,
-  handleArgChange,
-  handleArgSave,
-  argsInputRefs,
-) => {
-  if (!Array.isArray(value)) {
-    return <p>{key}: Invalid array</p>
-  }
-
-  return (
-    <>
-      <p style={{ fontWeight: 'bold', margin: '0' }}>{key}:</p>
-      {value.map((item, index) => {
-        const itemKey = `${key}[${index}]`
-        return (
-          <div key={itemKey} style={{ marginBottom: '8px' }}>
-            <input
-              onBlur={() => handleArgSave(key)}
-              onChange={ev => handleArgChange(itemKey, ev.target.value)}
-              onKeyDown={ev => {
-                if (ev.key === 'Enter') {
-                  argsInputRefs.current[itemKey]?.blur()
-                  return
-                }
-
-                ev.stopPropagation()
-              }}
-              ref={el => (argsInputRefs.current[itemKey] = el)}
-              type='text'
-              value={item}
-            />
-          </div>
-        )
-      })}
-    </>
-  )
-}
-
 const renderBooleanCheckbox: RenderBooleanCheckboxFunctionType = (
   key,
   value,
@@ -247,14 +207,28 @@ export const renderInputForZodSchema: RenderInputForZodSchemaFunctionType = (
         handleArgSave,
         argsInputRefs,
       )
-    case 'ZodArray':
-      return renderArrayInputs(
-        key,
-        value,
-        handleArgChange,
-        handleArgSave,
-        argsInputRefs,
+    case 'ZodArray': {
+      const arraySchema = unwrappedSchema as z.ZodArray<z.ZodTypeAny>
+      return (
+        <div key={key}>
+          {Array.isArray(value) &&
+            value.map((item, index) => (
+              <div key={`${key}[${item}]`}>
+                {renderInputForZodSchema(
+                  `${key}[${index}]`,
+                  item,
+                  arraySchema.element,
+                  handleArgChange,
+                  handleArgSave,
+                  argsInputRefs,
+                  depth + 1,
+                )}
+              </div>
+            ))}
+        </div>
       )
+    }
+
     case 'ZodBoolean':
       return renderBooleanCheckbox(
         key,
@@ -279,7 +253,6 @@ export const renderInputForZodSchema: RenderInputForZodSchemaFunctionType = (
         handleArgChange,
         handleArgSave,
       )
-    // case 'ZodDiscriminatedUnion':
     case 'ZodUnion':
       return unwrappedSchema.options.map((unionType: unknown) =>
         renderInputForZodSchema(
