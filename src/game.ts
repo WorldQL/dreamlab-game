@@ -85,6 +85,10 @@ export const init = async () => {
       '#connectingmessage',
     ) as HTMLElement
     connectionMessage.style.display = 'none'
+
+    game.events.common.on('onTickSkipped', () => {
+      // TODO: Request full physics snapshot
+    })
   } else {
     if (import.meta.env.DEV) {
       const url = new URL(window.location.href)
