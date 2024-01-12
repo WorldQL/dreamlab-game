@@ -223,6 +223,7 @@ export const renderInputForZodSchema: RenderInputForZodSchemaFunctionType = (
         const newArray = [...value]
         newArray.splice(index, 1)
         handleArgChange(key, newArray)
+        handleArgSave(key, { _v: newArray })
       }
 
       return (
