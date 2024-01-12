@@ -182,9 +182,8 @@ export const EntityDisplay: FC<DisplayProps> = ({
 
   const handleArgChange = (key: string, value: unknown) => {
     setEditableArgs(prevArgs => {
-      const updatedArgs = { ...prevArgs }
+      const updatedArgs = JSON.parse(JSON.stringify(prevArgs))
       setProperty(updatedArgs, key, value)
-
       return updatedArgs
     })
   }

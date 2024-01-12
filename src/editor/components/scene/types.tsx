@@ -209,22 +209,45 @@ export const renderInputForZodSchema: RenderInputForZodSchemaFunctionType = (
       )
     case 'ZodArray': {
       const arraySchema = unwrappedSchema as z.ZodArray<z.ZodTypeAny>
+
+      const handleAddItem = () => {
+        const keys = Object.keys(arraySchema.element._def.shape)
+        const newItem = { keys }
+
+        const newArray = [...value, newItem]
+        handleArgChange(key, newArray)
+        handleArgSave(key, { _v: newArray })
+      }
+
+      const handleRemoveItem = (index: number) => {
+        const newArray = [...value]
+        newArray.splice(index, 1)
+        handleArgChange(key, newArray)
+      }
+
       return (
         <div key={key}>
-          {Array.isArray(value) &&
-            value.map((item, index) => (
-              <div key={`${key}[${item}]`}>
-                {renderInputForZodSchema(
-                  `${key}[${index}]`,
-                  item,
-                  arraySchema.element,
-                  handleArgChange,
-                  handleArgSave,
-                  argsInputRefs,
-                  depth + 1,
-                )}
-              </div>
-            ))}
+          {Array.isArray(value)
+            ? value.map((item, index) => (
+                <div key={`${key}[${item}]`}>
+                  {renderInputForZodSchema(
+                    `${key}[${index}]`,
+                    item,
+                    arraySchema.element,
+                    handleArgChange,
+                    handleArgSave,
+                    argsInputRefs,
+                    depth + 1,
+                  )}
+                  <button onClick={() => handleRemoveItem(index)} type='button'>
+                    Remove
+                  </button>
+                </div>
+              ))
+            : null}
+          <button onClick={handleAddItem} type='button'>
+            Add Item
+          </button>
         </div>
       )
     }

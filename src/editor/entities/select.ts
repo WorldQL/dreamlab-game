@@ -242,7 +242,7 @@ export const createEntitySelect = (
 
       this.events.addListener('onArgsManualUpdate', (entityId, key, value) => {
         if (!selected || selected.uid !== entityId) return
-        setProperty(selected.args, key, value)
+        setProperty(selected.definition.args, key, value)
       })
 
       this.events.addListener(
