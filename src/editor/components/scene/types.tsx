@@ -8,7 +8,6 @@ interface ZodTypeDef {
 
 type HandleArgSave = (key: string, value?: { _v: unknown }) => void
 
-// Types for renderNumberInput, renderStringInput, renderArrayInputs, and renderFallbackInput
 type RenderInputFunctionType = (
   key: string,
   value: any | number | string,
@@ -34,16 +33,6 @@ type RenderBooleanCheckboxFunctionType = (
   key: string,
   value: boolean,
   handleArgChange: (key: string, newValue: boolean) => void,
-  handleArgSave: HandleArgSave,
-  argsInputRefs: React.MutableRefObject<{
-    [key: string]: HTMLInputElement | null
-  }>,
-) => JSX.Element
-
-type RenderComplexObjectFunctionType = (
-  key: string,
-  value: any,
-  handleArgChange: (key: string, newValue: any) => void,
   handleArgSave: HandleArgSave,
   argsInputRefs: React.MutableRefObject<{
     [key: string]: HTMLInputElement | null
@@ -201,114 +190,6 @@ const renderBooleanCheckbox: RenderBooleanCheckboxFunctionType = (
   </>
 )
 
-const renderFallbackInput: RenderInputFunctionType = (
-  key,
-  value,
-  handleArgChange,
-  handleArgSave,
-  argsInputRefs,
-) => {
-  if (typeof value === 'number') {
-    return renderNumberInput(
-      key,
-      value,
-      handleArgChange,
-      handleArgSave,
-      argsInputRefs,
-    )
-  }
-
-  return renderStringInput(
-    key,
-    value,
-    handleArgChange,
-    handleArgSave,
-    argsInputRefs,
-  )
-}
-
-const renderComplexObject: RenderComplexObjectFunctionType = (
-  key,
-  value,
-  handleArgChange,
-  handleArgSave,
-  argsInputRefs,
-) => {
-  if (typeof value === 'object' && value !== null) {
-    return (
-      <>
-        {Object.entries(value).map(([subKey, subValue]) => {
-          const fullKey = `${key}.${subKey}`
-          switch (typeof subValue) {
-            case 'number':
-              return (
-                <div key={fullKey}>
-                  {renderNumberInput(
-                    fullKey,
-                    subValue,
-                    handleArgChange,
-                    handleArgSave,
-                    argsInputRefs,
-                  )}
-                </div>
-              )
-            case 'boolean':
-              return (
-                <div key={fullKey}>
-                  {renderBooleanCheckbox(
-                    fullKey,
-                    subValue,
-                    handleArgChange,
-                    handleArgSave,
-                    argsInputRefs,
-                  )}
-                </div>
-              )
-            case 'string':
-              return (
-                <div key={fullKey}>
-                  {renderStringInput(
-                    fullKey,
-                    subValue,
-                    handleArgChange,
-                    handleArgSave,
-                    argsInputRefs,
-                  )}
-                </div>
-              )
-            case 'object':
-              return (
-                <div key={fullKey}>
-                  {renderComplexObject(
-                    fullKey,
-                    subValue,
-                    handleArgChange,
-                    handleArgSave,
-                    argsInputRefs,
-                  )}
-                </div>
-              )
-            default:
-              return (
-                <div key={fullKey}>
-                  {renderFallbackInput(
-                    fullKey,
-                    subValue,
-                    handleArgChange,
-                    handleArgSave,
-                    argsInputRefs,
-                  )}
-                </div>
-              )
-          }
-        })}
-      </>
-    )
-  }
-
-  return <span>Invalid object value</span>
-}
-
 export const renderInputForZodSchema: RenderInputForZodSchemaFunctionType = (
   key,
   value,
@@ -340,7 +221,8 @@ export const renderInputForZodSchema: RenderInputForZodSchemaFunctionType = (
   if (unwrappedSchema instanceof z.ZodDiscriminatedUnion) {
     const discriminatorKey = unwrappedSchema._def.discriminator
     const discriminatorValue = value[discriminatorKey]
-    const selectedSchema = unwrappedSchema.options[discriminatorValue]
+    const optionsMap = unwrappedSchema._def.optionsMap
+    const selectedSchema = optionsMap.get(discriminatorValue)
 
     if (selectedSchema) {
       return renderInputForZodSchema(
@@ -356,6 +238,31 @@ export const renderInputForZodSchema: RenderInputForZodSchemaFunctionType = (
   }
 
   switch (zodTypeDef.typeName) {
+    case 'ZodLiteral':
+    case 'ZodString':
+      return renderStringInput(
+        key,
+        value,
+        handleArgChange,
+        handleArgSave,
+        argsInputRefs,
+      )
+    case 'ZodArray':
+      return renderArrayInputs(
+        key,
+        value,
+        handleArgChange,
+        handleArgSave,
+        argsInputRefs,
+      )
+    case 'ZodBoolean':
+      return renderBooleanCheckbox(
+        key,
+        value,
+        handleArgChange,
+        handleArgSave,
+        argsInputRefs,
+      )
     case 'ZodNumber':
       return renderNumberInput(
         key,
@@ -372,6 +279,7 @@ export const renderInputForZodSchema: RenderInputForZodSchemaFunctionType = (
         handleArgChange,
         handleArgSave,
       )
+    // case 'ZodDiscriminatedUnion':
     case 'ZodUnion':
       return unwrappedSchema.options.map((unionType: unknown) =>
         renderInputForZodSchema(
@@ -384,6 +292,33 @@ export const renderInputForZodSchema: RenderInputForZodSchemaFunctionType = (
           depth + 1,
         ),
       )
+    case 'ZodTuple':
+      return null
+    // Don't think we need to render this. But if so, use code below.
+    // <>
+    //   {unwrappedSchema.items.map(
+    //     (itemSchema: ZodType<any, any, any>, index: number | string) => {
+    //       const itemKey = `${key}[${index}]`
+    //       const itemValue = Array.isArray(value)
+    //         ? value[index as any]
+    //         : undefined
+    //       return (
+    //         <div key={itemKey}>
+    //           {renderInputForZodSchema(
+    //             itemKey,
+    //             itemValue,
+    //             itemSchema,
+    //             handleArgChange,
+    //             handleArgSave,
+    //             argsInputRefs,
+    //             depth + 1,
+    //           )}
+    //         </div>
+    //       )
+    //     },
+    //   )}
+    // </>
+
     case 'ZodObject': {
       const objectSchema =
         schema instanceof ZodObject
@@ -425,49 +360,22 @@ export const renderInputForZodSchema: RenderInputForZodSchemaFunctionType = (
       )
     }
 
-    case 'ZodString':
-      return renderStringInput(
-        key,
-        value,
-        handleArgChange,
-        handleArgSave,
-        argsInputRefs,
-      )
-    case 'ZodArray':
-      return renderArrayInputs(
-        key,
-        value,
-        handleArgChange,
-        handleArgSave,
-        argsInputRefs,
-      )
-    case 'ZodBoolean':
-      return renderBooleanCheckbox(
-        key,
-        value,
-        handleArgChange,
-        handleArgSave,
-        argsInputRefs,
-      )
-    default:
-      if (typeof value === 'object' && value !== null) {
-        return renderComplexObject(
-          key,
-          value,
-          handleArgChange,
-          handleArgSave,
-          argsInputRefs,
-        )
-      }
+    default: {
+      const newSchema = unwrappedSchema._def.innerType
+        ? unwrappedSchema._def.innerType
+        : unwrappedSchema._def.schema
+          ? unwrappedSchema._def.schema
+          : unwrappedSchema._def.shape
 
       return renderInputForZodSchema(
         key,
         value,
-        schema._def.innerType,
+        newSchema,
         handleArgChange,
         handleArgSave,
         argsInputRefs,
         depth + 1,
       )
+    }
   }
 }
