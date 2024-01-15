@@ -1,4 +1,5 @@
-import { useState } from 'https://esm.sh/v136/react@18.2.0'
+import type { SpawnableEntity } from '@dreamlab.gg/core'
+import { useEffect, useState } from 'https://esm.sh/v136/react@18.2.0'
 import { styled } from 'https://esm.sh/v136/styled-components@6.1.6'
 import type { Action } from '../../editor'
 import type { Navigator } from '../../entities/navigator'
@@ -6,6 +7,7 @@ import type { Selector } from '../../entities/select'
 import { Button, CollapseButton } from '../ui/buttons'
 import { Container } from '../ui/container'
 import { Assets } from './assets'
+import { Inspector } from './inspector'
 import { Spawnables } from './spawnables'
 
 const PaletteContainer = styled(Container)<{ isCollapsed: boolean }>`
@@ -27,6 +29,7 @@ const PaletteContainer = styled(Container)<{ isCollapsed: boolean }>`
 const CATEGORIES = {
   SPAWNABLES: 'Spawnables',
   ASSETS: 'Assets',
+  INSPECTOR: 'Design',
 }
 
 interface PaletteManagerProps {
@@ -46,10 +49,26 @@ export const PaletteManager: React.FC<PaletteManagerProps> = ({
 }) => {
   const [isCollapsed, setIsCollapsed] = useState(false)
   const [currentCategory, setCurrentCategory] = useState(CATEGORIES.SPAWNABLES)
+  const [selectedEntity, setSelectedEntity] = useState<
+    SpawnableEntity | undefined
+  >(undefined)
 
   const nextAPIBaseURL = window.localStorage.getItem('@dreamlab/NextAPIURL')
   const url = new URL(window.location.href)
   const jwt = url.searchParams.get('token')
+
+  useEffect(() => {
+    const handleSelect = () => {
+      if (selector.selected) setCurrentCategory(CATEGORIES.INSPECTOR)
+      setSelectedEntity(selector.selected)
+    }
+
+    selector.events.addListener('onSelect', handleSelect)
+
+    return () => {
+      selector.events.removeListener('onSelect', handleSelect)
+    }
+  }, [selectedEntity, selector.events, selector.selected])
 
   return (
     <PaletteContainer isCollapsed={isCollapsed}>
@@ -95,6 +114,7 @@ export const PaletteManager: React.FC<PaletteManagerProps> = ({
                     currentCategory === category ? 'lightgrey' : 'transparent',
                   border: 'none',
                   color: 'black',
+                  marginTop: '20px',
                 }}
               >
                 {category}
@@ -113,6 +133,37 @@ export const PaletteManager: React.FC<PaletteManagerProps> = ({
           {currentCategory === CATEGORIES.ASSETS && (
             <Assets jwt={jwt} nextAPIBaseURL={nextAPIBaseURL} />
           )}
+
+          {currentCategory === CATEGORIES.INSPECTOR &&
+            (selectedEntity ? (
+              <Inspector
+                entity={selectedEntity}
+                history={history}
+                key={selectedEntity.uid}
+                selector={selector}
+              />
+            ) : (
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  height: '100vh',
+                  backgroundColor: '#f2f2f2',
+                  color: '#333',
+                  fontFamily: 'Arial, sans-serif',
+                  fontSize: '24px',
+                  textAlign: 'center',
+                  padding: '20px',
+                  boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
+                  borderRadius: '10px',
+                  margin: 'auto',
+                  width: '86%',
+                }}
+              >
+                Select an entity to inspect.
+              </div>
+            ))}
         </>
       )}
     </PaletteContainer>

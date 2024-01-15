@@ -61,8 +61,8 @@ const renderNumberInput: RenderInputFunctionType = (
   const keys = key.split('.')
   const title = keys[keys.length - 1]
   return (
-    <>
-      <p style={{ fontWeight: 'bold', margin: '0' }}>{title}:</p>
+    <div className='detail-col'>
+      <span>{title}:</span>
       <input
         onBlur={() => handleArgSave(key)}
         onChange={ev => handleArgChange(key, ev.target.valueAsNumber)}
@@ -78,7 +78,7 @@ const renderNumberInput: RenderInputFunctionType = (
         type='number'
         value={value as number}
       />
-    </>
+    </div>
   )
 }
 
@@ -92,11 +92,30 @@ const renderEnumSelect: RenderEnumSelectFunctionType = (
   const keys = key.split('.')
   const title = keys[keys.length - 1]
   return (
-    <>
-      <p style={{ fontWeight: 'bold', margin: '0' }}>{title}:</p>
+    <div className='detail-col' style={{ marginBottom: '10px' }}>
+      <span
+        style={{
+          fontWeight: '600',
+          marginRight: '10px',
+          whiteSpace: 'nowrap',
+          marginBottom: '4px',
+        }}
+      >
+        {title}:
+      </span>
       <select
         onBlur={() => handleArgSave(key)}
         onChange={ev => handleArgChange(key, ev.target.value)}
+        style={{
+          width: '100%',
+          padding: '2px',
+          borderRadius: '4px',
+          border: '1px solid #ccc',
+          backgroundColor: 'white',
+          cursor: 'pointer',
+          boxSizing: 'border-box',
+          height: '30px',
+        }}
         value={value}
       >
         {schema.options.map((enumValue: unknown) => (
@@ -105,7 +124,7 @@ const renderEnumSelect: RenderEnumSelectFunctionType = (
           </option>
         ))}
       </select>
-    </>
+    </div>
   )
 }
 
@@ -119,8 +138,8 @@ const renderStringInput: RenderInputFunctionType = (
   const keys = key.split('.')
   const title = keys[keys.length - 1]
   return (
-    <>
-      <p style={{ fontWeight: 'bold', margin: '0' }}>{title}:</p>
+    <div className='detail-col'>
+      <span>{title}:</span>
       <input
         onBlur={() => handleArgSave(key)}
         onChange={ev => handleArgChange(key, ev.target.value)}
@@ -136,7 +155,7 @@ const renderStringInput: RenderInputFunctionType = (
         type='text'
         value={value as string}
       />
-    </>
+    </div>
   )
 }
 
@@ -150,8 +169,8 @@ const renderBooleanCheckbox: RenderBooleanCheckboxFunctionType = (
   const keys = key.split('.')
   const title = keys[keys.length - 1]
   return (
-    <>
-      <p style={{ fontWeight: 'bold', margin: '0' }}>{title}:</p>
+    <div className='detail-col'>
+      <span>{title}:</span>
       <input
         checked={value}
         onBlur={() => handleArgSave(key)}
@@ -160,9 +179,14 @@ const renderBooleanCheckbox: RenderBooleanCheckboxFunctionType = (
           handleArgSave(key, { _v: ev.target.checked })
         }}
         ref={el => (argsInputRefs.current[key] = el)}
+        style={{
+          height: '1rem',
+          width: '1rem',
+          borderRadius: '0.25rem',
+        }}
         type='checkbox'
       />
-    </>
+    </div>
   )
 }
 
@@ -243,8 +267,8 @@ export const renderInputForZodSchema: RenderInputForZodSchemaFunctionType = (
       }
 
       return (
-        <div key={key} style={{ marginBottom: '10px' }}>
-          <p style={{ fontWeight: 'bold', margin: '0' }}>{key}:</p>
+        <div className='detail-col' key={key} style={{ marginBottom: '10px' }}>
+          <span>{key}:</span>
           {Array.isArray(value) &&
             value.map((item, index) => (
               <div
@@ -265,8 +289,28 @@ export const renderInputForZodSchema: RenderInputForZodSchemaFunctionType = (
                   <span style={{ marginRight: '10px' }}>{`Item ${
                     index + 1
                   }`}</span>
-                  <button onClick={() => handleRemoveItem(index)} type='button'>
-                    Remove
+                  <button
+                    onClick={() => handleRemoveItem(index)}
+                    style={{
+                      marginRight: '4px',
+                      border: 'none',
+                      padding: 0,
+                      cursor: 'pointer',
+                      backgroundColor: '#f9f9f9',
+                    }}
+                    type='button'
+                  >
+                    <svg
+                      style={{ width: '16px', height: '16px', fill: 'red' }}
+                      viewBox='0 0 24 24'
+                      xmlns='http://www.w3.org/2000/svg'
+                    >
+                      <path
+                        clipRule='evenodd'
+                        d='M16.5 4.478v.227a48.816 48.816 0 013.878.512.75.75 0 11-.256 1.478l-.209-.035-1.005 13.07a3 3 0 01-2.991 2.77H8.084a3 3 0 01-2.991-2.77L4.087 6.66l-.209.035a.75.75 0 01-.256-1.478A48.567 48.567 0 017.5 4.705v-.227c0-1.564 1.213-2.9 2.816-2.951a52.662 52.662 0 013.369 0c1.603.051 2.815 1.387 2.815 2.951zm-6.136-1.452a51.196 51.196 0 013.273 0C14.39 3.05 15 3.684 15 4.478v.113a49.488 49.488 0 00-6 0v-.113c0-.794.609-1.428 1.364-1.452zm-.355 5.945a.75.75 0 10-1.5.058l.347 9a.75.75 0 101.499-.058l-.346-9zm5.48.058 a.75.75 0 10-1.498-.058l-.347 9 a.75.75 0 001.5.058l.345-9z'
+                        fillRule='evenodd'
+                      />
+                    </svg>
                   </button>
                 </div>
                 {renderInputForZodSchema(
@@ -304,8 +348,8 @@ export const renderInputForZodSchema: RenderInputForZodSchemaFunctionType = (
       const entries = Object.entries(value)
 
       return (
-        <div key={key} style={{ marginBottom: '16px' }}>
-          <p style={{ fontWeight: 'bold', margin: '0' }}>{key}:</p>
+        <div className='detail-col' key={key} style={{ marginBottom: '16px' }}>
+          <span>{key}:</span>
           {entries.map(([recordKey, recordValue]) => (
             <div
               key={`${key}.${recordKey}`}
@@ -412,8 +456,8 @@ export const renderInputForZodSchema: RenderInputForZodSchemaFunctionType = (
       const title = keys[keys.length - 1]
 
       return (
-        <div key={key} style={{ marginBottom: '16px' }}>
-          <p style={{ fontWeight: 'bold', margin: '0' }}>{title}:</p>
+        <div className='detail-col' key={key} style={{ marginBottom: '16px' }}>
+          <span>{title}:</span>
           {Object.keys(objectSchema.shape).map(propertyKey => {
             const propertySchema = objectSchema.shape[propertyKey]
             const propertyValue =

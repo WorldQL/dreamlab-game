@@ -21,10 +21,10 @@ import { styled } from 'https://esm.sh/v136/styled-components@6.1.6'
 import type { Action } from '../../editor'
 import { EditorInputs } from '../../editor'
 import type { Selector } from '../../entities/select'
-import CollapsibleSection from '../palette/collapsablesection'
 import type { History } from '../palette/spawnables'
 import { Button, CollapseButton } from '../ui/buttons'
 import { Container } from '../ui/container'
+import CollapsibleSection from './collapsable-section'
 import { EntityDisplay } from './display'
 
 const ListContainer = styled(Container)<{ isCollapsed: boolean }>`

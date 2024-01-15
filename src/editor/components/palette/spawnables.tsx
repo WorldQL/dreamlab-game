@@ -172,7 +172,7 @@ export const Spawnables: React.FC<SpawnablesProps> = ({
 
   return (
     <div>
-      <h1>Spawn Object</h1>
+      <h3>Spawn Object</h3>
       <SpawnableList>
         {spawnable.map(([name]) => (
           <Button

@@ -89,6 +89,7 @@ interface EntityEvents {
   onArgsManualUpdate: [id: string, key: string, value: unknown]
   onTransformUpdate: [id: string, transform: Transform]
   onTransformManualUpdate: [id: string, transform: Transform]
+  onTagsUpdate: [id: string, tags: string[]]
 }
 
 const getPngDimensions = async (
@@ -206,10 +207,9 @@ export const createEntitySelect = (
     select(entity) {
       const { game } = dataManager.getData(this)
 
-      events.emit('onSelect', entity?.uid)
-
       const prev = selected
       selected = entity
+      events.emit('onSelect', entity?.uid)
 
       if (selected !== prev) {
         if (prev) {
@@ -243,6 +243,12 @@ export const createEntitySelect = (
       this.events.addListener('onArgsManualUpdate', (entityId, key, value) => {
         if (!selected || selected.uid !== entityId) return
         setProperty(selected.definition.args, key, value)
+        if (key === 'width' || key === 'height') {
+          game.resize(selected, {
+            width: selected.definition.args.width as number,
+            height: selected.definition.args.height as number,
+          })
+        }
       })
 
       this.events.addListener(
@@ -401,10 +407,10 @@ export const createEntitySelect = (
         let newSelection: SpawnableEntity | undefined
         if (action?.type === 'clear' && query[0] === selected) {
           newSelection = selected
-        } else if (query.length > 0) {
-          newSelection = query[0]
         } else if (isHandle(pos)) {
           newSelection = selected
+        } else if (query.length > 0) {
+          newSelection = query[0]
         } else {
           newSelection = undefined
         }
@@ -495,8 +501,10 @@ export const createEntitySelect = (
 
               const edge = Vec.sub(rotated, action.opposite)
               const abs = absolute(edge)
-              const width = Math.max(abs.x, 1)
-              const height = shift ? width / action.aspect : Math.max(abs.y, 1)
+              const width = Number.parseFloat(Math.max(abs.x, 1).toFixed(2))
+              const height = Number.parseFloat(
+                (shift ? width / action.aspect : Math.max(abs.y, 1)).toFixed(2),
+              )
               edge.y *= height / abs.y
 
               const newOrigin = Vec.rotateAbout(
