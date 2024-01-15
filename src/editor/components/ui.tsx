@@ -25,7 +25,7 @@ export const renderUI = (
     <StyleSheetManager target={styles}>
       {editDetails && <CLICommand details={editDetails} />}
 
-      <SceneList history={history} selector={selector} />
+      <SceneList editDetails={editDetails} history={history} selector={selector} />
       <PaletteManager
         history={history}
         navigator={navigator}
