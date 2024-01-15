@@ -291,6 +291,45 @@ export const renderInputForZodSchema: RenderInputForZodSchemaFunctionType = (
       )
     }
 
+    case 'ZodRecord': {
+      const recordSchema = unwrappedSchema as z.ZodRecord<z.ZodTypeAny>
+
+      if (!value || typeof value !== 'object') {
+        console.error(
+          `Invalid or undefined record value detected for key: ${key}`,
+        )
+        return <p>Invalid Value</p>
+      }
+
+      const entries = Object.entries(value)
+
+      return (
+        <div key={key} style={{ marginBottom: '16px' }}>
+          <p style={{ fontWeight: 'bold', margin: '0' }}>{key}:</p>
+          {entries.map(([recordKey, recordValue]) => (
+            <div
+              key={`${key}.${recordKey}`}
+              style={{
+                paddingLeft: '20px',
+                paddingTop: '5px',
+                borderLeft: '2px solid #ddd',
+              }}
+            >
+              {renderInputForZodSchema(
+                `${key}.${recordKey}`,
+                recordValue,
+                recordSchema.element,
+                handleArgChange,
+                handleArgSave,
+                argsInputRefs,
+                depth + 1,
+              )}
+            </div>
+          ))}
+        </div>
+      )
+    }
+
     case 'ZodBoolean':
       return renderBooleanCheckbox(
         key,
