@@ -484,11 +484,12 @@ export const EntityDisplay: FC<DisplayProps> = ({
 
           <div>
             <div>
-              {Object.entries(editableArgs).map(([key, value]) => {
+              {Object.entries(editableArgs).map(([key, value], index) => {
                 const schemaType = entity.argsSchema.shape[key]
+                const uniqueKey = `${entity.uid}-${key}-${index}`
 
                 return (
-                  <div key={key}>
+                  <div key={uniqueKey}>
                     {renderInputForZodSchema(
                       key,
                       value,
