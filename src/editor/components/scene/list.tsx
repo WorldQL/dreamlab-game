@@ -289,7 +289,12 @@ export const SceneList: FC<{
       .filter(entity => !entity.definition.tags.includes('editor/doNotSave'))
       .map(entity => entity.definition)
 
-    const json = JSON.stringify(toSave, null, 2)
+    const json = JSON.stringify(
+      toSave,
+      (_key, value) => (value instanceof Set ? [...value] : value),
+      2,
+    )
+
     const template = `
 import type { LooseSpawnableDefinition } from '@dreamlab.gg/core'
 

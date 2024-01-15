@@ -185,7 +185,9 @@ export const createNetwork = (
   let didSetReloadTimeout = false
 
   const sendPacket = (_packet: ToServerPacket) => {
-    const packet = JSON.stringify(_packet)
+    const packet = JSON.stringify(_packet, (_key, value) =>
+      value instanceof Set ? [...value] : value,
+    )
 
     const sendWhenOpen = async () => {
       if (ws.readyState === WebSocket.OPEN) {
