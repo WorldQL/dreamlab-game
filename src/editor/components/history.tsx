@@ -17,8 +17,10 @@ import {
   useCallback,
   useEffect,
   useRef,
+  useState,
 } from 'https://esm.sh/v136/react@18.2.0'
 import type { Selector } from '../entities/select'
+import { Notification } from './ui/notification'
 
 interface CreateAction {
   type: 'create'
@@ -55,6 +57,12 @@ export const History: React.FC<HistoryProps> = ({ selector, history }) => {
 
   const etys = useSpawnableEntities()
   const clipboard = useRef<SpawnableEntity | null>(null)
+  const [notification, setNotification] = useState<string>('')
+
+  const showNotification = (message: string) => {
+    setNotification(message)
+    setTimeout(() => setNotification(''), 3_000) // Hide after 3 seconds
+  }
 
   const onSpawn = useCallback<EventHandler<'onSpawn'>>(
     entity => {
@@ -88,6 +96,7 @@ export const History: React.FC<HistoryProps> = ({ selector, history }) => {
   const copyEntity = useCallback(() => {
     if (!selector.selected) return
     clipboard.current = selector.selected
+    showNotification('Copied')
   }, [selector.selected])
 
   const pasteEntity = useCallback(async () => {
@@ -107,6 +116,7 @@ export const History: React.FC<HistoryProps> = ({ selector, history }) => {
       }
 
       await spawn(definition)
+      showNotification('Pasted')
       history.record({ type: 'create', uid: definition.uid })
     }
   }, [game.client.inputs, history, spawn])
@@ -171,6 +181,7 @@ export const History: React.FC<HistoryProps> = ({ selector, history }) => {
     }
 
     history.undo()
+    showNotification('Action Undone')
   }, [history, game, network, spawn, selector])
 
   useEffect(() => {
@@ -259,5 +270,5 @@ export const History: React.FC<HistoryProps> = ({ selector, history }) => {
     }
   }, [etys, history, selector.events])
 
-  return <div />
+  return <Notification message={notification} />
 }
