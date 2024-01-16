@@ -181,7 +181,11 @@ export const createNetwork = (
   params: Params,
   ws: WebSocket,
   game: Game<false>,
-): [network: BareNetClient, ready: Promise<void>] => {
+): [
+  network: BareNetClient,
+  sendPacket: (packet: ToServerPacket) => void,
+  ready: Promise<void>,
+] => {
   let didSetReloadTimeout = false
 
   const sendPacket = (_packet: ToServerPacket) => {
@@ -829,5 +833,5 @@ export const createNetwork = (
     },
   }
 
-  return [network, ready]
+  return [network, sendPacket, ready]
 }

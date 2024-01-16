@@ -75,7 +75,7 @@ export const init = async () => {
   // #endregion
 
   if (ws) {
-    const [network, connected] = createNetwork(params!, ws, game)
+    const [network, sendPacket, connected] = createNetwork(params!, ws, game)
     game.initNetwork(network)
 
     await connected
