@@ -87,7 +87,7 @@ export const init = async () => {
     connectionMessage.style.display = 'none'
 
     game.events.common.on('onTickSkipped', () => {
-      // TODO: Request full physics snapshot
+      sendPacket({ t: 'RequestFullSnapshot' })
     })
   } else {
     if (import.meta.env.DEV) {

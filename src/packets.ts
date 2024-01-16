@@ -374,6 +374,14 @@ export const PhysicsControlledObjectsSnapshotSchema = z.object({
   snapshot: z.unknown(),
 })
 
+export type RequestFullSnapshotPacket = z.infer<
+  typeof RequestFullSnapshotSchema
+>
+export const RequestFullSnapshotSchema = z.object({
+  t: z.literal('RequestFullSnapshot'),
+  // TODO
+})
+
 export type ToClientPacket = z.infer<typeof ToClientPacketSchema>
 export const ToClientPacketSchema = z.discriminatedUnion('t', [
   HandshakeSchema,
@@ -417,4 +425,5 @@ export const ToServerPacketSchema = z.discriminatedUnion('t', [
   PlayerGearChangeSchema,
   PhysicsRequestObjectControlSchema,
   PhysicsControlledObjectsSnapshotSchema,
+  RequestFullSnapshotSchema,
 ])
