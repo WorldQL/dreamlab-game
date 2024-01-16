@@ -231,33 +231,27 @@ export const SceneList: FC<{
 
   const onMoveForewards = useCallback(async () => {
     if (!selector.selected) return
-    history.record({
-      type: 'transform',
-      definition: JSON.parse(JSON.stringify(selector.selected)),
-    })
     selector.selected.transform.zIndex += ctrlHeldDown ? 25 : 1
     forceUpdate()
     selector.events.emit(
       'onTransformUpdate',
       selector.selected.uid,
       selector.selected.transform,
+      true,
     )
-  }, [selector.selected, selector.events, history, ctrlHeldDown, forceUpdate])
+  }, [selector.selected, selector.events, ctrlHeldDown, forceUpdate])
 
   const onMoveBackwards = useCallback(async () => {
     if (!selector.selected) return
-    history.record({
-      type: 'transform',
-      definition: JSON.parse(JSON.stringify(selector.selected)),
-    })
     selector.selected.transform.zIndex -= ctrlHeldDown ? 25 : 1
     forceUpdate()
     selector.events.emit(
       'onTransformUpdate',
       selector.selected.uid,
       selector.selected.transform,
+      true,
     )
-  }, [selector.selected, selector.events, history, ctrlHeldDown, forceUpdate])
+  }, [selector.selected, selector.events, ctrlHeldDown, forceUpdate])
 
   const onChangeTiling = useCallback(async () => {
     if (
@@ -276,6 +270,7 @@ export const SceneList: FC<{
       'onArgsUpdate',
       selector.selected.uid,
       selector.selected.args,
+      true,
     )
     // forceUpdate()
   }, [selector.events, selector.selected])

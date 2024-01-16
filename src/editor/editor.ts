@@ -30,6 +30,7 @@ export const createEditor = (
 
   const history = {
     record: (action: Action) => {
+      console.log(action)
       actionHistory.value.push(action)
     },
     undo: () => {

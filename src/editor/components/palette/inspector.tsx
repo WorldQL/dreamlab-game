@@ -163,7 +163,12 @@ export const Inspector: FC<InspectorProps> = ({
     if (newTag && !entity.definition.tags?.includes(newTag)) {
       entity.definition.tags?.push(newTag)
       setTags(entity.definition.tags ?? [])
-      selector.events.emit('onTagsUpdate', entity.uid, entity.definition.tags)
+      selector.events.emit(
+        'onTagsUpdate',
+        entity.uid,
+        entity.definition.tags,
+        true,
+      )
       setNewTag('')
     }
   }
@@ -172,7 +177,12 @@ export const Inspector: FC<InspectorProps> = ({
     const updatedTags = tags.filter(tag => tag !== tagToDelete)
     setTags(updatedTags)
     entity.definition.tags = updatedTags
-    selector.events.emit('onTagsUpdate', entity.uid, entity.definition.tags)
+    selector.events.emit(
+      'onTagsUpdate',
+      entity.uid,
+      entity.definition.tags,
+      true,
+    )
   }
 
   const handleArgChange = (key: string, value: unknown) => {
@@ -220,18 +230,8 @@ export const Inspector: FC<InspectorProps> = ({
       zIndex: Number.isNaN(entityTransform.zIndex) ? 0 : entityTransform.zIndex,
     }
 
-    setEntityTransform(prevTransform => ({
-      ...prevTransform,
-      ...newTransform,
-    }))
-
-    history.record({
-      type: 'transform',
-      definition: JSON.parse(JSON.stringify(entity)),
-    })
-    entity.definition.transform = newTransform
-    selector.events.emit('onTransformManualUpdate', entity.uid, newTransform)
-  }, [entity, entityTransform, history, selector.events])
+    selector.events.emit('onTransformUpdate', entity.uid, newTransform, true)
+  }, [entity, entityTransform, selector.events])
 
   const handleArgSave = useCallback(
     (key: string, value?: { _v: unknown }) => {
@@ -240,14 +240,10 @@ export const Inspector: FC<InspectorProps> = ({
           ? value._v
           : (getProperty(editableArgs, key) as unknown)
 
-      history.record({
-        type: 'args',
-        definition: JSON.parse(JSON.stringify(entity)),
-      })
-
-      selector.events.emit('onArgsManualUpdate', entity.uid, key, val)
+      setProperty(editableArgs, key, val)
+      selector.events.emit('onArgsUpdate', entity.uid, editableArgs, true)
     },
-    [editableArgs, entity, history, selector.events],
+    [editableArgs, entity, selector.events],
   )
 
   useEffect(() => {
@@ -284,7 +280,7 @@ export const Inspector: FC<InspectorProps> = ({
       selector.events.removeListener('onTransformUpdate', handleTransformUpdate)
       selector.events.removeListener('onTagsUpdate', handleTagsUpdate)
     }
-  }, [entity.definition, entity.uid, selector.events])
+  }, [entity, entity.definition, entity.uid, history, selector.events])
 
   return (
     <EntityButtons id={entity.uid} ref={entityRef}>

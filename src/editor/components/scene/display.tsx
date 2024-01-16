@@ -8,8 +8,8 @@ import {
 } from 'https://esm.sh/v136/react@18.2.0'
 import type { FC } from 'https://esm.sh/v136/react@18.2.0'
 import { styled } from 'https://esm.sh/v136/styled-components@6.1.6'
-import type { Action } from '../../editor'
 import type { Selector } from '../../entities/select'
+import type { HistoryData } from '../history'
 import { DeleteButton, LockButton } from '../ui/buttons'
 
 const EntityButtons = styled.div`
@@ -84,11 +84,7 @@ interface DisplayProps {
   readonly selector: Selector
   readonly entity: SpawnableEntity
   isSelected: boolean
-  history: {
-    record(action: Action): void
-    undo(): void
-    getActions(): Action[]
-  }
+  history: HistoryData
 }
 
 export const EntityDisplay: FC<DisplayProps> = ({
@@ -148,7 +144,7 @@ export const EntityDisplay: FC<DisplayProps> = ({
 
     entity.definition.tags = newTags
     setTags(entity.definition.tags)
-    selector.events.emit('onTagsUpdate', entity.uid, newTags)
+    selector.events.emit('onTagsUpdate', entity.uid, newTags, true)
   }, [entity.definition, entity.uid, isLocked, selector.events])
 
   const handleLabelChange = useCallback(

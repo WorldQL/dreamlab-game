@@ -85,11 +85,13 @@ export interface Selector extends Entity<Data, Render> {
 
 interface EntityEvents {
   onSelect: [id: string | undefined]
-  onArgsUpdate: [id: string, args: Record<string, unknown>]
-  onArgsManualUpdate: [id: string, key: string, value: unknown]
-  onTransformUpdate: [id: string, transform: Transform]
-  onTransformManualUpdate: [id: string, transform: Transform]
-  onTagsUpdate: [id: string, tags: string[]]
+  onArgsUpdate: [
+    id: string,
+    args: Record<string, unknown>,
+    recordAction: boolean,
+  ]
+  onTransformUpdate: [id: string, transform: Transform, recordAction: boolean]
+  onTagsUpdate: [id: string, tags: string[], recordAction: boolean]
 }
 
 const getPngDimensions = async (
@@ -214,7 +216,7 @@ export const createEntitySelect = (
       selected.args.onEnter = { action: 'set', textureURL: url }
     }
 
-    events.emit('onArgsUpdate', selected.uid, selected.args)
+    events.emit('onArgsUpdate', selected.uid, selected.args, true)
   }
 
   return createEntity<Selector, Data, Render>({
@@ -262,24 +264,29 @@ export const createEntitySelect = (
       _game = game
       game.events.common.addListener('onDestroy', onDestroy)
 
-      this.events.addListener('onArgsManualUpdate', (entityId, key, value) => {
+      this.events.addListener('onArgsUpdate', (entityId, args) => {
         if (!selected || selected.uid !== entityId) return
-        setProperty(selected.args, key, value)
+
+        for (const key of Object.keys(args)) {
+          const value = args[key]
+          const entityValue = selected.args[key]
+
+          if (value !== entityValue) {
+            setProperty(selected.args, key, value)
+          }
+        }
       })
 
-      this.events.addListener(
-        'onTransformManualUpdate',
-        (entityId, newTransform) => {
-          if (!selected || selected.uid !== entityId) return
+      this.events.addListener('onTransformUpdate', (entityId, newTransform) => {
+        if (!selected || selected.uid !== entityId) return
 
-          const { position, zIndex, rotation } = newTransform
+        const { position, zIndex, rotation } = newTransform
 
-          selected.definition.transform = newTransform
-          selected.transform.position = position
-          selected.transform.zIndex = zIndex
-          selected.transform.rotation = rotation
-        },
-      )
+        selected.definition.transform = newTransform
+        selected.transform.position = position
+        selected.transform.zIndex = zIndex
+        selected.transform.rotation = rotation
+      })
 
       return { game, debug: game.debug }
     },
@@ -476,22 +483,25 @@ export const createEntitySelect = (
         if (!selected || !action) return
         const shift = game.client.inputs.getKey('ShiftLeft')
         const ctrl = game.client.inputs.getKey('ControlLeft')
+        actionOccurred = true
 
         switch (action.type) {
           case 'rotate': {
-            actionOccurred = true
             const radians = angleBetween(selected.transform.position, pos)
             const degrees = toDegrees(radians + Math.PI / 2)
 
             const angle = shift ? snap(degrees, 15) : degrees
-            selected.transform.rotation = angle
-            events.emit('onTransformUpdate', selected.uid, selected.transform)
+            const newTransform = {
+              position: selected.transform.position,
+              rotation: angle,
+              zIndex: selected.transform.zIndex,
+            }
+            events.emit('onTransformUpdate', selected.uid, newTransform, false)
             break
           }
 
           case 'scale': {
             // TODO: Account for mouse offset
-            actionOccurred = true
             const radians = toRadians(selected.transform.rotation)
             const inverseRadians = toRadians(0 - selected.transform.rotation)
 
@@ -512,7 +522,12 @@ export const createEntitySelect = (
                 ? { width: size, height: size / action.aspect }
                 : { width, height }
 
-              game.resize(selected, bounds)
+              const newArgs = {
+                ...selected.args,
+                width: bounds.width,
+                height: bounds.height,
+              }
+              events.emit('onArgsUpdate', selected.uid, newArgs, false)
             } else {
               const rotated = Vec.rotateAbout(
                 pos,
@@ -534,9 +549,18 @@ export const createEntitySelect = (
                 action.opposite,
               )
 
-              selected.transform.position = newOrigin
-              game.resize(selected, { width, height })
-              events.emit('onArgsUpdate', selected.uid, selected.args)
+              const newTransform = {
+                ...selected.transform,
+                position: newOrigin,
+              }
+              const newArgs = { ...selected.args, width, height }
+              events.emit(
+                'onTransformUpdate',
+                selected.uid,
+                newTransform,
+                false,
+              )
+              events.emit('onArgsUpdate', selected.uid, newArgs, false)
             }
 
             break
@@ -545,13 +569,13 @@ export const createEntitySelect = (
           case 'translate': {
             const offset = Vec.add(pos, action.origin)
             const newPosition = shift ? snapVector(offset, 10) : offset
-            actionOccurred = true
 
-            selected.transform.position.x = newPosition.x
-            selected.transform.position.y = newPosition.y
+            const newTransform = {
+              ...selected.transform,
+              position: newPosition,
+            }
 
-            events.emit('onTransformUpdate', selected.uid, selected.transform)
-
+            events.emit('onTransformUpdate', selected.uid, newTransform, false)
             break
           }
 
@@ -635,7 +659,6 @@ export const createEntitySelect = (
         bottomRightGfx,
         rotStalkGfx,
         rotHandleGfx,
-        onMouseMove,
       },
     ) {
       const bounds = selected?.rectangleBounds()
