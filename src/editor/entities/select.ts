@@ -1,4 +1,3 @@
-/* eslint-disable id-length */
 import { createEntity, dataManager } from '@dreamlab.gg/core'
 import type { Entity, Game, SpawnableEntity } from '@dreamlab.gg/core'
 import type { Camera } from '@dreamlab.gg/core/entities'

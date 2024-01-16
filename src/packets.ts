@@ -5,7 +5,6 @@ import { z } from 'zod'
 export const PROTOCOL_VERSION = 6
 
 const TupleVectorSchema = z.tuple([z.number(), z.number()])
-// eslint-disable-next-line id-length
 const ObjectVectorSchema = z.object({ x: z.number(), y: z.number() })
 
 export type HandshakePacket = z.infer<typeof HandshakeSchema>
