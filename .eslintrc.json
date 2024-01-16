@@ -11,6 +11,7 @@
     "project": "./tsconfig.eslint.json"
   },
   "rules": {
+    "id-length": ["error", { "exceptions": ["a", "b", "t"] }],
     "jsdoc/no-bad-blocks": ["error", { "ignore": ["vite-ignore"] }],
     "react/prop-types": 0
   },
