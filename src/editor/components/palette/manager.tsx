@@ -29,7 +29,7 @@ const PaletteContainer = styled(Container)<{ isCollapsed: boolean }>`
 const CATEGORIES = {
   SPAWNABLES: 'Spawnables',
   ASSETS: 'Assets',
-  INSPECTOR: 'Design',
+  INSPECTOR: 'Properties',
 }
 
 interface PaletteManagerProps {
@@ -161,7 +161,7 @@ export const PaletteManager: React.FC<PaletteManagerProps> = ({
                   width: '86%',
                 }}
               >
-                Select an entity to inspect.
+                Select an entity to inspect its properties.
               </div>
             ))}
         </>
