@@ -242,13 +242,7 @@ export const createEntitySelect = (
 
       this.events.addListener('onArgsManualUpdate', (entityId, key, value) => {
         if (!selected || selected.uid !== entityId) return
-        setProperty(selected.definition.args, key, value)
-        if (key === 'width' || key === 'height') {
-          game.resize(selected, {
-            width: selected.definition.args.width as number,
-            height: selected.definition.args.height as number,
-          })
-        }
+        setProperty(selected.args, key, value)
       })
 
       this.events.addListener(
