@@ -10,7 +10,7 @@ import type { FC } from 'https://esm.sh/v136/react@18.2.0'
 import { styled } from 'https://esm.sh/v136/styled-components@6.1.6'
 import type { Action } from '../../editor'
 import type { Selector } from '../../entities/select'
-import { Button, DeleteButton, LockButton } from '../ui/buttons'
+import { DeleteButton, LockButton } from '../ui/buttons'
 
 const EntityButtons = styled.div`
   display: flex;
@@ -26,7 +26,7 @@ const ControlButtons = styled.div<{ showLock: boolean }>`
   position: absolute;
   top: 0;
   right: 0;
-  padding: 4px;
+  padding: 6px;
   opacity: 0;
   visibility: hidden;
   transition:
@@ -51,22 +51,32 @@ const ControlButtons = styled.div<{ showLock: boolean }>`
   `}
 `
 
-const SelectButton = styled(Button)<{ isSelected: boolean }>`
+const SelectButton = styled.button<{ isSelected: boolean }>`
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: center;
-  flex-grow: 1;
+  align-items: center;
+  width: 100%;
+  appearance: none;
+  border: 2px solid transparent;
+  font-family: 'Inter', sans-serif;
+  cursor: pointer;
+  padding: 0.8rem 1rem;
+  border-radius: 0.4rem;
+  font-weight: 500;
+  letter-spacing: 0.025em;
+  background-color: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
   background-color: ${props =>
-    props.isSelected ? 'rgb(236, 72, 153)' : 'rgb(99, 102, 241)'};
-  color: white;
-  transition: background-color 0.3s ease;
-  position: relative;
+    props.isSelected ? 'rgb(99, 102, 241)' : 'white'};
+  color: ${props => (props.isSelected ? 'white' : '#333')};
   padding: 6px;
 
   &:hover {
     background-color: ${props =>
-      props.isSelected ? 'rgb(244 114 182)' : 'rgb(129, 140, 248)'};
+      props.isSelected ? 'rgb(79, 70, 229)' : 'white'};
+    border: ${props =>
+      props.isSelected
+        ? '2px solid transparent'
+        : '2px solid rgb(79, 70, 229)'};
   }
 `
 

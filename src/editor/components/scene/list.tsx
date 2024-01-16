@@ -338,7 +338,17 @@ export const level: LooseSpawnableDefinition[] = ${json}
           Object List
           <select
             onChange={onChangeGroupBy}
-            style={{ marginBottom: '5px' }}
+            style={{
+              width: '100%',
+              padding: '2px',
+              borderRadius: '4px',
+              border: '1px solid #ccc',
+              backgroundColor: 'white',
+              cursor: 'pointer',
+              boxSizing: 'border-box',
+              height: '30px',
+              marginBottom: '5px',
+            }}
             value={groupBy}
           >
             {groupingOptions}
