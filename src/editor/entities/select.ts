@@ -18,6 +18,7 @@ import type { Debug, Ref } from '@dreamlab.gg/core/utils'
 import { drawBox, drawCircle, setProperty } from '@dreamlab.gg/core/utils'
 import { Container, Graphics } from 'pixi.js'
 import type { ToServerPacket } from '../../packets'
+import type { HistoryData } from '../components/history'
 
 type CornerHandle = `${'bottom' | 'top'}${'Left' | 'Right'}`
 type Handle = CornerHandle | 'rotation'
@@ -116,6 +117,7 @@ const getPngDimensions = async (
 
 export const createEntitySelect = (
   editorEnabled: Ref<boolean>,
+  history: HistoryData,
   sendPacket?: (packet: ToServerPacket) => void,
 ) => {
   const colour = '#22a2ff'
@@ -132,8 +134,29 @@ export const createEntitySelect = (
   let action: ActionData | undefined
   let _game: Game<false> | undefined
 
+  let prevEntityData: SpawnableEntity | undefined
+  let actionOccurred = false
+
   const onMouseUp = () => {
-    if (action !== undefined) action = { type: 'clear' }
+    if (prevEntityData && action && actionOccurred) {
+      if (action.type !== 'scale' && action.type !== 'clear') {
+        history.record({
+          type: 'transform',
+          definition: prevEntityData,
+        })
+      } else {
+        history.record({
+          type: 'args',
+          definition: prevEntityData,
+        })
+      }
+
+      prevEntityData = undefined
+    }
+
+    if (action !== undefined) {
+      action = { type: 'clear' }
+    }
   }
 
   const onDestroy: EventHandler<'onDestroy'> = entity => {
@@ -408,8 +431,12 @@ export const createEntitySelect = (
           newSelection = undefined
         }
 
+        if (newSelection)
+          prevEntityData = JSON.parse(JSON.stringify(newSelection))
+
         this.select(newSelection)
         updateCursor(pos)
+        actionOccurred = false
 
         if (action?.type === 'clear') action = undefined
 
@@ -452,6 +479,7 @@ export const createEntitySelect = (
 
         switch (action.type) {
           case 'rotate': {
+            actionOccurred = true
             const radians = angleBetween(selected.transform.position, pos)
             const degrees = toDegrees(radians + Math.PI / 2)
 
@@ -463,7 +491,7 @@ export const createEntitySelect = (
 
           case 'scale': {
             // TODO: Account for mouse offset
-
+            actionOccurred = true
             const radians = toRadians(selected.transform.rotation)
             const inverseRadians = toRadians(0 - selected.transform.rotation)
 
@@ -517,6 +545,7 @@ export const createEntitySelect = (
           case 'translate': {
             const offset = Vec.add(pos, action.origin)
             const newPosition = shift ? snapVector(offset, 10) : offset
+            actionOccurred = true
 
             selected.transform.position.x = newPosition.x
             selected.transform.position.y = newPosition.y
@@ -528,6 +557,7 @@ export const createEntitySelect = (
 
           case 'clear': {
             // No-op
+            actionOccurred = false
             break
           }
         }
@@ -538,7 +568,7 @@ export const createEntitySelect = (
       canvas.addEventListener('drop', onDrop)
       canvas.addEventListener('mousedown', onMouseDown)
       canvas.addEventListener('mouseup', onMouseUp)
-      // canvas.addEventListener('mousemove', onMouseMove)
+      canvas.addEventListener('mousemove', onMouseMove)
 
       const container = new Container()
       container.sortableChildren = true
@@ -608,8 +638,6 @@ export const createEntitySelect = (
         onMouseMove,
       },
     ) {
-      onMouseMove()
-
       const bounds = selected?.rectangleBounds()
       if (!selected || !bounds) {
         game.client?.inputs?.enable('mouse', 'editor')

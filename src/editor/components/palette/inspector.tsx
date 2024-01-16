@@ -9,8 +9,8 @@ import {
 } from 'https://esm.sh/v136/react@18.2.0'
 import type { FC } from 'https://esm.sh/v136/react@18.2.0'
 import { styled } from 'https://esm.sh/v136/styled-components@6.1.6'
-import type { Action } from '../../editor'
 import type { Selector } from '../../entities/select'
+import type { HistoryData } from '../history'
 import { renderInputForZodSchema } from '../scene/types'
 
 const EntityButtons = styled.div`
@@ -143,14 +143,14 @@ const InspectorStyle = styled.div`
 interface InspectorProps {
   readonly selector: Selector
   readonly entity: SpawnableEntity
-  history: {
-    record(action: Action): void
-    undo(): void
-    getActions(): Action[]
-  }
+  history: HistoryData
 }
 
-export const Inspector: FC<InspectorProps> = ({ selector, entity }) => {
+export const Inspector: FC<InspectorProps> = ({
+  selector,
+  entity,
+  history,
+}) => {
   const entityRef = useRef<HTMLDivElement>(null)
 
   const [editableArgs, setEditableArgs] = useState(entity.args)
@@ -225,9 +225,13 @@ export const Inspector: FC<InspectorProps> = ({ selector, entity }) => {
       ...newTransform,
     }))
 
+    history.record({
+      type: 'transform',
+      definition: JSON.parse(JSON.stringify(entity)),
+    })
     entity.definition.transform = newTransform
     selector.events.emit('onTransformManualUpdate', entity.uid, newTransform)
-  }, [entity.definition, entity.uid, entityTransform, selector.events])
+  }, [entity, entityTransform, history, selector.events])
 
   const handleArgSave = useCallback(
     (key: string, value?: { _v: unknown }) => {
@@ -236,9 +240,14 @@ export const Inspector: FC<InspectorProps> = ({ selector, entity }) => {
           ? value._v
           : (getProperty(editableArgs, key) as unknown)
 
+      history.record({
+        type: 'args',
+        definition: JSON.parse(JSON.stringify(entity)),
+      })
+
       selector.events.emit('onArgsManualUpdate', entity.uid, key, val)
     },
-    [editableArgs, entity.uid, selector.events],
+    [editableArgs, entity, history, selector.events],
   )
 
   useEffect(() => {

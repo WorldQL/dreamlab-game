@@ -18,10 +18,9 @@ import {
 } from 'https://esm.sh/v136/react@18.2.0'
 import type { ChangeEvent, FC } from 'https://esm.sh/v136/react@18.2.0'
 import { styled } from 'https://esm.sh/v136/styled-components@6.1.6'
-import type { Action } from '../../editor'
 import { EditorInputs } from '../../editor'
 import type { Selector } from '../../entities/select'
-import type { History } from '../palette/spawnables'
+import type { HistoryData } from '../history'
 import { Button, CollapseButton } from '../ui/buttons'
 import { Container } from '../ui/container'
 import CollapsibleSection from './collapsable-section'
@@ -78,7 +77,7 @@ function setContainsSelected(
 
 const GroupedEntitySet = (
   groupedEntities: GroupedSpawnableEntities,
-  history: History,
+  history: HistoryData,
   selector: Selector,
   selected: string | undefined,
 ) => {
@@ -105,11 +104,7 @@ const GroupedEntitySet = (
 
 export const SceneList: FC<{
   readonly selector: Selector
-  history: {
-    record(action: Action): void
-    undo(): void
-    getActions(): Action[]
-  }
+  history: HistoryData
 }> = ({ selector, history }) => {
   const game = useGame()
   const network = useNetwork()
@@ -236,6 +231,10 @@ export const SceneList: FC<{
 
   const onMoveForewards = useCallback(async () => {
     if (!selector.selected) return
+    history.record({
+      type: 'transform',
+      definition: JSON.parse(JSON.stringify(selector.selected)),
+    })
     selector.selected.transform.zIndex += ctrlHeldDown ? 25 : 1
     forceUpdate()
     selector.events.emit(
@@ -243,10 +242,14 @@ export const SceneList: FC<{
       selector.selected.uid,
       selector.selected.transform,
     )
-  }, [selector.selected, selector.events, ctrlHeldDown, forceUpdate])
+  }, [selector.selected, selector.events, history, ctrlHeldDown, forceUpdate])
 
   const onMoveBackwards = useCallback(async () => {
     if (!selector.selected) return
+    history.record({
+      type: 'transform',
+      definition: JSON.parse(JSON.stringify(selector.selected)),
+    })
     selector.selected.transform.zIndex -= ctrlHeldDown ? 25 : 1
     forceUpdate()
     selector.events.emit(
@@ -254,7 +257,7 @@ export const SceneList: FC<{
       selector.selected.uid,
       selector.selected.transform,
     )
-  }, [selector.selected, selector.events, ctrlHeldDown, forceUpdate])
+  }, [selector.selected, selector.events, history, ctrlHeldDown, forceUpdate])
 
   const onChangeTiling = useCallback(async () => {
     if (

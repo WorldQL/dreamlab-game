@@ -1,9 +1,9 @@
 import type { SpawnableEntity } from '@dreamlab.gg/core'
 import { useEffect, useState } from 'https://esm.sh/v136/react@18.2.0'
 import { styled } from 'https://esm.sh/v136/styled-components@6.1.6'
-import type { Action } from '../../editor'
 import type { Navigator } from '../../entities/navigator'
 import type { Selector } from '../../entities/select'
+import type { HistoryData } from '../history'
 import { Button, CollapseButton } from '../ui/buttons'
 import { Container } from '../ui/container'
 import { Assets } from './assets'
@@ -35,11 +35,7 @@ const CATEGORIES = {
 interface PaletteManagerProps {
   selector: Selector
   navigator: Navigator
-  history: {
-    record(action: Action): void
-    undo(): void
-    getActions(): Action[]
-  }
+  history: HistoryData
 }
 
 export const PaletteManager: React.FC<PaletteManagerProps> = ({

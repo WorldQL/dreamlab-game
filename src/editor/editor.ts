@@ -1,7 +1,7 @@
-import type { LooseSpawnableDefinition } from '@dreamlab.gg/core'
 import { createEntity } from '@dreamlab.gg/core'
 import { deferUntilPlayer, ref } from '@dreamlab.gg/core/utils'
 import type { ToServerPacket } from '../packets'
+import type { Action } from './components/history'
 import { renderUI } from './components/ui'
 import { createNavigator } from './entities/navigator'
 import { createEntitySelect } from './entities/select'
@@ -21,25 +21,11 @@ export interface EditDetails {
   readonly instance: string
 }
 
-interface CreateAction {
-  type: 'create'
-  uid: string
-}
-
-interface DeleteAction {
-  type: 'delete'
-  definition: LooseSpawnableDefinition
-}
-
-export type Action = CreateAction | DeleteAction
-
 export const createEditor = (
   sendPacket?: (packet: ToServerPacket) => void,
   editDetails?: EditDetails,
 ) => {
   const enabled = ref<boolean>(false)
-  const selector = createEntitySelect(enabled, sendPacket)
-  const navigator = createNavigator(enabled, selector)
   const actionHistory = { value: [] as Action[] }
 
   const history = {
@@ -51,6 +37,9 @@ export const createEditor = (
     },
     getActions: () => actionHistory.value,
   }
+
+  const selector = createEntitySelect(enabled, history, sendPacket)
+  const navigator = createNavigator(enabled, selector)
 
   return createEntity({
     async init({ game }) {
