@@ -3,14 +3,11 @@ import type {
   LooseSpawnableDefinition,
   SpawnableEntity,
 } from '@dreamlab.gg/core'
-import type { Transform } from '@dreamlab.gg/core/dist/math'
-import { setProperty } from '@dreamlab.gg/core/dist/utils'
 import type { EventHandler } from '@dreamlab.gg/core/events'
 import {
   useCommonEventListener,
   useGame,
   useNetwork,
-  useSpawnableEntities,
 } from '@dreamlab.gg/ui/react'
 import cuid2 from '@paralleldrive/cuid2'
 import {
@@ -55,7 +52,6 @@ export const History: React.FC<HistoryProps> = ({ selector, history }) => {
   const network = useNetwork()
   const spawnedAwaitingSelectionRef = useRef<string[]>([])
 
-  const etys = useSpawnableEntities()
   const clipboard = useRef<SpawnableEntity | null>(null)
   const [notification, setNotification] = useState<string>('')
 
@@ -96,7 +92,7 @@ export const History: React.FC<HistoryProps> = ({ selector, history }) => {
   const copyEntity = useCallback(() => {
     if (!selector.selected) return
     clipboard.current = selector.selected
-    showNotification('Copied')
+    showNotification('Copied!')
   }, [selector.selected])
 
   const pasteEntity = useCallback(async () => {
@@ -116,7 +112,7 @@ export const History: React.FC<HistoryProps> = ({ selector, history }) => {
       }
 
       await spawn(definition)
-      showNotification('Pasted')
+      showNotification('Pasted.')
       history.record({ type: 'create', uid: definition.uid })
     }
   }, [game.client.inputs, history, spawn])
@@ -154,7 +150,6 @@ export const History: React.FC<HistoryProps> = ({ selector, history }) => {
             'onTransformUpdate',
             entity.uid,
             lastAction.definition.transform,
-            false,
           )
 
           break
@@ -172,13 +167,11 @@ export const History: React.FC<HistoryProps> = ({ selector, history }) => {
             'onArgsUpdate',
             entity.uid,
             lastAction.definition.args,
-            false,
           )
           selector.events.emit(
             'onTransformUpdate',
             entity.uid,
             lastAction.definition.transform,
-            false,
           )
 
           break
@@ -187,7 +180,7 @@ export const History: React.FC<HistoryProps> = ({ selector, history }) => {
     }
 
     history.undo()
-    showNotification('Action Undone')
+    showNotification('Action Undone.')
   }, [history, game, network, spawn, selector])
 
   useEffect(() => {
@@ -213,68 +206,6 @@ export const History: React.FC<HistoryProps> = ({ selector, history }) => {
       window.removeEventListener('keydown', handleKeyDown)
     }
   }, [copyEntity, pasteEntity, undoLastAction, selector.selected])
-
-  useEffect(() => {
-    const handleArgsUpdate = (
-      entityId: string,
-      args: Record<string, unknown>,
-      recordAction: boolean,
-    ) => {
-      const entity = etys.find(entity => entity.uid === entityId)
-      if (!entity) return
-
-      if (recordAction)
-        history.record({
-          type: 'args',
-          definition: entity,
-        })
-
-      for (const key of Object.keys(args)) {
-        const value = args[key]
-        const entityValue = entity.args[key]
-
-        if (value !== entityValue) {
-          setProperty(entity.args, key, value)
-        }
-      }
-    }
-
-    const handleTransformUpdate = (
-      entityId: string,
-      transform: Transform,
-      recordAction: boolean,
-    ) => {
-      const entity = etys.find(entity => entity.uid === entityId)
-      if (!entity) return
-
-      if (recordAction)
-        history.record({
-          type: 'transform',
-          definition: entity,
-        })
-
-      const { position, zIndex, rotation } = transform
-
-      entity.definition.transform = transform
-      entity.transform.position = position
-      entity.transform.zIndex = zIndex
-      entity.transform.rotation = rotation
-    }
-
-    // const handleTagsUpdate = (entityId: string, tags: string[]) => {
-
-    // }
-
-    selector.events.addListener('onArgsUpdate', handleArgsUpdate)
-    selector.events.addListener('onTransformUpdate', handleTransformUpdate)
-    // selector.events.addListener('onTagsUpdate', handleTagsUpdate)
-
-    return () => {
-      selector.events.removeListener('onArgsUpdate', handleArgsUpdate)
-      selector.events.removeListener('onTransformUpdate', handleTransformUpdate)
-      //   selector.events.removeListener('onTagsUpdate', handleTagsUpdate)
-    }
-  }, [etys, history, selector.events])
 
   return <Notification message={notification} />
 }

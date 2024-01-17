@@ -60,7 +60,6 @@ export const createEditor = (
         'KeyK',
       )
 
-      // Need to use delete key because when editing label + args using backspace will delete the entity
       inputs?.registerInput(
         EditorInputs.DeleteEntity,
         'Delete Entity',

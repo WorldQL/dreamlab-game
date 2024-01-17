@@ -163,12 +163,7 @@ export const Inspector: FC<InspectorProps> = ({
     if (newTag && !entity.definition.tags?.includes(newTag)) {
       entity.definition.tags?.push(newTag)
       setTags(entity.definition.tags ?? [])
-      selector.events.emit(
-        'onTagsUpdate',
-        entity.uid,
-        entity.definition.tags,
-        true,
-      )
+      selector.events.emit('onTagsUpdate', entity.uid, entity.definition.tags)
       setNewTag('')
     }
   }
@@ -177,12 +172,7 @@ export const Inspector: FC<InspectorProps> = ({
     const updatedTags = tags.filter(tag => tag !== tagToDelete)
     setTags(updatedTags)
     entity.definition.tags = updatedTags
-    selector.events.emit(
-      'onTagsUpdate',
-      entity.uid,
-      entity.definition.tags,
-      true,
-    )
+    selector.events.emit('onTagsUpdate', entity.uid, entity.definition.tags)
   }
 
   const handleArgChange = (key: string, value: unknown) => {
@@ -229,9 +219,12 @@ export const Inspector: FC<InspectorProps> = ({
         : entityTransform.rotation,
       zIndex: Number.isNaN(entityTransform.zIndex) ? 0 : entityTransform.zIndex,
     }
-
-    selector.events.emit('onTransformUpdate', entity.uid, newTransform, true)
-  }, [entity, entityTransform, selector.events])
+    history.record({
+      type: 'transform',
+      definition: JSON.parse(JSON.stringify(entity)),
+    })
+    selector.events.emit('onTransformUpdate', entity.uid, newTransform)
+  }, [entity, entityTransform, history, selector.events])
 
   const handleArgSave = useCallback(
     (key: string, value?: { _v: unknown }) => {
@@ -240,10 +233,14 @@ export const Inspector: FC<InspectorProps> = ({
           ? value._v
           : (getProperty(editableArgs, key) as unknown)
 
+      history.record({
+        type: 'args',
+        definition: JSON.parse(JSON.stringify(entity)),
+      })
       setProperty(editableArgs, key, val)
-      selector.events.emit('onArgsUpdate', entity.uid, editableArgs, true)
+      selector.events.emit('onArgsUpdate', entity.uid, editableArgs)
     },
-    [editableArgs, entity, selector.events],
+    [editableArgs, entity, history, selector.events],
   )
 
   useEffect(() => {

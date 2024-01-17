@@ -86,13 +86,9 @@ export interface Selector extends Entity<Data, Render> {
 
 interface EntityEvents {
   onSelect: [id: string | undefined]
-  onArgsUpdate: [
-    id: string,
-    args: Record<string, unknown>,
-    recordAction: boolean,
-  ]
-  onTransformUpdate: [id: string, transform: Transform, recordAction: boolean]
-  onTagsUpdate: [id: string, tags: string[], recordAction: boolean]
+  onArgsUpdate: [id: string, args: Record<string, unknown>]
+  onTransformUpdate: [id: string, transform: Transform]
+  onTagsUpdate: [id: string, tags: string[]]
 }
 
 const getPngDimensions = async (
@@ -217,7 +213,7 @@ export const createEntitySelect = (
       selected.args.onEnter = { action: 'set', textureURL: url }
     }
 
-    events.emit('onArgsUpdate', selected.uid, selected.args, true)
+    events.emit('onArgsUpdate', selected.uid, selected.args)
   }
 
   return createEntity<Selector, Data, Render>({
@@ -496,7 +492,7 @@ export const createEntitySelect = (
               rotation: angle,
               zIndex: selected.transform.zIndex,
             }
-            events.emit('onTransformUpdate', selected.uid, newTransform, false)
+            events.emit('onTransformUpdate', selected.uid, newTransform)
             break
           }
 
@@ -527,7 +523,7 @@ export const createEntitySelect = (
                 width: bounds.width,
                 height: bounds.height,
               }
-              events.emit('onArgsUpdate', selected.uid, newArgs, false)
+              events.emit('onArgsUpdate', selected.uid, newArgs)
             } else {
               const rotated = Vec.rotateAbout(
                 pos,
@@ -554,13 +550,8 @@ export const createEntitySelect = (
                 position: newOrigin,
               }
               const newArgs = { ...selected.args, width, height }
-              events.emit(
-                'onTransformUpdate',
-                selected.uid,
-                newTransform,
-                false,
-              )
-              events.emit('onArgsUpdate', selected.uid, newArgs, false)
+              events.emit('onTransformUpdate', selected.uid, newTransform)
+              events.emit('onArgsUpdate', selected.uid, newArgs)
             }
 
             break
@@ -575,7 +566,7 @@ export const createEntitySelect = (
               position: newPosition,
             }
 
-            events.emit('onTransformUpdate', selected.uid, newTransform, false)
+            events.emit('onTransformUpdate', selected.uid, newTransform)
             break
           }
 

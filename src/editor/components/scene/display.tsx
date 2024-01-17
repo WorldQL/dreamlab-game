@@ -145,7 +145,7 @@ export const EntityDisplay: FC<DisplayProps> = ({
 
     entity.definition.tags = newTags
     setTags(entity.definition.tags)
-    selector.events.emit('onTagsUpdate', entity.uid, newTags, true)
+    selector.events.emit('onTagsUpdate', entity.uid, newTags)
   }, [entity.definition, entity.uid, isLocked, selector.events])
 
   const handleLabelChange = useCallback(
