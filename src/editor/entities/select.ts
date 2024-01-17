@@ -19,6 +19,7 @@ import { drawBox, drawCircle, setProperty } from '@dreamlab.gg/core/utils'
 import { Container, Graphics } from 'pixi.js'
 import type { ToServerPacket } from '../../packets'
 import type { HistoryData } from '../components/history'
+import { LOCKED_TAG } from '../editor'
 
 type CornerHandle = `${'bottom' | 'top'}${'Left' | 'Right'}`
 type Handle = CornerHandle | 'rotation'
@@ -421,8 +422,7 @@ export const createEntitySelect = (
           .queryPosition(pos)
           .filter(
             entity =>
-              !entity.preview &&
-              !entity.definition.tags?.includes('editorLocked'),
+              !entity.preview && !entity.definition.tags?.includes(LOCKED_TAG),
           )
 
         query.sort((a, b) => b.transform.zIndex - a.transform.zIndex)

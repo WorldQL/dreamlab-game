@@ -8,6 +8,7 @@ import {
 } from 'https://esm.sh/v136/react@18.2.0'
 import type { FC } from 'https://esm.sh/v136/react@18.2.0'
 import { styled } from 'https://esm.sh/v136/styled-components@6.1.6'
+import { LOCKED_TAG } from '../../editor'
 import type { Selector } from '../../entities/select'
 import type { HistoryData } from '../history'
 import { DeleteButton, LockButton } from '../ui/buttons'
@@ -98,7 +99,7 @@ export const EntityDisplay: FC<DisplayProps> = ({
   const player = usePlayer()
   const entityRef = useRef<HTMLDivElement>(null)
   const [isLocked, setIsLocked] = useState(
-    Boolean(entity.definition.tags?.includes('editorLocked')),
+    Boolean(entity.definition.tags?.includes(LOCKED_TAG)),
   )
 
   const [isEditingLabel, setIsEditingLabel] = useState(false)
@@ -109,7 +110,7 @@ export const EntityDisplay: FC<DisplayProps> = ({
   const [tags, setTags] = useState(entity.definition.tags)
 
   useEffect(() => {
-    if (tags.includes('editorLocked')) {
+    if (tags.includes(LOCKED_TAG)) {
       setIsLocked(true)
     } else {
       setIsLocked(false)
@@ -139,8 +140,8 @@ export const EntityDisplay: FC<DisplayProps> = ({
 
   const onLockToggle = useCallback(() => {
     const newTags = isLocked
-      ? entity.definition.tags.filter(tag => tag !== 'editorLocked')
-      : [...entity.definition.tags, 'editorLocked']
+      ? entity.definition.tags.filter(tag => tag !== LOCKED_TAG)
+      : [...entity.definition.tags, LOCKED_TAG]
 
     entity.definition.tags = newTags
     setTags(entity.definition.tags)
@@ -194,7 +195,7 @@ export const EntityDisplay: FC<DisplayProps> = ({
     const handleTagsUpdate = (entityId: string, tags: string[]) => {
       if (entityId !== entity.uid) return
       setTags(tags)
-      setIsLocked(tags.includes('editorLocked'))
+      setIsLocked(tags.includes(LOCKED_TAG))
     }
 
     selector.events.addListener('onTagsUpdate', handleTagsUpdate)

@@ -6,6 +6,8 @@ import { renderUI } from './components/ui'
 import { createNavigator } from './entities/navigator'
 import { createEntitySelect } from './entities/select'
 
+export const LOCKED_TAG = 'editor/locked'
+
 export enum EditorInputs {
   DeleteEntity = '@editor/DeleteEntity',
   MoveBackwards = '@editor/MoveBackwards',

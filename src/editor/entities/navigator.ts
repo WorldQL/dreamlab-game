@@ -7,6 +7,7 @@ import { Vec } from '@dreamlab.gg/core/dist/math'
 import { deferUntilPlayer } from '@dreamlab.gg/core/dist/utils'
 import type { Debug, Ref } from '@dreamlab.gg/core/dist/utils'
 import type { Vector } from 'matter-js'
+import { LOCKED_TAG } from '../editor'
 import type { Selector } from './select'
 
 interface Data {
@@ -169,7 +170,7 @@ export const createNavigator = (
           const query = game.queryPosition(cursorPosition)
           const queryResults = query.map(({ definition: { tags } }) => tags)
           const isCursorOverNonLockedEntity = queryResults.some(
-            tags => !tags?.includes('editorLocked'),
+            tags => !tags?.includes(LOCKED_TAG),
           )
 
           if (isDragging && !pressedEntity) {
