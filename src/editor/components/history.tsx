@@ -10,6 +10,7 @@ import {
   useNetwork,
 } from '@dreamlab.gg/ui/react'
 import cuid2 from '@paralleldrive/cuid2'
+import type { FC, PropsWithChildren } from 'https://esm.sh/v136/react@18.2.0'
 import {
   useCallback,
   useEffect,
@@ -30,7 +31,7 @@ interface DeleteAction {
 }
 
 interface EntityUpdateAction {
-  type: 'args' | 'transform'
+  type: 'args' | 'tags' | 'transform'
   definition: SpawnableEntity
 }
 
@@ -47,7 +48,11 @@ interface HistoryProps {
   history: HistoryData
 }
 
-export const History: React.FC<HistoryProps> = ({ selector, history }) => {
+export const History: FC<PropsWithChildren<HistoryProps>> = ({
+  children,
+  selector,
+  history,
+}) => {
   const game = useGame()
   const network = useNetwork()
   const spawnedAwaitingSelectionRef = useRef<string[]>([])
@@ -57,7 +62,7 @@ export const History: React.FC<HistoryProps> = ({ selector, history }) => {
 
   const showNotification = (message: string) => {
     setNotification(message)
-    setTimeout(() => setNotification(''), 3_000) // Hide after 3 seconds
+    setTimeout(() => setNotification(''), 3_000)
   }
 
   const onSpawn = useCallback<EventHandler<'onSpawn'>>(
@@ -176,6 +181,23 @@ export const History: React.FC<HistoryProps> = ({ selector, history }) => {
 
           break
         }
+
+        case 'tags': {
+          const spawnables = game.entities.filter(isSpawnableEntity)
+          const entity = spawnables.find(
+            entity => entity.uid === lastAction.definition.uid,
+          )
+          if (!entity) return
+
+          selector.select(entity)
+          selector.events.emit(
+            'onTagsUpdate',
+            entity.uid,
+            lastAction.definition.definition.tags,
+          )
+
+          break
+        }
       }
     }
 
@@ -207,5 +229,10 @@ export const History: React.FC<HistoryProps> = ({ selector, history }) => {
     }
   }, [copyEntity, pasteEntity, undoLastAction, selector.selected])
 
-  return <Notification message={notification} />
+  return (
+    <>
+      <Notification message={notification} />
+      {children}
+    </>
+  )
 }

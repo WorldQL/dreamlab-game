@@ -161,6 +161,10 @@ export const Inspector: FC<InspectorProps> = ({
 
   const handleAddTag = () => {
     if (newTag && !entity.definition.tags?.includes(newTag)) {
+      history.record({
+        type: 'tags',
+        definition: JSON.parse(JSON.stringify(entity)),
+      })
       entity.definition.tags?.push(newTag)
       setTags(entity.definition.tags ?? [])
       selector.events.emit('onTagsUpdate', entity.uid, entity.definition.tags)
@@ -171,6 +175,10 @@ export const Inspector: FC<InspectorProps> = ({
   const handleDeleteTag = (tagToDelete: string) => {
     const updatedTags = tags.filter(tag => tag !== tagToDelete)
     setTags(updatedTags)
+    history.record({
+      type: 'tags',
+      definition: JSON.parse(JSON.stringify(entity)),
+    })
     entity.definition.tags = updatedTags
     selector.events.emit('onTagsUpdate', entity.uid, entity.definition.tags)
   }

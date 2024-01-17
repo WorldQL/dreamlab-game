@@ -143,10 +143,14 @@ export const EntityDisplay: FC<DisplayProps> = ({
       ? entity.definition.tags.filter(tag => tag !== LOCKED_TAG)
       : [...entity.definition.tags, LOCKED_TAG]
 
+    history.record({
+      type: 'tags',
+      definition: JSON.parse(JSON.stringify(entity)),
+    })
     entity.definition.tags = newTags
     setTags(entity.definition.tags)
     selector.events.emit('onTagsUpdate', entity.uid, newTags)
-  }, [entity.definition, entity.uid, isLocked, selector.events])
+  }, [entity, history, isLocked, selector.events])
 
   const handleLabelChange = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
