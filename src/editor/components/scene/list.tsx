@@ -294,8 +294,11 @@ export const SceneList: FC<{
     )
 
     const template = `
+/* eslint-disable unicorn/no-abusive-eslint-disable */
+/* eslint-disable */
 import type { LooseSpawnableDefinition } from '@dreamlab.gg/core'
 
+// prettier-ignore
 export const level: LooseSpawnableDefinition[] = ${json}
 `.trim()
 
