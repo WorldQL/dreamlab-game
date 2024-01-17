@@ -373,7 +373,7 @@ export const createEntitySelect = (
         if (!selected || !bounds) return undefined
 
         const inverse = 1 / camera.scale
-        const distanceTest = handleSize * 1.5 * inverse
+        const distanceTest = handleSize * 1.15 * inverse
 
         const topLeft = getHandlePosition(selected, bounds, 'topLeft')
         const topRight = getHandlePosition(selected, bounds, 'topRight')
