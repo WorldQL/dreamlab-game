@@ -36,15 +36,15 @@ interface EntityUpdateAction {
   definition: SpawnableEntity
 }
 
-interface RedoAction {
-  definition: CreateAction | DeleteAction | EntityUpdateAction
-}
-
 export type Action = CreateAction | DeleteAction | EntityUpdateAction
+
+interface RedoAction {
+  action: Action
+}
 
 export interface HistoryData {
   record(action: Action): void
-  undo(): void
+  undo(): Action | undefined
   getActions(): Action[]
 }
 
@@ -134,22 +134,33 @@ export const History: FC<PropsWithChildren<HistoryProps>> = ({
     }
   }, [game.client.inputs, history, spawn])
 
+  const recordAction = useCallback(
+    (isUndo: boolean, action: Action) => {
+      if (isUndo) {
+        redoHistory.value.push({ action })
+      } else {
+        history.record(action)
+      }
+    },
+    [history, redoHistory.value],
+  )
+
   const undoLastAction = useCallback(
-    async (action: Action, shouldRecord: boolean) => {
+    async (action: Action | undefined, isUndo: boolean) => {
       if (action) {
         switch (action.type) {
           case 'create': {
             const spawnables = game.entities.filter(isSpawnableEntity)
             const entity = spawnables.find(entity => entity.uid === action.uid)
             if (entity) {
-              if (shouldRecord)
-                redoHistory.value.push({
-                  definition: { type: 'delete', definition: entity.definition },
-                })
+              recordAction(isUndo, {
+                type: 'delete',
+                definition: entity.definition,
+              })
               await game.destroy(entity)
               await network?.sendEntityDestroy(action.uid)
               showNotification(
-                `Create Change ${shouldRecord ? 'Undone.' : 'Redone.'}`,
+                `Create Change ${isUndo ? 'Undone.' : 'Redone.'}`,
               )
             }
 
@@ -158,13 +169,12 @@ export const History: FC<PropsWithChildren<HistoryProps>> = ({
 
           case 'delete': {
             const spawned = await spawn(action.definition)
-            if (spawned && shouldRecord)
-              redoHistory.value.push({
-                definition: { type: 'create', uid: spawned.uid },
+            if (spawned)
+              recordAction(isUndo, {
+                type: 'create',
+                uid: spawned.uid,
               })
-            showNotification(
-              `Delete Change ${shouldRecord ? 'Undone.' : 'Redone.'}`,
-            )
+            showNotification(`Delete Change ${isUndo ? 'Undone.' : 'Redone.'}`)
             break
           }
 
@@ -175,13 +185,10 @@ export const History: FC<PropsWithChildren<HistoryProps>> = ({
             )
             if (!entity) return
 
-            if (shouldRecord)
-              redoHistory.value.push({
-                definition: {
-                  type: 'transform',
-                  definition: JSON.parse(JSON.stringify(entity)),
-                },
-              })
+            recordAction(isUndo, {
+              type: 'transform',
+              definition: JSON.parse(JSON.stringify(entity)),
+            })
             selector.select(entity)
             selector.events.emit(
               'onTransformUpdate',
@@ -189,7 +196,7 @@ export const History: FC<PropsWithChildren<HistoryProps>> = ({
               action.definition.transform,
             )
             showNotification(
-              `Positional Change ${shouldRecord ? 'Undone.' : 'Redone.'}`,
+              `Positional Change ${isUndo ? 'Undone.' : 'Redone.'}`,
             )
             break
           }
@@ -201,13 +208,10 @@ export const History: FC<PropsWithChildren<HistoryProps>> = ({
             )
             if (!entity) return
 
-            if (shouldRecord)
-              redoHistory.value.push({
-                definition: {
-                  type: 'args',
-                  definition: JSON.parse(JSON.stringify(entity)),
-                },
-              })
+            recordAction(isUndo, {
+              type: 'args',
+              definition: JSON.parse(JSON.stringify(entity)),
+            })
             selector.select(entity)
             selector.events.emit(
               'onArgsUpdate',
@@ -220,7 +224,7 @@ export const History: FC<PropsWithChildren<HistoryProps>> = ({
               action.definition.transform,
             )
             showNotification(
-              `Entity Arg Change ${shouldRecord ? 'Undone.' : 'Redone.'}`,
+              `Entity Arg Change ${isUndo ? 'Undone.' : 'Redone.'}`,
             )
             break
           }
@@ -232,36 +236,29 @@ export const History: FC<PropsWithChildren<HistoryProps>> = ({
             )
             if (!entity) return
 
-            if (shouldRecord)
-              redoHistory.value.push({
-                definition: {
-                  type: 'tags',
-                  definition: JSON.parse(JSON.stringify(entity)),
-                },
-              })
+            recordAction(isUndo, {
+              type: 'tags',
+              definition: JSON.parse(JSON.stringify(entity)),
+            })
             selector.select(entity)
             selector.events.emit(
               'onTagsUpdate',
               entity.uid,
               action.definition.definition.tags,
             )
-            showNotification(
-              `Tag Change ${shouldRecord ? 'Undone.' : 'Redone.'}`,
-            )
+            showNotification(`Tag Change ${isUndo ? 'Undone.' : 'Redone.'}`)
             break
           }
         }
       }
-
-      if (history.getActions().includes(action)) history.undo()
     },
-    [redoHistory, history, game, network, spawn, selector],
+    [game, recordAction, network, spawn, selector],
   )
 
   const redoLastAction = useCallback(async () => {
     const lastRedo = redoHistory.value[redoHistory.value.length - 1]
     if (lastRedo) {
-      await undoLastAction(lastRedo.definition, false)
+      await undoLastAction(lastRedo.action, false)
       redoHistory.value.pop()
     }
   }, [redoHistory.value, undoLastAction])
@@ -277,10 +274,7 @@ export const History: FC<PropsWithChildren<HistoryProps>> = ({
             await pasteEntity()
             break
           case 'z':
-            await undoLastAction(
-              history.getActions()[history.getActions().length - 1],
-              true,
-            )
+            await undoLastAction(history.undo(), true)
             break
           case 'y':
             await redoLastAction()

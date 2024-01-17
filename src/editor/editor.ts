@@ -34,9 +34,7 @@ export const createEditor = (
     record: (action: Action) => {
       actionHistory.value.push(action)
     },
-    undo: () => {
-      actionHistory.value.pop()
-    },
+    undo: () => actionHistory.value.pop(),
     getActions: () => actionHistory.value,
   }
 
