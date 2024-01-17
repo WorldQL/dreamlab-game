@@ -14,6 +14,7 @@ import type { FC, PropsWithChildren } from 'https://esm.sh/v136/react@18.2.0'
 import {
   useCallback,
   useEffect,
+  useMemo,
   useRef,
   useState,
 } from 'https://esm.sh/v136/react@18.2.0'
@@ -33,6 +34,10 @@ interface DeleteAction {
 interface EntityUpdateAction {
   type: 'args' | 'tags' | 'transform'
   definition: SpawnableEntity
+}
+
+interface RedoAction {
+  definition: CreateAction | DeleteAction | EntityUpdateAction
 }
 
 export type Action = CreateAction | DeleteAction | EntityUpdateAction
@@ -57,6 +62,8 @@ export const History: FC<PropsWithChildren<HistoryProps>> = ({
   const network = useNetwork()
   const spawnedAwaitingSelectionRef = useRef<string[]>([])
 
+  const redoHistory = useMemo(() => ({ value: [] as RedoAction[] }), [])
+
   const clipboard = useRef<SpawnableEntity | null>(null)
   const [notification, setNotification] = useState<string>('')
 
@@ -80,7 +87,9 @@ export const History: FC<PropsWithChildren<HistoryProps>> = ({
   useCommonEventListener('onSpawn', onSpawn)
 
   const spawn = useCallback(
-    async (definition: LooseSpawnableDefinition) => {
+    async (
+      definition: LooseSpawnableDefinition,
+    ): Promise<SpawnableEntity | undefined> => {
       if (network) {
         void network.sendEntityCreate(definition)
         spawnedAwaitingSelectionRef.current.push(definition.uid!)
@@ -88,8 +97,11 @@ export const History: FC<PropsWithChildren<HistoryProps>> = ({
         const spawned = await game.spawn(definition)
         if (spawned) {
           selector.select(spawned)
+          return spawned
         }
       }
+
+      return undefined
     },
     [game, network, selector],
   )
@@ -122,88 +134,137 @@ export const History: FC<PropsWithChildren<HistoryProps>> = ({
     }
   }, [game.client.inputs, history, spawn])
 
-  const undoLastAction = useCallback(async () => {
-    const lastAction = history.getActions()[history.getActions().length - 1]
-    if (lastAction) {
-      switch (lastAction.type) {
-        case 'create': {
-          const spawnables = game.entities.filter(isSpawnableEntity)
-          const entity = spawnables.find(
-            entity => entity.uid === lastAction.uid,
-          )
-          if (entity) await game.destroy(entity)
-          await network?.sendEntityDestroy(lastAction.uid)
+  const undoLastAction = useCallback(
+    async (action: Action, shouldRecord: boolean) => {
+      if (action) {
+        switch (action.type) {
+          case 'create': {
+            const spawnables = game.entities.filter(isSpawnableEntity)
+            const entity = spawnables.find(entity => entity.uid === action.uid)
+            if (entity) {
+              if (shouldRecord)
+                redoHistory.value.push({
+                  definition: { type: 'delete', definition: entity.definition },
+                })
+              await game.destroy(entity)
+              await network?.sendEntityDestroy(action.uid)
+              showNotification(
+                `Create Change ${shouldRecord ? 'Undone.' : 'Redone.'}`,
+              )
+            }
 
-          break
-        }
+            break
+          }
 
-        case 'delete': {
-          await spawn(lastAction.definition)
+          case 'delete': {
+            const spawned = await spawn(action.definition)
+            if (spawned && shouldRecord)
+              redoHistory.value.push({
+                definition: { type: 'create', uid: spawned.uid },
+              })
+            showNotification(
+              `Delete Change ${shouldRecord ? 'Undone.' : 'Redone.'}`,
+            )
+            break
+          }
 
-          break
-        }
+          case 'transform': {
+            const spawnables = game.entities.filter(isSpawnableEntity)
+            const entity = spawnables.find(
+              entity => entity.uid === action.definition.uid,
+            )
+            if (!entity) return
 
-        case 'transform': {
-          const spawnables = game.entities.filter(isSpawnableEntity)
-          const entity = spawnables.find(
-            entity => entity.uid === lastAction.definition.uid,
-          )
-          if (!entity) return
+            if (shouldRecord)
+              redoHistory.value.push({
+                definition: {
+                  type: 'transform',
+                  definition: JSON.parse(JSON.stringify(entity)),
+                },
+              })
+            selector.select(entity)
+            selector.events.emit(
+              'onTransformUpdate',
+              entity.uid,
+              action.definition.transform,
+            )
+            showNotification(
+              `Positional Change ${shouldRecord ? 'Undone.' : 'Redone.'}`,
+            )
+            break
+          }
 
-          selector.select(entity)
-          selector.events.emit(
-            'onTransformUpdate',
-            entity.uid,
-            lastAction.definition.transform,
-          )
+          case 'args': {
+            const spawnables = game.entities.filter(isSpawnableEntity)
+            const entity = spawnables.find(
+              entity => entity.uid === action.definition.uid,
+            )
+            if (!entity) return
 
-          break
-        }
+            if (shouldRecord)
+              redoHistory.value.push({
+                definition: {
+                  type: 'args',
+                  definition: JSON.parse(JSON.stringify(entity)),
+                },
+              })
+            selector.select(entity)
+            selector.events.emit(
+              'onArgsUpdate',
+              entity.uid,
+              action.definition.args,
+            )
+            selector.events.emit(
+              'onTransformUpdate',
+              entity.uid,
+              action.definition.transform,
+            )
+            showNotification(
+              `Entity Arg Change ${shouldRecord ? 'Undone.' : 'Redone.'}`,
+            )
+            break
+          }
 
-        case 'args': {
-          const spawnables = game.entities.filter(isSpawnableEntity)
-          const entity = spawnables.find(
-            entity => entity.uid === lastAction.definition.uid,
-          )
-          if (!entity) return
+          case 'tags': {
+            const spawnables = game.entities.filter(isSpawnableEntity)
+            const entity = spawnables.find(
+              entity => entity.uid === action.definition.uid,
+            )
+            if (!entity) return
 
-          selector.select(entity)
-          selector.events.emit(
-            'onArgsUpdate',
-            entity.uid,
-            lastAction.definition.args,
-          )
-          selector.events.emit(
-            'onTransformUpdate',
-            entity.uid,
-            lastAction.definition.transform,
-          )
-
-          break
-        }
-
-        case 'tags': {
-          const spawnables = game.entities.filter(isSpawnableEntity)
-          const entity = spawnables.find(
-            entity => entity.uid === lastAction.definition.uid,
-          )
-          if (!entity) return
-
-          selector.select(entity)
-          selector.events.emit(
-            'onTagsUpdate',
-            entity.uid,
-            lastAction.definition.definition.tags,
-          )
-
-          break
+            if (shouldRecord)
+              redoHistory.value.push({
+                definition: {
+                  type: 'tags',
+                  definition: JSON.parse(JSON.stringify(entity)),
+                },
+              })
+            selector.select(entity)
+            selector.events.emit(
+              'onTagsUpdate',
+              entity.uid,
+              action.definition.definition.tags,
+            )
+            showNotification(
+              `Tag Change ${shouldRecord ? 'Undone.' : 'Redone.'}`,
+            )
+            break
+          }
         }
       }
-    }
 
-    history.undo()
-    showNotification('Action Undone.')
-  }, [history, game, network, spawn, selector])
+      if (history.getActions().includes(action)) history.undo()
+    },
+    [redoHistory, history, game, network, spawn, selector],
+  )
+
+  const redoLastAction = useCallback(async () => {
+    const lastRedo = redoHistory.value[redoHistory.value.length - 1]
+    if (lastRedo) {
+      await undoLastAction(lastRedo.definition, false)
+      redoHistory.value.pop()
+    }
+  }, [redoHistory.value, undoLastAction])
 
   useEffect(() => {
     const handleKeyDown = async (event: KeyboardEvent) => {
@@ -216,7 +277,13 @@ export const History: FC<PropsWithChildren<HistoryProps>> = ({
             await pasteEntity()
             break
           case 'z':
-            await undoLastAction()
+            await undoLastAction(
+              history.getActions()[history.getActions().length - 1],
+              true,
+            )
+            break
+          case 'y':
+            await redoLastAction()
             break
         }
       }
@@ -227,7 +294,15 @@ export const History: FC<PropsWithChildren<HistoryProps>> = ({
     return () => {
       window.removeEventListener('keydown', handleKeyDown)
     }
-  }, [copyEntity, pasteEntity, undoLastAction, selector.selected])
+  }, [
+    copyEntity,
+    pasteEntity,
+    undoLastAction,
+    selector.selected,
+    history,
+    redoHistory.value,
+    redoLastAction,
+  ])
 
   return (
     <>
