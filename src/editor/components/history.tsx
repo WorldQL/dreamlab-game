@@ -174,6 +174,12 @@ export const History: React.FC<HistoryProps> = ({ selector, history }) => {
             lastAction.definition.args,
             false,
           )
+          selector.events.emit(
+            'onTransformUpdate',
+            entity.uid,
+            lastAction.definition.transform,
+            false,
+          )
 
           break
         }
