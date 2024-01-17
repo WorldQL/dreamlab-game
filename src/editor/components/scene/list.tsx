@@ -26,7 +26,7 @@ import type { History } from '../palette/spawnables'
 import { CollapseButton } from '../ui/buttons'
 import { Container } from '../ui/container'
 import { EntityDisplay } from './display'
-import SaveButton from './save'
+import { SaveButton } from './save'
 
 const ListContainer = styled(Container)<{ isCollapsed: boolean }>`
   top: 6rem;

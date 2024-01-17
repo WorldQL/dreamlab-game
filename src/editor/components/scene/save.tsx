@@ -1,7 +1,9 @@
 import type {SpawnableEntity} from "@dreamlab.gg/core";
 import axios from "axios";
+import type { FC, ReactNode} from "https://esm.sh/v136/react@18.2.0";
+import React, { useCallback, useState } from "https://esm.sh/v136/react@18.2.0";
+import { styled } from "https://esm.sh/v136/styled-components@6.1.6";
 import type { EditDetails } from "../../editor";
-import { FC, ReactNode, useCallback, useState } from "https://esm.sh/v136/react@18.2.0";
 import { Button } from "../ui/buttons";
 
 const getLevelScript = (entities: SpawnableEntity[]) => {
@@ -32,13 +34,44 @@ const writeLevelScript = async (levelScript: string, editDetails?: EditDetails) 
   const editUrl = new URL(editDetails.server)
   editUrl.protocol = editUrl.protocol === 'wss' ? 'https' : 'http'
   editUrl.pathname = `/api/v1/edit/${editDetails.instance}/files/level.ts`
-  await axios.put(editUrl.toString(), levelScript, { headers: { "Content-Type": "text/plain" } })
+  await axios.put(editUrl.toString(), levelScript, { headers: { "Content-Type": "text/plain", "Authorization": `Bearer ${editDetails.secret}` } })
 }
 
-const Popup: FC<{ onSave(): void, children?: ReactNode }> = ({ onSave, children }) => {
-  // TODO: show an "are you sure?" and then have a button with the onSave
+const Popup: FC<{ children?: ReactNode }> = ({ children }) => {
+  const PopupContainer = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  z-index: 1000;
 
-  return <div>test</div>
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 2rem;`
+  
+  const PopupBody = styled.div`
+    width: 100%;
+    max-height: 100%;
+    max-width: 30rem;
+    padding: 1rem;
+    border-radius: 1rem;
+
+    display: flex;
+    flex-direction: column;
+
+    background-color: rgba(230 230 230 / 1);
+    box-shadow:
+      0 4px 6px -1px rgb(0 0 0 / 0.3),
+      0 2px 4px -2px rgb(0 0 0 / 0.3);
+  `;
+
+  return <PopupContainer>
+    <PopupBody>
+      {children}
+    </PopupBody>
+  </PopupContainer>
 }
 
 export const SaveButton: FC<{ editDetails?: EditDetails, entities: SpawnableEntity[] }> = ({ editDetails, entities }) => {
@@ -51,7 +84,14 @@ export const SaveButton: FC<{ editDetails?: EditDetails, entities: SpawnableEnti
   const [popupVisible, setPopupVisible] = useState(false)
 
   return <>
-    {popupVisible && <Popup onSave={onSave} />}
+    {popupVisible && (<Popup>
+      <p>Are you sure you want to overwrite <strong>level.ts</strong>?</p>
+      
+      {/* TODO: display the level script to be writeen in a scrollable <pre> at this stage */}
+
+      <Button onClick={onSave}>Ok</Button>
+      <Button onClick={() => setPopupVisible(false)}>Cancel</Button>
+    </Popup>)}
     <Button onClick={() => setPopupVisible(true)} type='button'>
       Save
     </Button>
