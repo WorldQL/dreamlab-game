@@ -24,7 +24,11 @@ export const renderUI = (
       <History history={history} selector={selector}>
         {editDetails && <CLICommand details={editDetails} />}
 
-        <SceneList history={history} selector={selector} />
+        <SceneList
+          editDetails={editDetails}
+          history={history}
+          selector={selector}
+        />
         <PaletteManager
           history={history}
           navigator={navigator}

@@ -18,13 +18,15 @@ import {
 } from 'https://esm.sh/v136/react@18.2.0'
 import type { ChangeEvent, FC } from 'https://esm.sh/v136/react@18.2.0'
 import { styled } from 'https://esm.sh/v136/styled-components@6.1.6'
+import type { EditDetails } from '../../editor'
 import { EditorInputs } from '../../editor'
 import type { Selector } from '../../entities/select'
 import type { HistoryData } from '../history'
-import { Button, CollapseButton } from '../ui/buttons'
+import { CollapseButton } from '../ui/buttons'
 import { Container } from '../ui/container'
 import CollapsibleSection from './collapsable-section'
 import { EntityDisplay } from './display'
+import { SaveButton } from './save'
 
 const ListContainer = styled(Container)<{ isCollapsed: boolean }>`
   top: 6rem;
@@ -103,9 +105,10 @@ const GroupedEntitySet = (
 }
 
 export const SceneList: FC<{
+  editDetails?: EditDetails
   readonly selector: Selector
   history: HistoryData
-}> = ({ selector, history }) => {
+}> = ({ editDetails, selector, history }) => {
   const game = useGame()
   const network = useNetwork()
   const forceUpdate = useForceUpdate()
@@ -290,31 +293,6 @@ export const SceneList: FC<{
   useInputPressed(EditorInputs.MoveForewards, onMoveForewards)
   useInputPressed(EditorInputs.ToggleTiling, onChangeTiling)
 
-  const onSave = useCallback(() => {
-    // Filter out entities tagged as "do not save"
-    const toSave = entities
-      .filter(entity => !entity.definition.tags.includes('editor/doNotSave'))
-      .map(entity => entity.definition)
-
-    const json = JSON.stringify(
-      toSave,
-      (_key, value) => (value instanceof Set ? [...value] : value),
-      2,
-    )
-
-    const template = `
-/* eslint-disable unicorn/no-abusive-eslint-disable */
-/* eslint-disable */
-import type { LooseSpawnableDefinition } from '@dreamlab.gg/core'
-
-// prettier-ignore
-export const level: LooseSpawnableDefinition[] = ${json}
-`.trim()
-
-    console.log(template)
-    // TODO: Do something with level.json
-  }, [entities])
-
   return (
     <ListContainer isCollapsed={isCollapsed}>
       <CollapseButton
@@ -385,9 +363,9 @@ export const level: LooseSpawnableDefinition[] = ${json}
             )}
           {groupBy === GroupByOptions.Tag &&
             GroupedEntitySet(entitiesGroupedByTag, history, selector, selected)}
-          <Button onClick={onSave} type='button'>
-            Save
-          </Button>
+          {editDetails && (
+            <SaveButton editDetails={editDetails} entities={entities} />
+          )}
         </>
       )}
     </ListContainer>
