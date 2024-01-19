@@ -35,7 +35,7 @@ const writeLevelScript = async (
 
   const editUrl = new URL(editDetails.server)
   editUrl.protocol = editUrl.protocol === 'wss' ? 'https' : 'http'
-  editUrl.pathname = `/api/v1/edit/${editDetails.instance}/files/level.ts`
+  editUrl.pathname = `/api/v1/edit/${editDetails.instance}/files/src/level.ts`
   await axios.put(editUrl.toString(), levelScript, {
     headers: {
       'Content-Type': 'text/plain',
