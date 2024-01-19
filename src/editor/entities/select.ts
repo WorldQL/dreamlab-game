@@ -124,7 +124,9 @@ export const createEntitySelect = (
   const handleSize = 10
   const rotStalkHeight = 30
   let isSpacePressed = false
+
   let lastClickTime = 0
+  let clickIndex = 0
 
   const onSpace = (pressed: boolean) => {
     isSpacePressed = pressed
@@ -425,10 +427,11 @@ export const createEntitySelect = (
         query.sort((a, b) => b.transform.zIndex - a.transform.zIndex)
         const currentTime = Date.now()
 
-        let queryEntity = query[0]
-        if (currentTime - lastClickTime < 500 && query[1]) {
-          queryEntity = query[1]
-        }
+        clickIndex =
+          currentTime - lastClickTime < 500
+            ? (clickIndex + 1) % query.length
+            : 0
+        const queryEntity = query[clickIndex]
 
         let newSelection: SpawnableEntity | undefined
         if (action?.type === 'clear' && queryEntity === selected) {
