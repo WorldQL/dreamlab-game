@@ -424,10 +424,19 @@ export const createEntitySelect = (
 
         query.sort((a, b) => b.transform.zIndex - a.transform.zIndex)
         const currentTime = Date.now()
+        let currentQueryIndex = -1
+        if (selected !== undefined) {
+          currentQueryIndex = query.indexOf(selected)
+        }
 
         let queryEntity = query[0]
-        if (currentTime - lastClickTime < 500 && query[1]) {
-          queryEntity = query[1]
+        if (
+          currentTime - lastClickTime < 500 &&
+          query.length > 0 &&
+          currentQueryIndex !== -1 &&
+          currentQueryIndex < query.length - 1
+        ) {
+          queryEntity = query[currentQueryIndex + 1]
         }
 
         let newSelection: SpawnableEntity | undefined
