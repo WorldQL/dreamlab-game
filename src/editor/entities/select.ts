@@ -168,7 +168,6 @@ export const createEntitySelect = (
   const onDrop = (ev: DragEvent) => {
     ev.preventDefault()
 
-    // due to a weird interaction between CORS and the cache we have to do this. remove the buster param and see what happens.
     const url = ev.dataTransfer?.getData('text/plain')
     if (!url) {
       console.log('Returning from drop event because no url')
@@ -177,8 +176,6 @@ export const createEntitySelect = (
 
     if (!selected) {
       setTimeout(async () => {
-        // try removing otherbuster and clearing your cache then adding an image. breaks there too.
-        // weird browser cache and CORS race condition I think.
         const dimensions = await getPngDimensions(url)
         console.log(dimensions)
 
@@ -536,12 +533,8 @@ export const createEntitySelect = (
                 ? { width: size, height: size / action.aspect }
                 : { width, height }
 
-              const newArgs = {
-                ...selected.args,
-                width: bounds.width,
-                height: bounds.height,
-              }
-              events.emit('onArgsUpdate', selected.uid, newArgs)
+              game.resize(selected, bounds)
+              events.emit('onArgsUpdate', selected.uid, selected.args)
             } else {
               const rotated = Vec.rotateAbout(
                 pos,
@@ -567,9 +560,10 @@ export const createEntitySelect = (
                 ...selected.transform,
                 position: newOrigin,
               }
-              const newArgs = { ...selected.args, width, height }
+              selected.transform.position = newOrigin
+              game.resize(selected, { width, height })
               events.emit('onTransformUpdate', selected.uid, newTransform)
-              events.emit('onArgsUpdate', selected.uid, newArgs)
+              events.emit('onArgsUpdate', selected.uid, selected.args)
             }
 
             break
