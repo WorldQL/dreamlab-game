@@ -169,7 +169,7 @@ export const createEntitySelect = (
     ev.preventDefault()
 
     // due to a weird interaction between CORS and the cache we have to do this. remove the buster param and see what happens.
-    const url = ev.dataTransfer?.getData('text/plain') + '?buster=123'
+    const url = ev.dataTransfer?.getData('text/plain')
     if (!url) {
       console.log('Returning from drop event because no url')
       return
@@ -179,7 +179,7 @@ export const createEntitySelect = (
       setTimeout(async () => {
         // try removing otherbuster and clearing your cache then adding an image. breaks there too.
         // weird browser cache and CORS race condition I think.
-        const dimensions = await getPngDimensions(url + '&otherbuster=456')
+        const dimensions = await getPngDimensions(url)
         console.log(dimensions)
 
         const cursorPosition = _game?.client.inputs.getCursor('world')
