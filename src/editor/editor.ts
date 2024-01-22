@@ -13,7 +13,6 @@ export enum EditorInputs {
   MoveBackwards = '@editor/MoveBackwards',
   MoveForewards = '@editor/MoveForewards',
   TogglePalette = '@editor/TogglePalette',
-  TogglePhysics = '@editor/TogglePhysics',
   ToggleTiling = '@editor/ToggleTiling',
 }
 
@@ -46,18 +45,7 @@ export const createEditor = (
       await game.instantiate(selector)
       await game.instantiate(navigator)
 
-      const togglePhysics = (pressed: boolean) => {
-        if (!pressed) return
-        game.physics.running = !game.physics.running
-      }
-
       const inputs = game.client?.inputs
-      inputs?.registerInput(
-        EditorInputs.TogglePhysics,
-        'Toggle Physics',
-        'KeyK',
-      )
-
       inputs?.registerInput(
         EditorInputs.DeleteEntity,
         'Delete Entity',
@@ -81,8 +69,6 @@ export const createEditor = (
         'Backslash',
       )
 
-      inputs?.addListener(EditorInputs.TogglePhysics, togglePhysics)
-
       deferUntilPlayer(game, player => {
         player.events.addListener('onToggleNoclip', noclip => {
           enabled.value = noclip
@@ -100,7 +86,7 @@ export const createEditor = (
         })
       })
 
-      return { game, togglePhysics }
+      return { game }
     },
 
     initRenderContext({ game }, _render) {
@@ -122,10 +108,7 @@ export const createEditor = (
       return { unmount }
     },
 
-    async teardown({ game, togglePhysics }) {
-      const inputs = game.client?.inputs
-      inputs?.removeListener(EditorInputs.TogglePhysics, togglePhysics)
-
+    async teardown({ game }) {
       await game.destroy(selector)
     },
 
