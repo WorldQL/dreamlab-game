@@ -20,7 +20,7 @@ export const init = async () => {
   const params = decodeParams()
   const ws = await connect(params)
   const worldDetails = localStorage.getItem('@dreamlab/worlds/fallbackUrl')
-  if (!ws && worldDetails) {
+  if (params && !ws && worldDetails) {
     console.log('Failed to connect in init()')
     setTimeout(() => {
       window.location.reload()
