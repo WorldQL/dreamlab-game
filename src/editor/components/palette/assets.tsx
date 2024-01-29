@@ -103,6 +103,22 @@ export const Assets: React.FC<AssetsProps> = ({ nextAPIBaseURL, jwt }) => {
     void refreshImages()
   }, [refreshImages])
 
+  useEffect(() => {
+    const handleVisibilityChange = async () => {
+      if (document.visibilityState === 'visible') {
+        await refreshImages()
+      }
+    }
+
+    // Add event listener
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+
+    // Remove event listener on cleanup
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+    }
+  }, [refreshImages])
+
   const handleUploadClick = useCallback(() => {
     if (!fileInputRef.current) return
     fileInputRef.current.click()
