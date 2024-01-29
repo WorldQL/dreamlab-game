@@ -91,6 +91,8 @@ export const Assets: React.FC<AssetsProps> = ({ nextAPIBaseURL, jwt }) => {
       })
     }
 
+    imageAssets.reverse()
+
     setAssets(imageAssets)
 
     // after we get the list of URLs from the user's library, we also load the images of everything that's currently in the game
@@ -118,12 +120,12 @@ export const Assets: React.FC<AssetsProps> = ({ nextAPIBaseURL, jwt }) => {
           { headers: { Authorization: jwt } },
         )
         setAssets(prev => [
-          ...prev,
           {
             name: file.name,
             imageURL: response.data.imageURL,
             id: response.data.id,
           },
+          ...prev,
         ])
       })
 
