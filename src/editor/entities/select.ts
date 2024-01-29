@@ -422,9 +422,7 @@ export const createEntitySelect = (
         query.sort((a, b) => b.transform.zIndex - a.transform.zIndex)
         const currentTime = Date.now()
 
-        let currentQueryIndex = selected ? query.indexOf(selected) : -1
-        currentQueryIndex = currentQueryIndex === -1 ? 0 : currentQueryIndex
-
+        let currentQueryIndex = selected ? query.indexOf(selected) : 0
         let queryEntity = query[currentQueryIndex]
 
         const timeDiff = currentTime - lastClickTime
