@@ -8,7 +8,7 @@ import {
 } from '@dreamlab.gg/ui/react'
 import cuid2 from '@paralleldrive/cuid2'
 import { useCallback, useRef } from 'https://esm.sh/v136/react@18.2.0'
-import { styled } from 'https://esm.sh/v136/styled-components@6.1.6'
+import { styled } from 'https://esm.sh/v136/styled-components@6.1.8'
 import type { Navigator } from '../../entities/navigator'
 import type { Selector } from '../../entities/select'
 import type { HistoryData } from '../history'

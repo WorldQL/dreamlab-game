@@ -1,6 +1,6 @@
 import type { Game } from '@dreamlab.gg/core'
 import { renderUI as render } from '@dreamlab.gg/ui/react'
-import { StyleSheetManager } from 'https://esm.sh/v136/styled-components@6.1.6'
+import { StyleSheetManager } from 'https://esm.sh/v136/styled-components@6.1.8'
 import type { EditDetails } from '../editor'
 import type { Navigator } from '../entities/navigator'
 import type { Selector } from '../entities/select'
