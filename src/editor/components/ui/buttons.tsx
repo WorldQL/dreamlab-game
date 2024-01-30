@@ -20,6 +20,27 @@ export const Button = styled.button`
   }
 `
 
+export const LinkButton = styled.a`
+  display: inline-block;
+  appearance: button;
+  border: 0;
+  text-decoration: none;
+  background-color: rgb(99 102 241);
+  color: white;
+  font-family: 'Inter';
+  cursor: pointer;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  transition: background-color 0.1s ease;
+  font-weight: 500;
+  letter-spacing: 0.025em;
+  transition: all 0.3s ease;
+
+  &:hover {
+    background-color: rgb(129 140 248);
+  }
+`
+
 export const CollapseButton = styled.button`
   position: absolute;
   top: 0.3rem;
