@@ -9,8 +9,8 @@ import type {
   ChangeEventHandler,
   DragEventHandler,
 } from 'https://esm.sh/v136/react@18.2.0'
-import { styled } from 'https://esm.sh/v136/styled-components@6.1.6'
-import { DeleteButton } from '../ui/buttons'
+import { styled } from 'https://esm.sh/v136/styled-components@6.1.8'
+import { DeleteButton, LinkButton } from '../ui/buttons'
 
 const AssetUploader = styled.div`
   border: 2px dashed rgb(99 102 241);
@@ -212,7 +212,7 @@ export const Assets: React.FC<AssetsProps> = ({ nextAPIBaseURL, jwt }) => {
         onDragOver={event => event.preventDefault()}
         onDrop={handleDrop}
       >
-        Drag and drop files or click here
+        Drag and drop files or click here to upload
         <input
           onChange={handleFileChange}
           ref={fileInputRef}
@@ -220,6 +220,19 @@ export const Assets: React.FC<AssetsProps> = ({ nextAPIBaseURL, jwt }) => {
           type='file'
         />
       </AssetUploader>
+      <div>
+        <LinkButton
+          href={nextAPIBaseURL + '/assets/create/object'}
+          style={{
+            display: 'block',
+            textAlign: 'center',
+            marginBottom: '8px',
+          }}
+          target='_blank'
+        >
+          Generate New Asset
+        </LinkButton>
+      </div>
       <AssetList>
         {assets.map(asset => (
           <AssetItem

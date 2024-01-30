@@ -1,6 +1,6 @@
 import type { SpawnableEntity } from '@dreamlab.gg/core'
 import { useEffect, useState } from 'https://esm.sh/v136/react@18.2.0'
-import { styled } from 'https://esm.sh/v136/styled-components@6.1.6'
+import { styled } from 'https://esm.sh/v136/styled-components@6.1.8'
 import type { Navigator } from '../../entities/navigator'
 import type { Selector } from '../../entities/select'
 import type { HistoryData } from '../history'

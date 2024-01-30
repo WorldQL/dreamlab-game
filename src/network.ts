@@ -565,6 +565,16 @@ export const createNetwork = (
           break
         }
 
+        case 'Disconnecting': {
+          if (packet.reason === 'Restarting') {
+            window.location.reload()
+          }
+
+          // TODO: redirect back to play page if we're shutting down for good?
+
+          break
+        }
+
         default:
           // @ts-expect-error default case
           console.warn(`unhandled packet: ${packet.t}`)
@@ -605,6 +615,9 @@ export const createNetwork = (
             const editor = createEditor(sendPacket, details)
             await game.instantiate(editor)
           }
+
+          // @ts-expect-error global variable
+          window.dreamlab_world_script_url_base = packet.world_script_url_base
 
           await loadScript(
             packet.world_script_url_base ?? undefined,

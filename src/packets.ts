@@ -19,6 +19,12 @@ export const HandshakeSchema = z.object({
   edit_secret: z.string().optional().nullable(),
 })
 
+export type DisconnectingPacket = z.infer<typeof DisconnectingSchema>
+export const DisconnectingSchema = z.object({
+  t: z.literal('Disconnecting'),
+  reason: z.enum(['Restarting', 'ShuttingDown', 'Unknown']),
+})
+
 export type HandshakeReadyPacket = z.infer<typeof HandshakeReadySchema>
 export const HandshakeReadySchema = z.object({
   t: z.literal('HandshakeReady'),
@@ -384,6 +390,7 @@ export const RequestFullSnapshotSchema = z.object({
 export type ToClientPacket = z.infer<typeof ToClientPacketSchema>
 export const ToClientPacketSchema = z.discriminatedUnion('t', [
   HandshakeSchema,
+  DisconnectingSchema,
   SpawnPlayerSchema,
   DespawnPlayerSchema,
   PlayerMotionSnapshotSchema,

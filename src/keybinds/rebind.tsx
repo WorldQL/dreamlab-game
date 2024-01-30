@@ -11,7 +11,7 @@ import {
   useState,
 } from 'https://esm.sh/v136/react@18.2.0'
 import type { FC } from 'https://esm.sh/v136/react@18.2.0'
-import { styled } from 'https://esm.sh/v136/styled-components@6.1.6'
+import { styled } from 'https://esm.sh/v136/styled-components@6.1.8'
 import { Input } from './input'
 import { bindInput } from './persist'
 
