@@ -64,8 +64,13 @@ const renderNumberInput: RenderInputFunctionType = (
     <div className='detail-col'>
       <span>{title}:</span>
       <input
-        onBlur={() => handleArgSave(key)}
-        onChange={ev => handleArgChange(key, ev.target.valueAsNumber)}
+        onBlur={ev => {
+          const inputValue = ev.target.value
+          const numberValue = inputValue === '' ? 0 : ev.target.valueAsNumber
+
+          handleArgSave(key, { _v: numberValue })
+        }}
+        onChange={ev => handleArgChange(key, ev.target.value)}
         onKeyDown={ev => {
           if (ev.key === 'Enter') {
             argsInputRefs.current[key]?.blur()
