@@ -11,8 +11,6 @@ import type {
 } from 'https://esm.sh/v136/react@18.2.0'
 import { styled } from 'https://esm.sh/v136/styled-components@6.1.8'
 import { DeleteButton, LinkButton } from '../ui/buttons'
-import { styled } from 'https://esm.sh/v136/styled-components@6.1.8'
-import { DeleteButton, LinkButton } from '../ui/buttons'
 
 const AssetUploader = styled.div`
   border: 2px dashed rgb(99 102 241);
