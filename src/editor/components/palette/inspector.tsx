@@ -334,7 +334,7 @@ export const Inspector: FC<InspectorProps> = ({
                 value={
                   isEditing.x && entityTransform.position.x === 0
                     ? ''
-                    : entityTransform.position.x.toFixed(2)
+                    : Math.round(entityTransform.position.x * 100) / 100
                 }
               />
             </div>
@@ -359,7 +359,7 @@ export const Inspector: FC<InspectorProps> = ({
                 value={
                   isEditing.y && entityTransform.position.y === 0
                     ? ''
-                    : entityTransform.position.y.toFixed(2)
+                    : Math.round(entityTransform.position.y * 100) / 100
                 }
               />
             </div>
