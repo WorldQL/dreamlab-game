@@ -565,6 +565,16 @@ export const createNetwork = (
           break
         }
 
+        case 'Disconnecting': {
+          if (packet.reason === 'Restarting') {
+            window.location.reload()
+          }
+
+          // TODO: redirect back to play page if we're shutting down for good?
+
+          break
+        }
+
         default:
           // @ts-expect-error default case
           console.warn(`unhandled packet: ${packet.t}`)
