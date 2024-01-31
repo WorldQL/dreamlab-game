@@ -1,0 +1,6 @@
+{
+  "typescript.preferences.autoImportFileExcludePatterns": [
+    "react",
+    "styled-components"
+  ]
+}
