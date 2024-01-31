@@ -122,10 +122,7 @@ export const SaveButton: FC<{
     <>
       {popupVisible && (
         <Popup>
-          <p>
-            Are you sure you want to save and commit all changes? This will
-            overwrite your level data.
-          </p>
+          <p>Are you sure you want to save and commit all changes?</p>
 
           {/* TODO: display the level script to be writeen in a scrollable <pre> at this stage */}
 
