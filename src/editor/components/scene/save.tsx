@@ -34,7 +34,7 @@ const writeLevelScript = async (
   if (editDetails === undefined) return
 
   const editUrl = new URL(editDetails.server)
-  editUrl.protocol = editUrl.protocol === 'wss' ? 'https' : 'http'
+  editUrl.protocol = editUrl.protocol === 'wss:' ? 'https' : 'http'
   editUrl.pathname = `/api/v1/edit/${editDetails.instance}/files/src/level.ts`
   await axios.put(editUrl.toString(), levelScript, {
     headers: {
@@ -48,7 +48,8 @@ const commitChanges = async (editDetails?: EditDetails) => {
   if (editDetails === undefined) return
 
   const editUrl = new URL(editDetails.server)
-  editUrl.protocol = editUrl.protocol === 'wss' ? 'https' : 'http'
+  console.log(editUrl.protocol)
+  editUrl.protocol = editUrl.protocol === 'wss:' ? 'https' : 'http'
   editUrl.pathname = `/api/v1/edit/${editDetails.instance}/commit-files`
   await axios.post(
     editUrl.toString(),
