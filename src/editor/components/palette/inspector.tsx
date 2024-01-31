@@ -146,6 +146,16 @@ interface InspectorProps {
   history: HistoryData
 }
 
+const roundValue = (value: string, decimalPlaces: number) => {
+  const numValue = Number.parseFloat(value)
+  if (!Number.isNaN(numValue)) {
+    const factor = 10 ** decimalPlaces
+    return (Math.round(numValue * factor) / factor).toString()
+  }
+
+  return value
+}
+
 export const Inspector: FC<InspectorProps> = ({
   selector,
   entity,
@@ -157,12 +167,12 @@ export const Inspector: FC<InspectorProps> = ({
   const [entityTransform, setEntityTransform] = useState(entity.transform)
   const [newTag, setNewTag] = useState('')
   const [tags, setTags] = useState(entity.definition.tags)
-  const [isEditing, setIsEditing] = useState({
-    x: false,
-    y: false,
-    rotation: false,
-    zIndex: false,
-  })
+  const [tempX, setTempX] = useState(String(entityTransform.position.x))
+  const [tempY, setTempY] = useState(String(entityTransform.position.y))
+  const [tempZIndex, setTempZIndex] = useState(String(entityTransform.zIndex))
+  const [tempRotation, setTempRotation] = useState(
+    String(entityTransform.rotation),
+  )
 
   const argsInputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({})
 
@@ -198,55 +208,53 @@ export const Inspector: FC<InspectorProps> = ({
     })
   }
 
-  const handleFocus = (field: string) => {
-    setIsEditing(prev => ({ ...prev, [field]: true }))
-  }
-
-  const handleBlur = (field: string) => {
-    setIsEditing(prev => ({ ...prev, [field]: false }))
-  }
-
   const handlePositionChange = (axis: 'x' | 'y', value: string) => {
-    setEntityTransform(prevTransform => {
-      const newTransform = { ...prevTransform }
-      newTransform.position[axis] = value !== '' ? Number(value) : 0
-      return newTransform
-    })
+    const newValue = roundValue(value, 2)
+    if (axis === 'x') {
+      setTempX(newValue)
+    } else if (axis === 'y') {
+      setTempY(newValue)
+    }
   }
 
   const handleTransformChange = (
     property: 'rotation' | 'zIndex',
     value: string,
   ) => {
-    setEntityTransform(prevTransform => {
-      const newTransform = { ...prevTransform }
-      newTransform[property] = value !== '' ? Number(value) : 0
-      return newTransform
-    })
+    const newValue = roundValue(value, 0)
+    if (property === 'rotation') {
+      setTempRotation(newValue)
+    } else if (property === 'zIndex') {
+      setTempZIndex(newValue)
+    }
   }
 
-  const handleTransformSave = useCallback(() => {
-    const newTransform = {
-      ...entityTransform,
-      position: {
-        x: Number.isNaN(entityTransform.position.x)
-          ? 0
-          : entityTransform.position.x,
-        y: Number.isNaN(entityTransform.position.y)
-          ? 0
-          : entityTransform.position.y,
-      },
-      rotation: Number.isNaN(entityTransform.rotation)
-        ? 0
-        : entityTransform.rotation,
-      zIndex: Number.isNaN(entityTransform.zIndex) ? 0 : entityTransform.zIndex,
-    }
+  const commitTransformChanges = useCallback(async (): Promise<Transform> => {
+    return new Promise(resolve => {
+      setEntityTransform(prevTransform => {
+        const updatedTransform = {
+          ...prevTransform,
+          position: {
+            x: tempX !== '' ? Number(tempX) : 0,
+            y: tempY !== '' ? Number(tempY) : 0,
+          },
+          rotation: tempRotation !== '' ? Number(tempRotation) : 0,
+          zIndex: tempZIndex !== '' ? Number(tempZIndex) : 0,
+        }
+        resolve(updatedTransform)
+        return updatedTransform
+      })
+    })
+  }, [tempX, tempY, tempRotation, tempZIndex])
+
+  const handleTransformSave = useCallback(async () => {
+    const updatedTransform = await commitTransformChanges()
     history.record({
       type: 'transform',
       definition: JSON.parse(JSON.stringify(entity)),
     })
-    selector.events.emit('onTransformUpdate', entity.uid, newTransform)
-  }, [entity, entityTransform, history, selector.events])
+    selector.events.emit('onTransformUpdate', entity.uid, updatedTransform)
+  }, [commitTransformChanges, entity, history, selector.events])
 
   const handleArgSave = useCallback(
     (key: string, value?: { _v: unknown }) => {
@@ -281,6 +289,11 @@ export const Inspector: FC<InspectorProps> = ({
           ...prevTransform,
           ...transform,
         }))
+
+        setTempX(roundValue(String(transform.position.x), 2))
+        setTempY(roundValue(String(transform.position.y), 2))
+        setTempRotation(roundValue(String(transform.rotation), 0))
+        setTempZIndex(roundValue(String(transform.zIndex), 0))
       }
     }
 
@@ -317,11 +330,9 @@ export const Inspector: FC<InspectorProps> = ({
               <span>X: </span>
               <input
                 onBlur={() => {
-                  handleBlur('x')
-                  handleTransformSave()
+                  void handleTransformSave()
                 }}
                 onChange={ev => handlePositionChange('x', ev.target.value)}
-                onFocus={() => handleFocus('x')}
                 onKeyDown={ev => {
                   if (ev.key === 'Enter') {
                     ev.currentTarget.blur()
@@ -331,22 +342,16 @@ export const Inspector: FC<InspectorProps> = ({
                   ev.stopPropagation()
                 }}
                 type='number'
-                value={
-                  isEditing.x && entityTransform.position.x === 0
-                    ? ''
-                    : Math.round(entityTransform.position.x * 100) / 100
-                }
+                value={tempX}
               />
             </div>
             <div className='detail-row'>
               <span>Y:</span>
               <input
                 onBlur={() => {
-                  handleBlur('y')
-                  handleTransformSave()
+                  void handleTransformSave()
                 }}
                 onChange={ev => handlePositionChange('y', ev.target.value)}
-                onFocus={() => handleFocus('y')}
                 onKeyDown={ev => {
                   if (ev.key === 'Enter') {
                     ev.currentTarget.blur()
@@ -356,11 +361,7 @@ export const Inspector: FC<InspectorProps> = ({
                   ev.stopPropagation()
                 }}
                 type='number'
-                value={
-                  isEditing.y && entityTransform.position.y === 0
-                    ? ''
-                    : Math.round(entityTransform.position.y * 100) / 100
-                }
+                value={tempY}
               />
             </div>
           </div>
@@ -371,13 +372,11 @@ export const Inspector: FC<InspectorProps> = ({
               <span>Rotation: </span>
               <input
                 onBlur={() => {
-                  handleBlur('rotation')
-                  handleTransformSave()
+                  void handleTransformSave()
                 }}
                 onChange={ev =>
                   handleTransformChange('rotation', ev.target.value)
                 }
-                onFocus={() => handleFocus('rotation')}
                 onKeyDown={ev => {
                   if (ev.key === 'Enter') {
                     ev.currentTarget.blur()
@@ -387,24 +386,18 @@ export const Inspector: FC<InspectorProps> = ({
                   ev.stopPropagation()
                 }}
                 type='number'
-                value={
-                  isEditing.rotation && entityTransform.rotation === 0
-                    ? ''
-                    : Math.round(entityTransform.rotation)
-                }
+                value={tempRotation}
               />
             </div>
             <div className='detail-row'>
               <span>Z-Index:</span>
               <input
                 onBlur={() => {
-                  handleBlur('zIndex')
-                  handleTransformSave()
+                  void handleTransformSave()
                 }}
                 onChange={ev =>
                   handleTransformChange('zIndex', ev.target.value)
                 }
-                onFocus={() => handleFocus('zIndex')}
                 onKeyDown={ev => {
                   if (ev.key === 'Enter') {
                     ev.currentTarget.blur()
@@ -414,11 +407,7 @@ export const Inspector: FC<InspectorProps> = ({
                   ev.stopPropagation()
                 }}
                 type='number'
-                value={
-                  isEditing.zIndex && entityTransform.zIndex === 0
-                    ? ''
-                    : Math.round(entityTransform.zIndex)
-                }
+                value={tempZIndex}
               />
             </div>
           </div>
