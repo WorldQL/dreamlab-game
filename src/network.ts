@@ -567,7 +567,11 @@ export const createNetwork = (
 
         case 'Disconnecting': {
           if (packet.reason === 'Restarting') {
-            window.location.reload()
+            // this allows the commit request to not be cancelled. the server restarts too fast after the level save
+            // TODO: Do this in a more elegant way where we actually wait for the commit request to go thru
+            setTimeout(() => {
+              window.location.reload()
+            }, 1_000)
           }
 
           // TODO: redirect back to play page if we're shutting down for good?
