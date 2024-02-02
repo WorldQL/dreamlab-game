@@ -1,6 +1,7 @@
 import type { SpawnableEntity } from '@dreamlab.gg/core'
 import type { Transform } from '@dreamlab.gg/core/math'
 import { getProperty, setProperty } from '@dreamlab.gg/core/utils'
+import { useTransform } from '@dreamlab.gg/ui/react'
 import {
   useCallback,
   useEffect,
@@ -9,6 +10,7 @@ import {
 } from 'https://esm.sh/v136/react@18.2.0'
 import type { FC } from 'https://esm.sh/v136/react@18.2.0'
 import { styled } from 'https://esm.sh/v136/styled-components@6.1.8'
+import { useDebounceCallback } from 'https://esm.sh/v136/usehooks-ts@2.12.1'
 import type { Selector } from '../../entities/select'
 import type { HistoryData } from '../history'
 import { renderInputForZodSchema } from '../scene/types'
@@ -146,14 +148,18 @@ interface InspectorProps {
   history: HistoryData
 }
 
-const roundValue = (value: string, decimalPlaces: number) => {
+const roundValue = (
+  value: string,
+  decimalPlaces: number,
+): [str: string, valid: boolean, value: number] => {
   const numValue = Number.parseFloat(value)
-  if (!Number.isNaN(numValue)) {
-    const factor = 10 ** decimalPlaces
-    return (Math.round(numValue * factor) / factor).toString()
+  if (Number.isNaN(numValue)) {
+    return [value, false, Number.NaN]
   }
 
-  return value
+  const factor = 10 ** decimalPlaces
+  const rounded = (Math.round(numValue * factor) / factor).toString()
+  return [rounded, true, numValue]
 }
 
 export const Inspector: FC<InspectorProps> = ({
@@ -164,14 +170,21 @@ export const Inspector: FC<InspectorProps> = ({
   const entityRef = useRef<HTMLDivElement>(null)
 
   const [editableArgs, setEditableArgs] = useState(entity.args)
-  const [entityTransform, setEntityTransform] = useState(entity.transform)
   const [newTag, setNewTag] = useState('')
   const [tags, setTags] = useState(entity.definition.tags)
-  const [tempX, setTempX] = useState(String(entityTransform.position.x))
-  const [tempY, setTempY] = useState(String(entityTransform.position.y))
-  const [tempZIndex, setTempZIndex] = useState(String(entityTransform.zIndex))
-  const [tempRotation, setTempRotation] = useState(
-    String(entityTransform.rotation),
+
+  const transform = useTransform(entity.transform)
+  const [tempX, setTempX] = useState<string>(
+    roundValue(String(entity.transform.position.x), 2)[0],
+  )
+  const [tempY, setTempY] = useState<string>(
+    roundValue(String(entity.transform.position.y), 2)[0],
+  )
+  const [tempRotation, setTempRotation] = useState<string>(
+    roundValue(String(entity.transform.rotation), 0)[0],
+  )
+  const [tempZIndex, setTempZIndex] = useState<string>(
+    roundValue(String(entity.transform.zIndex), 0)[0],
   )
 
   const argsInputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({})
@@ -208,12 +221,34 @@ export const Inspector: FC<InspectorProps> = ({
     })
   }
 
+  const _recordTransformHistory = useCallback(() => {
+    history.record({
+      type: 'transform',
+      definition: JSON.parse(JSON.stringify(entity)),
+    })
+
+    console.log('history')
+  }, [history, entity])
+
+  const recordTransformHistory = useDebounceCallback(
+    _recordTransformHistory,
+    1_000,
+  )
+
   const handlePositionChange = (axis: 'x' | 'y', value: string) => {
-    const newValue = roundValue(value, 2)
+    const [strValue, valid, numValue] = roundValue(value, 2)
     if (axis === 'x') {
-      setTempX(newValue)
+      setTempX(strValue)
+      if (valid) {
+        transform.position.x = numValue
+        recordTransformHistory()
+      }
     } else if (axis === 'y') {
-      setTempY(newValue)
+      setTempY(strValue)
+      if (valid) {
+        transform.position.y = numValue
+        recordTransformHistory()
+      }
     }
   }
 
@@ -221,40 +256,27 @@ export const Inspector: FC<InspectorProps> = ({
     property: 'rotation' | 'zIndex',
     value: string,
   ) => {
-    const newValue = roundValue(value, 0)
+    const [strValue, valid, numValue] = roundValue(value, 0)
     if (property === 'rotation') {
-      setTempRotation(newValue)
+      setTempRotation(strValue)
+      if (valid) {
+        transform.rotation = numValue
+        recordTransformHistory()
+      }
     } else if (property === 'zIndex') {
-      setTempZIndex(newValue)
+      setTempZIndex(strValue)
+      if (valid) {
+        transform.zIndex = numValue
+        recordTransformHistory()
+      }
     }
   }
 
-  const commitTransformChanges = useCallback(async (): Promise<Transform> => {
-    return new Promise(resolve => {
-      setEntityTransform(prevTransform => {
-        const updatedTransform = {
-          ...prevTransform,
-          position: {
-            x: tempX !== '' ? Number(tempX) : 0,
-            y: tempY !== '' ? Number(tempY) : 0,
-          },
-          rotation: tempRotation !== '' ? Number(tempRotation) : 0,
-          zIndex: tempZIndex !== '' ? Number(tempZIndex) : 0,
-        }
-        resolve(updatedTransform)
-        return updatedTransform
-      })
-    })
-  }, [tempX, tempY, tempRotation, tempZIndex])
+  // const handleTransformSave = useCallback(async () => {
+  //   const updatedTransform = await commitTransformChanges()
 
-  const handleTransformSave = useCallback(async () => {
-    const updatedTransform = await commitTransformChanges()
-    history.record({
-      type: 'transform',
-      definition: JSON.parse(JSON.stringify(entity)),
-    })
-    selector.events.emit('onTransformUpdate', entity.uid, updatedTransform)
-  }, [commitTransformChanges, entity, history, selector.events])
+  //   selector.events.emit('onTransformUpdate', entity.uid, updatedTransform)
+  // }, [commitTransformChanges, entity, history, selector.events])
 
   const handleArgSave = useCallback(
     (key: string, value?: { _v: unknown }) => {
@@ -285,15 +307,10 @@ export const Inspector: FC<InspectorProps> = ({
 
     const handleTransformUpdate = (entityId: string, transform: Transform) => {
       if (entityId === entity.uid) {
-        setEntityTransform(prevTransform => ({
-          ...prevTransform,
-          ...transform,
-        }))
-
-        setTempX(roundValue(String(transform.position.x), 2))
-        setTempY(roundValue(String(transform.position.y), 2))
-        setTempRotation(roundValue(String(transform.rotation), 0))
-        setTempZIndex(roundValue(String(transform.zIndex), 0))
+        setTempX(roundValue(String(transform.position.x), 2)[0])
+        setTempY(roundValue(String(transform.position.y), 2)[0])
+        setTempRotation(roundValue(String(transform.rotation), 0)[0])
+        setTempZIndex(roundValue(String(transform.zIndex), 0)[0])
       }
     }
 
@@ -329,18 +346,7 @@ export const Inspector: FC<InspectorProps> = ({
             <div className='detail-row'>
               <span>X: </span>
               <input
-                onBlur={() => {
-                  void handleTransformSave()
-                }}
                 onChange={ev => handlePositionChange('x', ev.target.value)}
-                onKeyDown={ev => {
-                  if (ev.key === 'Enter') {
-                    ev.currentTarget.blur()
-                    return
-                  }
-
-                  ev.stopPropagation()
-                }}
                 type='number'
                 value={tempX}
               />
@@ -348,18 +354,7 @@ export const Inspector: FC<InspectorProps> = ({
             <div className='detail-row'>
               <span>Y:</span>
               <input
-                onBlur={() => {
-                  void handleTransformSave()
-                }}
                 onChange={ev => handlePositionChange('y', ev.target.value)}
-                onKeyDown={ev => {
-                  if (ev.key === 'Enter') {
-                    ev.currentTarget.blur()
-                    return
-                  }
-
-                  ev.stopPropagation()
-                }}
                 type='number'
                 value={tempY}
               />
@@ -371,20 +366,9 @@ export const Inspector: FC<InspectorProps> = ({
             <div className='detail-row'>
               <span>Rotation: </span>
               <input
-                onBlur={() => {
-                  void handleTransformSave()
-                }}
                 onChange={ev =>
                   handleTransformChange('rotation', ev.target.value)
                 }
-                onKeyDown={ev => {
-                  if (ev.key === 'Enter') {
-                    ev.currentTarget.blur()
-                    return
-                  }
-
-                  ev.stopPropagation()
-                }}
                 type='number'
                 value={tempRotation}
               />
@@ -392,20 +376,9 @@ export const Inspector: FC<InspectorProps> = ({
             <div className='detail-row'>
               <span>Z-Index:</span>
               <input
-                onBlur={() => {
-                  void handleTransformSave()
-                }}
                 onChange={ev =>
                   handleTransformChange('zIndex', ev.target.value)
                 }
-                onKeyDown={ev => {
-                  if (ev.key === 'Enter') {
-                    ev.currentTarget.blur()
-                    return
-                  }
-
-                  ev.stopPropagation()
-                }}
                 type='number'
                 value={tempZIndex}
               />

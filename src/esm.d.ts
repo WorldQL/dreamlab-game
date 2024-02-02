@@ -15,3 +15,8 @@ declare module 'https://esm.sh/v136/styled-components@6.1.8' {
   export { default } from 'styled-components'
   export * from 'styled-components'
 }
+
+declare module 'https://esm.sh/v136/usehooks-ts@2.12.1' {
+  export { default } from 'usehooks-ts'
+  export * from 'usehooks-ts'
+}
