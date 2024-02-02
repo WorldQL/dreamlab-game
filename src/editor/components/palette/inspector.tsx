@@ -418,7 +418,6 @@ export const Inspector: FC<InspectorProps> = ({
               {Object.entries(editableArgs).map(([key, value], index) => {
                 const schemaType = entity.argsSchema.shape[key]
                 const uniqueKey = `${entity.uid}-${key}-${index}`
-                console.log({ schemaType, key, value })
 
                 return (
                   <div key={uniqueKey}>
