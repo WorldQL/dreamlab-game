@@ -493,15 +493,16 @@ export const createNetwork = (
             internal.position.y = packet.position[1]
             internal.transform.rotation = packet.rotation
             internal.transform.zIndex = packet.z_index
+            internal.sync()
 
-            const bodies = game.physics
-              .getBodies(entity)
-              .filter(body => game.physics.isLinked(body, transform))
+            // const bodies = game.physics
+            //   .getBodies(entity)
+            //   .filter(body => game.physics.isLinked(body, transform))
 
-            for (const body of bodies) {
-              Matter.Body.setPosition(body, transform.position)
-              Matter.Body.setAngle(body, toRadians(transform.rotation))
-            }
+            // for (const body of bodies) {
+            //   Matter.Body.setPosition(body, transform.position)
+            //   Matter.Body.setAngle(body, toRadians(transform.rotation))
+            // }
           }
 
           break

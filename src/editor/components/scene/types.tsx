@@ -204,6 +204,7 @@ export const renderInputForZodSchema: RenderInputForZodSchemaFunctionType = (
   argsInputRefs,
   depth = 0,
 ) => {
+  console.log({ depth })
   if (!schema) {
     console.error(`Invalid schema provided for key: ${key}`)
     return null
@@ -221,6 +222,8 @@ export const renderInputForZodSchema: RenderInputForZodSchemaFunctionType = (
         ? schema._def.schema
         : schema
 
+  console.log({ unwrappedSchema })
+
   const zodTypeDef = (unwrappedSchema as any)._def as ZodTypeDef
 
   if (zodTypeDef.typeName === 'ZodDiscriminatedUnion') {
@@ -230,14 +233,32 @@ export const renderInputForZodSchema: RenderInputForZodSchemaFunctionType = (
     const selectedSchema = optionsMap.get(discriminatorValue)
 
     if (selectedSchema) {
-      return renderInputForZodSchema(
+      const keys = [...optionsMap.keys()]
+
+      const nested = renderInputForZodSchema(
         key,
         value,
-        selectedSchema,
+        selectedSchema.omit({ [discriminatorKey]: true }),
         handleArgChange,
         handleArgSave,
         argsInputRefs,
         depth + 1,
+      )
+
+      const select = renderEnumSelect(
+        `${key}.${discriminatorKey}`,
+        discriminatorValue,
+        // @ts-expect-error we dont need readonly enum
+        z.enum(keys),
+        handleArgChange,
+        handleArgSave,
+      )
+
+      return (
+        <>
+          {select}
+          {nested}
+        </>
       )
     }
   }
