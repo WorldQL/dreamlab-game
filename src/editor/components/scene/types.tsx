@@ -223,7 +223,7 @@ export const renderInputForZodSchema: RenderInputForZodSchemaFunctionType = (
 
   const zodTypeDef = (unwrappedSchema as any)._def as ZodTypeDef
 
-  if (unwrappedSchema instanceof z.ZodDiscriminatedUnion) {
+  if (zodTypeDef.typeName === 'ZodDiscriminatedUnion') {
     const discriminatorKey = unwrappedSchema._def.discriminator
     const discriminatorValue = value[discriminatorKey]
     const optionsMap = unwrappedSchema._def.optionsMap
