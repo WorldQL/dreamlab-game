@@ -222,7 +222,7 @@ export const renderInputForZodSchema: RenderInputForZodSchemaFunctionType = (
         ? schema._def.schema
         : schema
 
-  console.log(unwrappedSchema)
+  console.log({ unwrappedSchema })
 
   const zodTypeDef = (unwrappedSchema as any)._def as ZodTypeDef
 
