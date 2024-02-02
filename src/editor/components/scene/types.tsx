@@ -204,7 +204,6 @@ export const renderInputForZodSchema: RenderInputForZodSchemaFunctionType = (
   argsInputRefs,
   depth = 0,
 ) => {
-  console.log({ depth })
   if (!schema) {
     console.error(`Invalid schema provided for key: ${key}`)
     return null
@@ -221,8 +220,6 @@ export const renderInputForZodSchema: RenderInputForZodSchemaFunctionType = (
       : schema instanceof z.ZodEffects || schema instanceof z.ZodTransformer
         ? schema._def.schema
         : schema
-
-  console.log({ unwrappedSchema })
 
   const zodTypeDef = (unwrappedSchema as any)._def as ZodTypeDef
 
