@@ -622,7 +622,8 @@ export const createNetwork = (
           }
 
           // @ts-expect-error global variable
-          window.dreamlab_world_script_url_base = packet.world_script_url_base
+          globalThis.dreamlab_world_script_url_base =
+            packet.world_script_url_base
 
           await loadScript(
             packet.world_script_url_base ?? undefined,
