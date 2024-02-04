@@ -259,14 +259,22 @@ export const createEntitySelect = (
       game.events.common.addListener('onDestroy', onDestroy)
 
       this.events.addListener('onArgsUpdate', (entityId, args) => {
-        if (!selected || selected.uid !== entityId) return
+        // if (!selected || selected.uid !== entityId) return
+        let _selected = selected
+        if (!_selected) {
+          _selected = game.lookup(entityId)
+        }
+
+        if (_selected === undefined) {
+          return
+        }
 
         for (const key of Object.keys(args)) {
           const value = args[key]
-          const entityValue = selected.args[key]
+          const entityValue = _selected.args[key]
 
           if (value !== entityValue) {
-            setProperty(selected.args, key, value)
+            setProperty(_selected.args, key, value)
           }
         }
       })

@@ -56,7 +56,9 @@ export const PaletteManager: React.FC<PaletteManagerProps> = ({
   useEffect(() => {
     const handleSelect = () => {
       if (selector.selected) setCurrentCategory(CATEGORIES.INSPECTOR)
-      setSelectedEntity(selector.selected)
+      // fixes onBlur not being called for arg edit fields when the inspector unmounts
+      // TODO: Remove this once the args update as you type.
+      setTimeout(() => setSelectedEntity(selector.selected), 2)
     }
 
     selector.events.addListener('onSelect', handleSelect)
