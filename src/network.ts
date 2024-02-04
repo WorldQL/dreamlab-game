@@ -8,11 +8,7 @@ import type {
   Player,
 } from '@dreamlab.gg/core/entities'
 import { createGear } from '@dreamlab.gg/core/managers'
-import {
-  isTrackedTransform,
-  toRadians,
-  trackedSymbol,
-} from '@dreamlab.gg/core/math'
+import { isTrackedTransform, trackedSymbol } from '@dreamlab.gg/core/math'
 import { updateSyncedValue } from '@dreamlab.gg/core/network'
 import type {
   BareNetClient,
@@ -161,6 +157,7 @@ export const connect = async (
       }
 
       setTimeout(() => {
+        // @ts-expect-error: https://developer.mozilla.org/en-US/docs/Web/API/Location/reload#forceget
         window.location.reload(true)
       }, 1_000)
     })
