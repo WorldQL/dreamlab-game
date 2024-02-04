@@ -347,6 +347,7 @@ export const Inspector: FC<InspectorProps> = ({
               <span>X: </span>
               <input
                 onChange={ev => handlePositionChange('x', ev.target.value)}
+                onKeyDown={ev => ev.stopPropagation()}
                 type='number'
                 value={tempX}
               />
@@ -355,6 +356,7 @@ export const Inspector: FC<InspectorProps> = ({
               <span>Y:</span>
               <input
                 onChange={ev => handlePositionChange('y', ev.target.value)}
+                onKeyDown={ev => ev.stopPropagation()}
                 type='number'
                 value={tempY}
               />
@@ -369,6 +371,7 @@ export const Inspector: FC<InspectorProps> = ({
                 onChange={ev =>
                   handleTransformChange('rotation', ev.target.value)
                 }
+                onKeyDown={ev => ev.stopPropagation()}
                 type='number'
                 value={tempRotation}
               />
@@ -379,6 +382,7 @@ export const Inspector: FC<InspectorProps> = ({
                 onChange={ev =>
                   handleTransformChange('zIndex', ev.target.value)
                 }
+                onKeyDown={ev => ev.stopPropagation()}
                 type='number'
                 value={tempZIndex}
               />
