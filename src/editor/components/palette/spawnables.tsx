@@ -39,6 +39,12 @@ export const Spawnables: React.FC<SpawnablesProps> = ({
   const registered = useRegisteredSpawnables()
   const spawnable = registered.filter(([, fn]) => fn.hasDefaults)
 
+  // make background not be able to be spawned manually
+  const indexOfBackground = spawnable.findIndex(
+    entity => entity[0] === '@dreamlab/Background',
+  )
+  spawnable.splice(indexOfBackground, 1)
+
   const onSpawn = useCallback<EventHandler<'onSpawn'>>(
     entity => {
       const idx = spawnedAwaitingSelectionRef.current.indexOf(entity.uid)

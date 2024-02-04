@@ -177,7 +177,6 @@ export const createEntitySelect = (
     if (!selected) {
       setTimeout(async () => {
         const dimensions = await getPngDimensions(url)
-        console.log(dimensions)
 
         const cursorPosition = _game?.client.inputs.getCursor('world')
         if (!cursorPosition) {
