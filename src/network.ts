@@ -147,7 +147,7 @@ export const connect = async (
     // ws.addEventListener('open', () => resolve(ws))
     ws.addEventListener('error', () => {
       console.log('Got error in websocket event listener')
-      if (getReloadCount() > 15) {
+      if (getReloadCount() > 20) {
         const worldDetails = localStorage.getItem(
           '@dreamlab/worlds/fallbackUrl',
         )
@@ -157,11 +157,11 @@ export const connect = async (
 
       if (getReloadCount() > 3) {
         document.querySelector('#retrycount')!.innerHTML =
-          `Retries: ${getReloadCount()}/15`
+          `Retries: ${getReloadCount()}/20`
       }
 
       setTimeout(() => {
-        window.location.reload()
+        window.location.reload(true)
       }, 1_000)
     })
   })
