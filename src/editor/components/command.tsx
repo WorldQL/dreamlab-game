@@ -83,8 +83,9 @@ export const CLICommand: FC<Props> = ({ details }) => {
     <Container>
       <Card>
         <Text>
-          Run this command to edit scripts:{' '}
-          {copied ? 'Command copied!' : command.slice(0, 27) + '...'}
+          {copied
+            ? 'Command copied! Paste it in your terminal.'
+            : 'Attach VS Code (copy command)'}
         </Text>
         <Copy onClick={onClick}>
           <svg
