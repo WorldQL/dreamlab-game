@@ -1,5 +1,10 @@
 import { createEntity, dataManager } from '@dreamlab.gg/core'
-import type { Entity, Game, SpawnableEntity } from '@dreamlab.gg/core'
+import type {
+  Entity,
+  Game,
+  LooseSpawnableDefinition,
+  SpawnableEntity,
+} from '@dreamlab.gg/core'
 import type { Camera } from '@dreamlab.gg/core/entities'
 import type { EventHandler } from '@dreamlab.gg/core/events'
 import { EventEmitter } from '@dreamlab.gg/core/events'
@@ -16,6 +21,7 @@ import {
 import type { Bounds, Transform, Vector } from '@dreamlab.gg/core/math'
 import type { Debug, Ref } from '@dreamlab.gg/core/utils'
 import { drawBox, drawCircle, setProperty } from '@dreamlab.gg/core/utils'
+import cuid2 from '@paralleldrive/cuid2'
 import { Container, Graphics } from 'pixi.js'
 import type { ToServerPacket } from '../../packets'
 import type { HistoryData } from '../components/history'
@@ -184,6 +190,7 @@ export const createEntitySelect = (
           return
         }
 
+        const uid = cuid2.createId()
         const definition = {
           entity: '@dreamlab/Nonsolid',
           args: {
@@ -198,18 +205,26 @@ export const createEntitySelect = (
             },
           },
           tags: [],
-        }
-        void _game?.client?.network?.sendEntityCreate(definition)
+          uid,
+        } satisfies LooseSpawnableDefinition
+
+        await _game?.client?.network?.sendEntityCreate(definition)
+        history.record({ type: 'create', uid: definition.uid })
       }, 20) // when dragging the cursor doesn't exist but it immediately reappears after dropping
       return
     }
 
+    const def = JSON.parse(JSON.stringify(selected))
     if ('spriteSource' in selected.argsSchema.shape) {
       selected.args.spriteSource = { url }
     } else if (selected.definition.entity === '@dreamlab/BackgroundTrigger') {
       selected.args.onEnter = { action: 'set', textureURL: url }
     }
 
+    history.record({
+      type: 'args',
+      definition: def,
+    })
     events.emit('onArgsUpdate', selected.uid, selected.args)
   }
 
