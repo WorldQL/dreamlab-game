@@ -84,8 +84,12 @@ export const createNavigator = (
       })
 
       const onMouseDown = (ev: MouseEvent) => {
-        if (!editorEnabled.value || ev.button === 2) return
-        if (ev.button === 1 || (ev.button === 0 && isSpacePressed)) {
+        if (!editorEnabled.value) return
+        if (
+          ev.button === 2 ||
+          ev.button === 1 ||
+          (ev.button === 0 && isSpacePressed)
+        ) {
           selector.deselect()
           isDragging = true
           previousCursorPosition = inputs.getCursor('screen')
