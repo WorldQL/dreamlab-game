@@ -165,6 +165,25 @@ export const createEntitySelect = (
     }
   }
 
+  const duplicateEntity = async (entity: SpawnableEntity) => {
+    const uid = cuid2.createId()
+    const position = entity.definition.transform.position
+
+    const definition = {
+      ...entity.definition,
+      uid,
+      transform: {
+        ...entity.definition.transform,
+        position,
+      },
+    }
+
+    await (_game?.client.network
+      ? _game?.client?.network?.sendEntityCreate(definition)
+      : _game?.spawn(definition))
+    history.record({ type: 'create', uid: definition.uid })
+  }
+
   const onDestroy: EventHandler<'onDestroy'> = entity => {
     if (entity === selected) selected = undefined
   }
@@ -477,8 +496,12 @@ export const createEntitySelect = (
 
         lastClickTime = currentTime
 
-        if (newSelection)
+        if (newSelection) {
           prevEntityData = JSON.parse(JSON.stringify(newSelection))
+          if (ev.altKey && ev.button === 0) {
+            void duplicateEntity(newSelection)
+          }
+        }
 
         this.select(newSelection)
         updateCursor(pos)
