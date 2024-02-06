@@ -168,13 +168,17 @@ export const History: FC<PropsWithChildren<HistoryProps>> = ({
           }
 
           case 'delete': {
-            const spawned = await spawn(action.definition)
-            if (spawned)
+            await spawn(action.definition)
+            if (action.definition.uid) {
               recordAction(isUndo, {
                 type: 'create',
-                uid: spawned.uid,
+                uid: action.definition.uid,
               })
-            showNotification(`Delete Change ${isUndo ? 'Undone.' : 'Redone.'}`)
+              showNotification(
+                `Delete Change ${isUndo ? 'Undone.' : 'Redone.'}`,
+              )
+            }
+
             break
           }
 

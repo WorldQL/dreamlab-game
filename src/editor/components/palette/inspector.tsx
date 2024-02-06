@@ -226,8 +226,6 @@ export const Inspector: FC<InspectorProps> = ({
       type: 'transform',
       definition: JSON.parse(JSON.stringify(entity)),
     })
-
-    console.log('history')
   }, [history, entity])
 
   const recordTransformHistory = useDebounceCallback(

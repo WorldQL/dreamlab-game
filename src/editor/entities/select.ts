@@ -208,8 +208,11 @@ export const createEntitySelect = (
           uid,
         } satisfies LooseSpawnableDefinition
 
-        await _game?.client?.network?.sendEntityCreate(definition)
         history.record({ type: 'create', uid: definition.uid })
+
+        await (_game?.client.network
+          ? _game?.client?.network?.sendEntityCreate(definition)
+          : _game?.spawn(definition))
       }, 20) // when dragging the cursor doesn't exist but it immediately reappears after dropping
       return
     }
