@@ -312,12 +312,10 @@ export const createEntitySelect = (
           }
         }
 
-        // Clear values of keys not present in the new args
         for (const key of Object.keys(_selected.args)) {
           // eslint-disable-next-line prefer-object-has-own
           if (!Object.hasOwnProperty.call(args, key)) {
-            // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
-            delete _selected.args[key]
+            setProperty(_selected.args, key, undefined)
           }
         }
       })
