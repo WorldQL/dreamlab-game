@@ -217,7 +217,7 @@ export const createEntitySelect = (
       return
     }
 
-    const def = JSON.parse(JSON.stringify(selected))
+    const prevEntity = JSON.parse(JSON.stringify(selected))
     if ('spriteSource' in selected.argsSchema.shape) {
       selected.args.spriteSource = { url }
     } else if (selected.definition.entity === '@dreamlab/BackgroundTrigger') {
@@ -226,7 +226,7 @@ export const createEntitySelect = (
 
     history.record({
       type: 'args',
-      definition: def,
+      definition: prevEntity,
     })
     events.emit('onArgsUpdate', selected.uid, selected.args)
   }
@@ -277,7 +277,6 @@ export const createEntitySelect = (
       game.events.common.addListener('onDestroy', onDestroy)
 
       this.events.addListener('onArgsUpdate', (entityId, args) => {
-        // if (!selected || selected.uid !== entityId) return
         let _selected = selected
         if (!_selected) {
           _selected = game.lookup(entityId)
@@ -289,10 +288,17 @@ export const createEntitySelect = (
 
         for (const key of Object.keys(args)) {
           const value = args[key]
-          const entityValue = _selected.args[key]
-
-          if (value !== entityValue) {
+          if (_selected.args[key] !== value) {
             setProperty(_selected.args, key, value)
+          }
+        }
+
+        // Clear values of keys not present in the new args
+        for (const key of Object.keys(_selected.args)) {
+          // eslint-disable-next-line prefer-object-has-own
+          if (!Object.hasOwnProperty.call(args, key)) {
+            // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+            delete _selected.args[key]
           }
         }
       })
