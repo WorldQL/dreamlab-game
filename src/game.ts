@@ -101,6 +101,7 @@ export const init = async () => {
           instance: 'instance',
         })
 
+        document.querySelector('#connectingmessage')?.remove()
         await game.instantiate(editor)
 
         await loadScript(undefined, world, game)
