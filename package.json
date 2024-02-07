@@ -13,7 +13,7 @@
     "test": "npm run check && npm run lint"
   },
   "devDependencies": {
-    "@dreamlab.gg/core": "0.0.77-dev-6418a8a",
+    "@dreamlab.gg/core": "0.0.77-dev-a3f2f15",
     "@dreamlab.gg/ui": "0.0.6",
     "@luludev/eslint-config": "^0.5.1",
     "@types/matter-js": "^0.19.5",

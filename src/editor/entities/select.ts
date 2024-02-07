@@ -266,6 +266,11 @@ export const createEntitySelect = (
       selected = entity
       events.emit('onSelect', entity?.uid)
 
+      // @ts-expect-error Internal Value
+      if (prev) prev._selected.value = false
+      // @ts-expect-error Internal Value
+      if (selected) selected._selected.value = true
+
       if (selected !== prev) {
         if (prev) {
           game.physics.resume('@editor', [prev])
