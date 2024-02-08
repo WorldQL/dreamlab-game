@@ -253,6 +253,7 @@ export const Assets: React.FC<AssetsProps> = ({ nextAPIBaseURL, jwt }) => {
                 textOverflow: 'ellipsis',
                 whiteSpace: 'nowrap',
                 overflow: 'hidden',
+                fontSize: '14px',
               }}
             >
               {asset.name}
