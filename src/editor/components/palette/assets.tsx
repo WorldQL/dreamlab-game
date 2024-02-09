@@ -1,3 +1,4 @@
+/* eslint-disable unicorn/prefer-string-replace-all */
 import axios from 'axios'
 import {
   useCallback,
@@ -38,6 +39,7 @@ const AssetList = styled.div`
 const AssetItem = styled.div`
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 10px;
   padding: 5px;
   border-radius: 5px;
@@ -72,6 +74,8 @@ interface AssetsProps {
 export const Assets: React.FC<AssetsProps> = ({ nextAPIBaseURL, jwt }) => {
   const [assets, setAssets] = useState<ImageData[]>([])
   const [dragOver, setDragOver] = useState(false)
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [newName, setNewName] = useState<string>('')
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const refreshImages = useCallback(async () => {
@@ -149,6 +153,26 @@ export const Assets: React.FC<AssetsProps> = ({ nextAPIBaseURL, jwt }) => {
     },
     [nextAPIBaseURL, jwt],
   )
+
+  const handleNameChange = useCallback((value: string) => {
+    const sanitizedValue = value.replace(/\s+/g, '_').replace(/\W/g, '')
+    setNewName(sanitizedValue)
+  }, [])
+
+  const handleEditName = async () => {
+    if (editingId && newName.trim() !== '') {
+      const finalName = newName.endsWith('.png') ? newName : `${newName}.png`
+      const requestURL = `${nextAPIBaseURL}/api/gameclient/renameImage`
+      await axios.post(
+        requestURL,
+        { imageID: editingId, newName: finalName },
+        { headers: { Authorization: jwt } },
+      )
+      setEditingId(null)
+      setNewName('')
+      await refreshImages()
+    }
+  }
 
   const handleFileChange = useCallback<ChangeEventHandler<HTMLInputElement>>(
     ev => {
@@ -235,28 +259,35 @@ export const Assets: React.FC<AssetsProps> = ({ nextAPIBaseURL, jwt }) => {
       </div>
       <AssetList>
         {assets.map(asset => (
-          <AssetItem
-            draggable
-            key={asset.id}
-            onDragStart={event =>
-              event.dataTransfer.setData('text/plain', asset.imageURL)
-            }
-          >
-            <ImagePreview
-              alt={asset.name}
-              crossOrigin='anonymous'
-              src={asset.imageURL}
-            />
-            <div
-              style={{
-                width: '250px',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
-                overflow: 'hidden',
-                fontSize: '14px',
-              }}
-            >
-              {asset.name}
+          <AssetItem draggable key={asset.id}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              {' '}
+              <ImagePreview alt={asset.name} src={asset.imageURL} />
+              {editingId === asset.id ? (
+                <input
+                  autoFocus
+                  onBlur={async () => handleEditName()}
+                  onChange={ev => handleNameChange(ev.target.value)}
+                  onKeyDown={ev => {
+                    if (ev.key === 'Enter') {
+                      void handleEditName()
+                    }
+                  }}
+                  type='text'
+                  value={newName}
+                />
+              ) : (
+                <div
+                  onDoubleClick={() => {
+                    setEditingId(asset.id)
+                    setNewName(asset.name.replace('.png', ''))
+                  }}
+                >
+                  {asset.name.length > 16
+                    ? `${asset.name.slice(0, 16)}...`
+                    : asset.name}
+                </div>
+              )}
             </div>
             <DeleteButton
               onClick={async () => confirmDeleteImage(asset.name, asset.id)}
