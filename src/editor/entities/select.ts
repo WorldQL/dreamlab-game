@@ -266,10 +266,19 @@ export const createEntitySelect = (
       selected = entity
       events.emit('onSelect', entity?.uid)
 
-      // @ts-expect-error Internal Value
-      if (prev) prev._selected.value = false
-      // @ts-expect-error Internal Value
-      if (selected) selected._selected.value = true
+      try {
+        // @ts-expect-error Internal Value
+        if (prev) prev._selected.value = false
+      } catch {
+        console.warn('Failed to remove previous selected state')
+      }
+
+      try {
+        // @ts-expect-error Internal Value
+        if (selected) selected._selected.value = true
+      } catch {
+        console.warn('Failed to set selected state')
+      }
 
       if (selected !== prev) {
         if (prev) {
