@@ -1,7 +1,7 @@
 import type { SpawnableEntity } from '@dreamlab.gg/core'
 import type { Transform } from '@dreamlab.gg/core/math'
 import { getProperty, setProperty } from '@dreamlab.gg/core/utils'
-import { useTransform } from '@dreamlab.gg/ui/react'
+import { useTransform } from '@dreamlab.gg/ui/dist/react'
 import {
   useCallback,
   useEffect,
