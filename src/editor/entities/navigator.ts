@@ -1,5 +1,5 @@
 import type { Entity, Game } from '@dreamlab.gg/core'
-import { createEntity } from '@dreamlab.gg/core'
+// import { createEntity } from '@dreamlab.gg/core'
 import type { Camera } from '@dreamlab.gg/core/dist/entities'
 import type { InputManager } from '@dreamlab.gg/core/dist/input'
 import type { LooseVector } from '@dreamlab.gg/core/dist/math'

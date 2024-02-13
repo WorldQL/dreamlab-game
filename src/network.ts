@@ -1,12 +1,8 @@
 /* eslint-disable id-length */
-import { dataManager, SpawnableDefinitionSchema } from '@dreamlab.gg/core'
+import { SpawnableDefinitionSchema } from '@dreamlab.gg/core'
 import type { Game } from '@dreamlab.gg/core'
-import { createNetPlayer } from '@dreamlab.gg/core/entities'
-import type {
-  KnownPlayerAnimation,
-  NetPlayer,
-  Player,
-} from '@dreamlab.gg/core/entities'
+import { NetPlayer } from '@dreamlab.gg/core/entities'
+import type { KnownPlayerAnimation, Player } from '@dreamlab.gg/core/entities'
 import { createGear } from '@dreamlab.gg/core/managers'
 import { isTrackedTransform, trackedSymbol } from '@dreamlab.gg/core/math'
 import { updateSyncedValue } from '@dreamlab.gg/core/network'
@@ -286,7 +282,7 @@ export const createNetwork = (
 
             localPlayer = await spawnPlayer(game)
           } else {
-            const netplayer = await createNetPlayer(
+            const netplayer = new NetPlayer(
               packet.peer_id,
               packet.entity_id,
               game,

@@ -1,5 +1,6 @@
 import { createGame } from '@dreamlab.gg/core'
-import { createCursor, PlayerInput } from '@dreamlab.gg/core/entities'
+import { Cursor, PlayerInput } from '@dreamlab.gg/core/entities'
+// import { createConsole } from './console/console.js'
 import { isDebug } from './debug.js'
 import { createEditor } from './editor/editor.js'
 import { createKeybinds } from './keybinds/entity.js'
@@ -11,7 +12,6 @@ import {
   setReloadCount,
 } from './network.js'
 import { loadLevel, loadScript, spawnPlayer } from './scripting.js'
-import { createConsole } from './console/console.js'
 
 export const init = async () => {
   // #region Setup
@@ -71,7 +71,7 @@ export const init = async () => {
   // #endregion
 
   // #region Utility Entities
-  const cursor = createCursor()
+  const cursor = new Cursor()
   await game.instantiate(cursor)
   // #endregion
 
@@ -91,22 +91,22 @@ export const init = async () => {
       sendPacket({ t: 'RequestFullSnapshot' })
     })
 
-    const serverLog = createConsole(params!.server, params!.instance)
-    await game.instantiate(serverLog)
+    // const serverLog = createConsole(params!.server, params!.instance)
+    // await game.instantiate(serverLog)
   } else {
     if (import.meta.env.DEV) {
       const url = new URL(window.location.href)
       const world = url.searchParams.get('level')
 
       if (world) {
-        const editor = createEditor(undefined, {
-          secret: 'secret',
-          server: 'http://localhost',
-          instance: 'instance',
-        })
+        // const editor = createEditor(undefined, {
+        //   secret: 'secret',
+        //   server: 'http://localhost',
+        //   instance: 'instance',
+        // })
 
         document.querySelector('#connectingmessage')?.remove()
-        await game.instantiate(editor)
+        // await game.instantiate(editor)
 
         await loadScript(undefined, world, game)
         await loadLevel(undefined, world, game)
@@ -127,6 +127,6 @@ export const init = async () => {
     bindInput(game, 'KeyW', PlayerInput.Jump)
   }
 
-  const keybinds = createKeybinds()
-  await game.instantiate(keybinds)
+  // const keybinds = createKeybinds()
+  // await game.instantiate(keybinds)
 }

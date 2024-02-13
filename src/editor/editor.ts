@@ -1,4 +1,4 @@
-import { createEntity } from '@dreamlab.gg/core'
+// import { createEntity } from '@dreamlab.gg/core'
 import { deferUntilPlayer, ref } from '@dreamlab.gg/core/utils'
 import type { ToServerPacket } from '../packets'
 import type { Action } from './components/history'
@@ -40,80 +40,82 @@ export const createEditor = (
   const selector = createEntitySelect(enabled, history, sendPacket)
   const navigator = createNavigator(enabled, selector)
 
-  return createEntity({
-    async init({ game }) {
-      await game.instantiate(selector)
-      await game.instantiate(navigator)
+  return undefined
 
-      const inputs = game.client?.inputs
-      inputs?.registerInput(
-        EditorInputs.DeleteEntity,
-        'Delete Entity',
-        'Backspace',
-      )
+  // return createEntity({
+  //   async init({ game }) {
+  //     await game.instantiate(selector)
+  //     await game.instantiate(navigator)
 
-      inputs?.registerInput(
-        EditorInputs.MoveForewards,
-        'Move Into Foreground',
-        'BracketRight',
-      )
-      inputs?.registerInput(
-        EditorInputs.MoveBackwards,
-        'Move Into Background',
-        'BracketLeft',
-      )
+  //     const inputs = game.client?.inputs
+  //     inputs?.registerInput(
+  //       EditorInputs.DeleteEntity,
+  //       'Delete Entity',
+  //       'Backspace',
+  //     )
 
-      inputs?.registerInput(
-        EditorInputs.ToggleTiling,
-        'Toggle Sprite Tiling',
-        'Backslash',
-      )
+  //     inputs?.registerInput(
+  //       EditorInputs.MoveForewards,
+  //       'Move Into Foreground',
+  //       'BracketRight',
+  //     )
+  //     inputs?.registerInput(
+  //       EditorInputs.MoveBackwards,
+  //       'Move Into Background',
+  //       'BracketLeft',
+  //     )
 
-      deferUntilPlayer(game, player => {
-        player.events.addListener('onToggleNoclip', noclip => {
-          enabled.value = noclip
-          if (noclip) {
-            game.client?.render.camera.setSmoothing(0.02)
-            navigator.setPosition(player.position)
-          } else {
-            player.teleport(navigator.position)
-            game.client?.render.camera.setTarget(player)
-            game.client?.render.camera.setSmoothing(0.125)
-            inputs?.enable('mouse', 'editor')
-            selector.deselect()
-            game.client?.inputs.setKey('MouseLeft', false)
-          }
-        })
-      })
+  //     inputs?.registerInput(
+  //       EditorInputs.ToggleTiling,
+  //       'Toggle Sprite Tiling',
+  //       'Backslash',
+  //     )
 
-      return { game }
-    },
+  //     deferUntilPlayer(game, player => {
+  //       player.events.addListener('onToggleNoclip', noclip => {
+  //         enabled.value = noclip
+  //         if (noclip) {
+  //           game.client?.render.camera.setSmoothing(0.02)
+  //           navigator.setPosition(player.position)
+  //         } else {
+  //           player.teleport(navigator.position)
+  //           game.client?.render.camera.setTarget(player)
+  //           game.client?.render.camera.setSmoothing(0.125)
+  //           inputs?.enable('mouse', 'editor')
+  //           selector.deselect()
+  //           game.client?.inputs.setKey('MouseLeft', false)
+  //         }
+  //       })
+  //     })
 
-    initRenderContext({ game }, _render) {
-      const { container, unmount } = renderUI(
-        game,
-        selector,
-        navigator,
-        history,
-        editDetails,
-      )
-      container.style.display = 'none'
+  //     return { game }
+  //   },
 
-      deferUntilPlayer(game, player => {
-        player.events.addListener('onToggleNoclip', noclip => {
-          container.style.display = noclip ? '' : 'none'
-        })
-      })
+  //   initRenderContext({ game }, _render) {
+  //     const { container, unmount } = renderUI(
+  //       game,
+  //       selector,
+  //       navigator,
+  //       history,
+  //       editDetails,
+  //     )
+  //     container.style.display = 'none'
 
-      return { unmount }
-    },
+  //     deferUntilPlayer(game, player => {
+  //       player.events.addListener('onToggleNoclip', noclip => {
+  //         container.style.display = noclip ? '' : 'none'
+  //       })
+  //     })
 
-    async teardown({ game }) {
-      await game.destroy(selector)
-    },
+  //     return { unmount }
+  //   },
 
-    teardownRenderContext({ unmount }) {
-      unmount()
-    },
-  })
+  //   async teardown({ game }) {
+  //     await game.destroy(selector)
+  //   },
+
+  //   teardownRenderContext({ unmount }) {
+  //     unmount()
+  //   },
+  // })
 }
