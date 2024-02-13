@@ -51,11 +51,11 @@ export const loadLevel = async (
 
 export const spawnPlayer = async (game: Game<false>, position?: Vector) => {
   const characterId = getCharacterId()
-  // const player = new Player(characterId)
-  // await game.instantiate(player)
+  const player = new Player(characterId)
+  game.instantiate(player)
 
-  // if (position) player.teleport(position, true)
-  // game.client.render.camera.setTarget(player)
+  if (position) player.teleport(position, true)
+  game.client.render.camera.target = player
 
-  // return player
+  return player
 }
