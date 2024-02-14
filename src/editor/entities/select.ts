@@ -89,11 +89,12 @@ export class Selector extends Entity {
 
     inputs().addListener('Space', this.onSpace)
 
-    canvas().addEventListener('dragover', onDragOver)
-    canvas().addEventListener('drop', this.onDrop)
-    canvas().addEventListener('mousedown', this.onMouseDown)
-    canvas().addEventListener('mouseup', this.onMouseUp)
-    canvas().addEventListener('mousemove', this.onMouseMove)
+    const $canvas = canvas()
+    $canvas.addEventListener('dragover', onDragOver)
+    $canvas.addEventListener('drop', this.onDrop)
+    $canvas.addEventListener('mousedown', this.onMouseDown)
+    $canvas.addEventListener('mouseup', this.onMouseUp)
+    $canvas.addEventListener('mousemove', this.onMouseMove)
 
     this.container = new Container()
     this.container.sortableChildren = true
@@ -161,15 +162,17 @@ export class Selector extends Entity {
   }
 
   public teardown(): void {
-    canvas().removeEventListener('drop', this.onDrop)
-    canvas().removeEventListener('dragover', onDragOver)
-    canvas().removeEventListener('mousedown', this.onMouseDown)
-    canvas().removeEventListener('mouseup', this.onMouseUp)
-    canvas().removeEventListener('mousemove', this.onMouseMove)
+    const $canvas = canvas()
+    $canvas.removeEventListener('drop', this.onDrop)
+    $canvas.removeEventListener('dragover', onDragOver)
+    $canvas.removeEventListener('mousedown', this.onMouseDown)
+    $canvas.removeEventListener('mouseup', this.onMouseUp)
+    $canvas.removeEventListener('mousemove', this.onMouseMove)
 
-    this.container.destroy({ children: true })
     events().common.removeListener('onDestroy', this.onDestroy)
     inputs().removeListener('Space', this.onSpace)
+
+    this.container.destroy({ children: true })
   }
 
   public duplicateEntity = async (entity: SpawnableEntity) => {
