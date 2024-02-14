@@ -192,6 +192,7 @@ export const createNetwork = (
       }
     }
 
+    // TODO: Why are these IIFEs everywhere what??
     ;(async () => sendWhenOpen())()
   }
 
@@ -253,7 +254,7 @@ export const createNetwork = (
           if (packet.peer_id === selfID) {
             const resp = LevelSchema.safeParse(packet.level)
             if (resp.success) {
-              await game.spawnMany(...resp.data)
+              game.spawnMany(...resp.data)
             }
 
             localPlayer = await spawnPlayer(game)
@@ -267,7 +268,7 @@ export const createNetwork = (
             )
 
             players.set(packet.entity_id, netplayer)
-            await game.instantiate(netplayer)
+            game.instantiate(netplayer)
           }
 
           break
@@ -279,7 +280,7 @@ export const createNetwork = (
 
           if (netplayer) {
             players.delete(packet.entity_id)
-            await game.destroy(netplayer)
+            game.destroy(netplayer)
           }
 
           break
@@ -354,7 +355,7 @@ export const createNetwork = (
             )
               return
 
-            const entity = existingEntity ? existingEntity : await game.spawn(definition)
+            const entity = existingEntity ? existingEntity : game.spawn(definition)
             if (entity === undefined) return
             affectedEntities.push(entity.uid)
 
@@ -379,7 +380,7 @@ export const createNetwork = (
               uid: entityInfo.entityId,
             }
 
-            const entity = await game.spawn(definition)
+            const entity = game.spawn(definition)
             if (entity === undefined) return
             affectedEntities.push(entity.uid)
 
@@ -399,7 +400,7 @@ export const createNetwork = (
 
           const destroyJobs = destroyedEntities.map(async uid => {
             const entity = game.lookup(uid)
-            if (entity) await game.destroy(entity)
+            if (entity) game.destroy(entity)
           })
 
           await Promise.all([...spawnJobs, ...updateJobs, ...destroyJobs])
@@ -427,7 +428,7 @@ export const createNetwork = (
 
         case 'SpawnEntity': {
           const resp = SpawnableDefinitionSchema.safeParse(packet.definition)
-          if (resp.success) await game.spawn(resp.data)
+          if (resp.success) game.spawn(resp.data)
 
           break
         }
@@ -436,7 +437,7 @@ export const createNetwork = (
           if (packet.peer_id === selfID) return
 
           const entity = game.lookup(packet.entity_id)
-          if (entity) await game.destroy(entity)
+          if (entity) game.destroy(entity)
 
           break
         }
@@ -560,6 +561,7 @@ export const createNetwork = (
       // this is an unsafe cast but we're in a try-catch so it's okay
       const packet: ToClientPacket = JSON.parse(ev.data)
 
+      // TODO: What the heck is this IIFE doing here??????
       await (async () => {
         if (packet.t === 'Handshake') {
           if (packet.protocol_version !== PROTOCOL_VERSION) {
@@ -579,7 +581,7 @@ export const createNetwork = (
               : undefined
 
             const editor = createEditor(sendPacket, details)
-            await game.instantiate(editor)
+            game.instantiate(editor)
           }
 
           // @ts-expect-error global variable

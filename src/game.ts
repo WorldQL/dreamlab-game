@@ -85,7 +85,7 @@ export const init = async () => {
     })
 
     // const serverLog = createConsole(params!.server, params!.instance)
-    // await game.instantiate(serverLog)
+    // game.instantiate(serverLog)
   } else {
     if (import.meta.env.DEV) {
       const url = new URL(window.location.href)
@@ -128,5 +128,5 @@ export const init = async () => {
   }
 
   // const keybinds = createKeybinds()
-  // await game.instantiate(keybinds)
+  // game.instantiate(keybinds)
 }

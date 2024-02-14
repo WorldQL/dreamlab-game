@@ -1,23 +1,10 @@
 import { isSpawnableEntity } from '@dreamlab.gg/core'
-import type {
-  LooseSpawnableDefinition,
-  SpawnableEntity,
-} from '@dreamlab.gg/core'
+import type { LooseSpawnableDefinition, SpawnableEntity } from '@dreamlab.gg/core'
 import type { EventHandler } from '@dreamlab.gg/core/events'
-import {
-  useCommonEventListener,
-  useGame,
-  useNetwork,
-} from '@dreamlab.gg/ui/react'
+import { useCommonEventListener, useGame, useNetwork } from '@dreamlab.gg/ui/react'
 import cuid2 from '@paralleldrive/cuid2'
 import type { FC, PropsWithChildren } from 'https://esm.sh/v136/react@18.2.0'
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'https://esm.sh/v136/react@18.2.0'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'https://esm.sh/v136/react@18.2.0'
 import type { Selector } from '../entities/select'
 import { Notification } from './ui/notification'
 
@@ -53,11 +40,7 @@ interface HistoryProps {
   history: HistoryData
 }
 
-export const History: FC<PropsWithChildren<HistoryProps>> = ({
-  children,
-  selector,
-  history,
-}) => {
+export const History: FC<PropsWithChildren<HistoryProps>> = ({ children, selector, history }) => {
   const game = useGame()
   const network = useNetwork()
   const spawnedAwaitingSelectionRef = useRef<string[]>([])
@@ -87,14 +70,12 @@ export const History: FC<PropsWithChildren<HistoryProps>> = ({
   useCommonEventListener('onSpawn', onSpawn)
 
   const spawn = useCallback(
-    async (
-      definition: LooseSpawnableDefinition,
-    ): Promise<SpawnableEntity | undefined> => {
+    (definition: LooseSpawnableDefinition): SpawnableEntity | undefined => {
       if (network) {
         void network.sendEntityCreate(definition)
         spawnedAwaitingSelectionRef.current.push(definition.uid!)
       } else {
-        const spawned = await game.spawn(definition)
+        const spawned = game.spawn(definition)
         if (spawned) {
           selector.select(spawned)
           return spawned
@@ -116,8 +97,7 @@ export const History: FC<PropsWithChildren<HistoryProps>> = ({
     if (clipboard.current) {
       const uid = cuid2.createId()
       const cursorPosition = game.client.inputs.getCursor()
-      const position =
-        cursorPosition ?? clipboard.current.definition.transform.position
+      const position = cursorPosition ?? clipboard.current.definition.transform.position
 
       const definition = {
         ...clipboard.current.definition,
@@ -128,7 +108,7 @@ export const History: FC<PropsWithChildren<HistoryProps>> = ({
         },
       }
 
-      await spawn(definition)
+      spawn(definition)
       showNotification('Pasted.')
       history.record({ type: 'create', uid: definition.uid })
     }
@@ -157,26 +137,24 @@ export const History: FC<PropsWithChildren<HistoryProps>> = ({
                 type: 'delete',
                 definition: entity.definition,
               })
-              await game.destroy(entity)
+
+              game.destroy(entity)
               await network?.sendEntityDestroy(action.uid)
-              showNotification(
-                `Create Change ${isUndo ? 'Undone.' : 'Redone.'}`,
-              )
+              showNotification(`Create Change ${isUndo ? 'Undone.' : 'Redone.'}`)
             }
 
             break
           }
 
           case 'delete': {
-            await spawn(action.definition)
+            spawn(action.definition)
             if (action.definition.uid) {
               recordAction(isUndo, {
                 type: 'create',
                 uid: action.definition.uid,
               })
-              showNotification(
-                `Delete Change ${isUndo ? 'Undone.' : 'Redone.'}`,
-              )
+
+              showNotification(`Delete Change ${isUndo ? 'Undone.' : 'Redone.'}`)
             }
 
             break
@@ -184,9 +162,7 @@ export const History: FC<PropsWithChildren<HistoryProps>> = ({
 
           case 'transform': {
             const spawnables = game.entities.filter(isSpawnableEntity)
-            const entity = spawnables.find(
-              entity => entity.uid === action.definition.uid,
-            )
+            const entity = spawnables.find(entity => entity.uid === action.definition.uid)
             if (!entity) return
 
             recordAction(isUndo, {
@@ -194,22 +170,14 @@ export const History: FC<PropsWithChildren<HistoryProps>> = ({
               definition: JSON.parse(JSON.stringify(entity)),
             })
             selector.select(entity)
-            selector.events.emit(
-              'onTransformUpdate',
-              entity.uid,
-              action.definition.transform,
-            )
-            showNotification(
-              `Positional Change ${isUndo ? 'Undone.' : 'Redone.'}`,
-            )
+            selector.events.emit('onTransformUpdate', entity.uid, action.definition.transform)
+            showNotification(`Positional Change ${isUndo ? 'Undone.' : 'Redone.'}`)
             break
           }
 
           case 'args': {
             const spawnables = game.entities.filter(isSpawnableEntity)
-            const entity = spawnables.find(
-              entity => entity.uid === action.definition.uid,
-            )
+            const entity = spawnables.find(entity => entity.uid === action.definition.uid)
             if (!entity) return
 
             recordAction(isUndo, {
@@ -217,27 +185,15 @@ export const History: FC<PropsWithChildren<HistoryProps>> = ({
               definition: JSON.parse(JSON.stringify(entity)),
             })
             selector.select(entity)
-            selector.events.emit(
-              'onArgsUpdate',
-              entity.uid,
-              action.definition.args,
-            )
-            selector.events.emit(
-              'onTransformUpdate',
-              entity.uid,
-              action.definition.transform,
-            )
-            showNotification(
-              `Entity Arg Change ${isUndo ? 'Undone.' : 'Redone.'}`,
-            )
+            selector.events.emit('onArgsUpdate', entity.uid, action.definition.args)
+            selector.events.emit('onTransformUpdate', entity.uid, action.definition.transform)
+            showNotification(`Entity Arg Change ${isUndo ? 'Undone.' : 'Redone.'}`)
             break
           }
 
           case 'tags': {
             const spawnables = game.entities.filter(isSpawnableEntity)
-            const entity = spawnables.find(
-              entity => entity.uid === action.definition.uid,
-            )
+            const entity = spawnables.find(entity => entity.uid === action.definition.uid)
             if (!entity) return
 
             recordAction(isUndo, {
@@ -245,11 +201,7 @@ export const History: FC<PropsWithChildren<HistoryProps>> = ({
               definition: JSON.parse(JSON.stringify(entity)),
             })
             selector.select(entity)
-            selector.events.emit(
-              'onTagsUpdate',
-              entity.uid,
-              action.definition.definition.tags,
-            )
+            selector.events.emit('onTagsUpdate', entity.uid, action.definition.definition.tags)
             showNotification(`Tag Change ${isUndo ? 'Undone.' : 'Redone.'}`)
             break
           }
