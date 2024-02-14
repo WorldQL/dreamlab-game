@@ -1,10 +1,9 @@
 // import { createEntity, dataManager } from '@dreamlab.gg/core'
-import type { Game, LooseSpawnableDefinition, RenderTime, SpawnableEntity } from '@dreamlab.gg/core'
+import type { LooseSpawnableDefinition, RenderTime, SpawnableEntity } from '@dreamlab.gg/core'
 import { Entity } from '@dreamlab.gg/core'
-import type { Camera } from '@dreamlab.gg/core/entities'
 import type { EventHandler } from '@dreamlab.gg/core/events'
 import { EventEmitter } from '@dreamlab.gg/core/events'
-import { game } from '@dreamlab.gg/core/labs'
+import { camera, canvas, events, game, inputs, stage } from '@dreamlab.gg/core/labs'
 import {
   absolute,
   angleBetween,
@@ -16,8 +15,8 @@ import {
   Vec,
 } from '@dreamlab.gg/core/math'
 import type { Bounds, Transform, Vector } from '@dreamlab.gg/core/math'
-import type { Debug, Ref } from '@dreamlab.gg/core/utils'
-import { drawBox, drawCircle, setProperty } from '@dreamlab.gg/core/utils'
+import type { Ref } from '@dreamlab.gg/core/utils'
+import { drawBox, drawCircle } from '@dreamlab.gg/core/utils'
 import cuid2 from '@paralleldrive/cuid2'
 import { Container, Graphics } from 'pixi.js'
 import type { ToServerPacket } from '../../packets'
@@ -87,30 +86,28 @@ export class Selector extends Entity {
     public sendPacket?: (packet: ToServerPacket) => void,
   ) {
     super()
-    this._game = game('client')
 
-    const canvas = this._game!.client.render.canvas
+    inputs().addListener('Space', this.onSpace)
 
-    this._game!.client.inputs.addListener('Space', this.onSpace)
-    canvas.addEventListener('dragover', onDragOver)
-    canvas.addEventListener('drop', this.onDrop)
-    canvas.addEventListener('mousedown', this.onMouseDown)
-    canvas.addEventListener('mouseup', this.onMouseUp)
-    canvas.addEventListener('mousemove', this.onMouseMove)
+    canvas().addEventListener('dragover', onDragOver)
+    canvas().addEventListener('drop', this.onDrop)
+    canvas().addEventListener('mousedown', this.onMouseDown)
+    canvas().addEventListener('mouseup', this.onMouseUp)
+    canvas().addEventListener('mousemove', this.onMouseMove)
 
-    const container = new Container()
-    container.sortableChildren = true
-    container.zIndex = 999_999_999 // always render on top
+    this.container = new Container()
+    this.container.sortableChildren = true
+    this.container.zIndex = 999_999_999 // always render on top
 
-    this._game!.client.render.stage.addChild(container)
-    container.addChild(this.boundsGfx)
-    container.addChild(this.topLeftGfx)
-    container.addChild(this.topRightGfx)
-    container.addChild(this.bottomLeftGfx)
-    container.addChild(this.bottomRightGfx)
-    container.addChild(this.rotStalkGfx)
-    container.addChild(this.rotHandleGfx)
-    this.container = container
+    this.container.addChild(this.boundsGfx)
+    this.container.addChild(this.topLeftGfx)
+    this.container.addChild(this.topRightGfx)
+    this.container.addChild(this.bottomLeftGfx)
+    this.container.addChild(this.bottomRightGfx)
+    this.container.addChild(this.rotStalkGfx)
+    this.container.addChild(this.rotHandleGfx)
+
+    stage().addChild(this.container)
   }
 
   private boundsGfx = new Graphics()
@@ -129,10 +126,10 @@ export class Selector extends Entity {
   public lastClickTime = 0
   public container: Container
 
-  public selected: SpawnableEntity | undefined
+  // public game: Game<false>
   public events = new EventEmitter<EntityEvents>()
+  public selected: SpawnableEntity | undefined
   public action: ActionData | undefined
-  public _game: Game<false> | undefined
 
   public prevEntityData: SpawnableEntity | undefined
   public actionOccurred = false
@@ -164,19 +161,15 @@ export class Selector extends Entity {
   }
 
   public teardown(): void {
-    const _game = game('client')
-    if (!_game) return
-    const canvas = _game.client.render.canvas
-
-    canvas.removeEventListener('drop', this.onDrop)
-    canvas.removeEventListener('dragover', onDragOver)
-    canvas.removeEventListener('mousedown', this.onMouseDown)
-    canvas.removeEventListener('mouseup', this.onMouseUp)
-    canvas.removeEventListener('mousemove', this.onMouseMove)
+    canvas().removeEventListener('drop', this.onDrop)
+    canvas().removeEventListener('dragover', onDragOver)
+    canvas().removeEventListener('mousedown', this.onMouseDown)
+    canvas().removeEventListener('mouseup', this.onMouseUp)
+    canvas().removeEventListener('mousemove', this.onMouseMove)
 
     this.container.destroy({ children: true })
-    _game.events.common.removeListener('onDestroy', this.onDestroy)
-    _game.client?.inputs.removeListener('Space', this.onSpace)
+    events().common.removeListener('onDestroy', this.onDestroy)
+    inputs().removeListener('Space', this.onSpace)
   }
 
   public duplicateEntity = async (entity: SpawnableEntity) => {
@@ -192,9 +185,15 @@ export class Selector extends Entity {
       },
     }
 
-    await (this._game?.client.network
-      ? this._game?.client?.network?.sendEntityCreate(definition)
-      : this._game?.spawn(definition))
+    const $game = game('client', true)
+    const network = $game.client.network
+
+    if (network) {
+      network.sendEntityCreate(definition)
+    } else {
+      $game.spawn(definition)
+    }
+
     this.history.record({ type: 'create', uid: definition.uid })
   }
 
@@ -261,7 +260,7 @@ export class Selector extends Entity {
       setTimeout(async () => {
         const dimensions = await getPngDimensions(url)
 
-        const cursorPosition = this._game?.client.inputs.getCursor('world')
+        const cursorPosition = inputs().getCursor('world')
         if (!cursorPosition) {
           console.log('Returning from drop event because no cursorPosition')
           return
@@ -285,11 +284,15 @@ export class Selector extends Entity {
           uid,
         } satisfies LooseSpawnableDefinition
 
-        this.history.record({ type: 'create', uid: definition.uid })
+        const $game = game('client', true)
+        const network = $game.client.network
+        if (network) {
+          network.sendEntityCreate(definition)
+        } else {
+          $game.spawn(definition)
+        }
 
-        await (this._game?.client.network
-          ? this._game?.client?.network?.sendEntityCreate(definition)
-          : this._game?.spawn(definition))
+        this.history.record({ type: 'create', uid: definition.uid })
       }, 20) // when dragging the cursor doesn't exist but it immediately reappears after dropping
       return
     }
@@ -305,6 +308,7 @@ export class Selector extends Entity {
       type: 'args',
       definition: prevEntity,
     })
+
     this.events.emit('onArgsUpdate', this.selected.uid, this.selected.args)
   }
 
@@ -386,7 +390,7 @@ export class Selector extends Entity {
     const bounds = this.selected?.bounds()
     if (!this.selected || !bounds) return undefined
 
-    const inverse = 1 / this._game!.client.render.camera.scale
+    const inverse = 1 / camera().scale
     const distanceTest = this.handleSize * 1.15 * inverse
 
     const topLeft = this.getHandlePosition(this.selected, bounds, 'topLeft')
@@ -418,7 +422,7 @@ export class Selector extends Entity {
         this.isHandle(point) !== undefined ||
         (this.action !== undefined && this.action.type !== 'clear'))
 
-    this._game!.client.render.canvas.style.cursor = validHover ? 'pointer' : ''
+    canvas().style.cursor = validHover ? 'pointer' : ''
   }
 
   public onMouseDown = (ev: MouseEvent) => {
@@ -428,13 +432,9 @@ export class Selector extends Entity {
       return
     }
 
-    if (!this._game) {
-      return
-    }
+    const pos = camera().screenToWorld({ x: ev.offsetX, y: ev.offsetY })
 
-    const pos = this._game.client.render.camera.screenToWorld({ x: ev.offsetX, y: ev.offsetY })
-
-    const query = this._game
+    const query = game('client', true)
       .queryPosition(pos)
       .filter(entity => !entity.preview && !entity.definition.tags?.includes(LOCKED_TAG))
 
@@ -606,7 +606,7 @@ export class Selector extends Entity {
       }
     }
   }
-  public onRenderFrame(time: RenderTime): void {
+  public onRenderFrame(_: RenderTime): void {
     const bounds = this.selected?.bounds()
     const _game = game('client')
     if (!_game) return
@@ -629,7 +629,7 @@ export class Selector extends Entity {
 
     const width = bounds.width + scaledWidth * 2
     const height = bounds.height + scaledWidth * 2
-    drawBox(this.boundsGfx, { width, height }, { stroke: this.colour, strokeWidth: scaledWidth })
+    drawBox({ width, height }, { stroke: this.colour, strokeWidth: scaledWidth }, this.boundsGfx)
 
     const handlesRender = {
       stroke: this.colour,
@@ -644,10 +644,10 @@ export class Selector extends Entity {
       height: this.handleSize * inverse,
     }
 
-    drawBox(this.topLeftGfx, handlesSize, handlesRender)
-    drawBox(this.topRightGfx, handlesSize, handlesRender)
-    drawBox(this.bottomLeftGfx, handlesSize, handlesRender)
-    drawBox(this.bottomRightGfx, handlesSize, handlesRender)
+    drawBox(handlesSize, handlesRender, this.topLeftGfx)
+    drawBox(handlesSize, handlesRender, this.topRightGfx)
+    drawBox(handlesSize, handlesRender, this.bottomLeftGfx)
+    drawBox(handlesSize, handlesRender, this.bottomRightGfx)
 
     this.topLeftGfx.position = {
       x: bounds.width / 2 + scaledWidth / 2,
@@ -680,15 +680,15 @@ export class Selector extends Entity {
     const scaledStalkHeight = Math.min(this.rotStalkHeight * inverse, this.rotStalkHeight)
 
     drawBox(
-      this.rotStalkGfx,
       {
         width: scaledWidth,
         height: scaledStalkHeight,
       },
       { fill: this.colour, fillAlpha: 1, strokeAlpha: 0 },
+      this.rotStalkGfx,
     )
 
-    drawCircle(this.rotHandleGfx, { radius: (this.handleSize / 1.75) * inverse }, handlesRender)
+    drawCircle({ radius: (this.handleSize / 1.75) * inverse }, handlesRender, this.rotHandleGfx)
 
     this.rotStalkGfx.position.y = -height / 2 - scaledStalkHeight / 2
     this.rotHandleGfx.position.y = -height / 2 - scaledStalkHeight
