@@ -14,7 +14,7 @@
   },
   "devDependencies": {
     "@dreamlab.gg/core": "file:../dreamlab-core",
-    "@dreamlab.gg/ui": "0.0.6-dev-6f04035",
+    "@dreamlab.gg/ui": "0.0.6-dev-a8db676",
     "@luludev/eslint-config": "^0.5.1",
     "@types/matter-js": "^0.19.5",
     "@types/react": "^18.2.46",
