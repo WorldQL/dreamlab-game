@@ -59,7 +59,7 @@ export class Editor extends Entity {
           camera().smoothing = 0.02
           this.#navigator.setPosition(player.position)
         } else {
-          player.teleport(this.#navigator.position())
+          player.teleport(this.#navigator.position)
           camera().target = player
           camera().smoothing = 0.125
 

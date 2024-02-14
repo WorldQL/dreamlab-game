@@ -47,7 +47,7 @@ export class Navigator extends Entity {
 
     const cursorDelta = Vec.sub(this.#previousCursorPosition, mousePosition)
     const amplifiedMovement = Vec.div(cursorDelta, camera().scale)
-    const newPosition = Vec.add(this.position(), amplifiedMovement)
+    const newPosition = Vec.add(this.#position, amplifiedMovement)
     camera().target = { position: newPosition }
 
     this.#previousCursorPosition = mousePosition
@@ -66,7 +66,7 @@ export class Navigator extends Entity {
       amplifiedMovement.y = tempX
     }
 
-    const newPosition = Vec.add(this.position(), amplifiedMovement)
+    const newPosition = Vec.add(this.#position, amplifiedMovement)
     camera().target = { position: newPosition }
     this.setPosition(newPosition)
   }
@@ -90,7 +90,7 @@ export class Navigator extends Entity {
     this.#position = Vec.clone(newPosition)
   }
 
-  public position(): Vector {
+  public get position(): Vector {
     return Vec.clone(this.#position)
   }
 

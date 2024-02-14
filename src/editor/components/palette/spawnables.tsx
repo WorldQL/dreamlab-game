@@ -78,7 +78,7 @@ export const Spawnables: React.FC<SpawnablesProps> = ({ selector, navigator, his
         entity,
         args: {},
         transform: {
-          position: navigator.position(),
+          position: navigator.position,
           zIndex: 100,
         },
         uid,
