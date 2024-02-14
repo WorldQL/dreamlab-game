@@ -16,7 +16,7 @@ import {
 } from '@dreamlab.gg/core/math'
 import type { Bounds, Transform, Vector } from '@dreamlab.gg/core/math'
 import type { Ref } from '@dreamlab.gg/core/utils'
-import { drawBox, drawCircle } from '@dreamlab.gg/core/utils'
+import { drawBox, drawCircle, setProperty } from '@dreamlab.gg/core/utils'
 import cuid2 from '@paralleldrive/cuid2'
 import { Container, Graphics } from 'pixi.js'
 import type { ToServerPacket } from '../../packets'
@@ -99,6 +99,43 @@ export class Selector extends Entity {
     this.container = new Container()
     this.container.sortableChildren = true
     this.container.zIndex = 999_999_999 // always render on top
+
+    this.events.addListener('onTransformUpdate', (entityId, newTransform) => {
+      if (!this.selected || this.selected.uid !== entityId) return
+
+      const { position, zIndex, rotation } = newTransform
+
+      this.selected.definition.transform = newTransform
+      this.selected.transform.position = position
+      this.selected.transform.zIndex = zIndex
+      this.selected.transform.rotation = rotation
+    })
+
+    this.events.addListener('onArgsUpdate', (entityId, args) => {
+      let _selected = this.selected
+      const _game = game('client')
+      if (!_selected && _game) {
+        _selected = _game.lookup(entityId)
+      }
+
+      if (_selected === undefined) {
+        return
+      }
+
+      for (const key of Object.keys(args)) {
+        const value = args[key]
+        if (_selected.args[key] !== value) {
+          setProperty(_selected.args, key, value)
+        }
+      }
+
+      for (const key of Object.keys(_selected.args)) {
+        // eslint-disable-next-line prefer-object-has-own
+        if (!Object.hasOwnProperty.call(args, key)) {
+          setProperty(_selected.args, key, undefined)
+        }
+      }
+    })
 
     this.container.addChild(this.boundsGfx)
     this.container.addChild(this.topLeftGfx)
@@ -216,7 +253,7 @@ export class Selector extends Entity {
 
     try {
       // @ts-expect-error Internal Value
-      if (selected) selected._selected.value = true
+      if (this.selected) this.selected._selected.value = true
     } catch {
       console.warn('Failed to set selected state')
     }
@@ -461,10 +498,11 @@ export class Selector extends Entity {
     this.lastClickTime = currentTime
 
     if (newSelection) {
-      this.prevEntityData = JSON.parse(JSON.stringify(newSelection))
+      /* this.prevEntityData = JSON.parse(JSON.stringify(newSelection))
       if (ev.altKey && ev.button === 0) {
         void this.duplicateEntity(newSelection)
       }
+      */
     }
 
     this.select(newSelection)
@@ -497,8 +535,8 @@ export class Selector extends Entity {
       }
     }
 
-    // @ts-expect-error global assign in dev
-    if (import.meta.env.DEV) window.entity = selected
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    if (import.meta.env.DEV) (window as any).entity = this.selected
   }
 
   public onMouseMove = () => {
@@ -657,11 +695,13 @@ export class Selector extends Entity {
       y: bounds.height / 2 + scaledWidth / 2,
     }
 
+    /*
     const inverseRot = -entity.transform.rotation
     this.topLeftGfx.angle = inverseRot
     this.topRightGfx.angle = inverseRot
     this.bottomLeftGfx.angle = inverseRot
     this.bottomRightGfx.angle = inverseRot
+    */
     // #endregion
 
     // #region Rotation Handle

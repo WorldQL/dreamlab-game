@@ -2,12 +2,7 @@ import type { SpawnableEntity } from '@dreamlab.gg/core'
 import type { Transform } from '@dreamlab.gg/core/math'
 import { getProperty, setProperty } from '@dreamlab.gg/core/utils'
 import { useTransform } from '@dreamlab.gg/ui/dist/react'
-import {
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from 'https://esm.sh/v136/react@18.2.0'
+import { useCallback, useEffect, useRef, useState } from 'https://esm.sh/v136/react@18.2.0'
 import type { FC } from 'https://esm.sh/v136/react@18.2.0'
 import { styled } from 'https://esm.sh/v136/styled-components@6.1.8'
 import { useDebounceCallback } from 'https://esm.sh/v136/usehooks-ts@2.12.1'
@@ -162,11 +157,7 @@ const roundValue = (
   return [rounded, true, numValue]
 }
 
-export const Inspector: FC<InspectorProps> = ({
-  selector,
-  entity,
-  history,
-}) => {
+export const Inspector: FC<InspectorProps> = ({ selector, entity, history }) => {
   const entityRef = useRef<HTMLDivElement>(null)
 
   const [editableArgs, setEditableArgs] = useState(entity.args)
@@ -174,12 +165,8 @@ export const Inspector: FC<InspectorProps> = ({
   const [tags, setTags] = useState(entity.definition.tags)
 
   const transform = useTransform(entity.transform)
-  const [tempX, setTempX] = useState<string>(
-    roundValue(String(entity.transform.position.x), 2)[0],
-  )
-  const [tempY, setTempY] = useState<string>(
-    roundValue(String(entity.transform.position.y), 2)[0],
-  )
+  const [tempX, setTempX] = useState<string>(roundValue(String(entity.transform.position.x), 2)[0])
+  const [tempY, setTempY] = useState<string>(roundValue(String(entity.transform.position.y), 2)[0])
   const [tempRotation, setTempRotation] = useState<string>(
     roundValue(String(entity.transform.rotation), 0)[0],
   )
@@ -228,10 +215,7 @@ export const Inspector: FC<InspectorProps> = ({
     })
   }, [history, entity])
 
-  const recordTransformHistory = useDebounceCallback(
-    _recordTransformHistory,
-    1_000,
-  )
+  const recordTransformHistory = useDebounceCallback(_recordTransformHistory, 1_000)
 
   const handlePositionChange = (axis: 'x' | 'y', value: string) => {
     const [strValue, valid, numValue] = roundValue(value, 2)
@@ -250,10 +234,7 @@ export const Inspector: FC<InspectorProps> = ({
     }
   }
 
-  const handleTransformChange = (
-    property: 'rotation' | 'zIndex',
-    value: string,
-  ) => {
+  const handleTransformChange = (property: 'rotation' | 'zIndex', value: string) => {
     const [strValue, valid, numValue] = roundValue(value, 0)
     if (property === 'rotation') {
       setTempRotation(strValue)
@@ -278,15 +259,14 @@ export const Inspector: FC<InspectorProps> = ({
 
   const handleArgSave = useCallback(
     (key: string, value?: { _v: unknown }) => {
-      const val =
-        value !== undefined
-          ? value._v
-          : (getProperty(editableArgs, key) as unknown)
+      const val = value !== undefined ? value._v : (getProperty(editableArgs, key) as unknown)
 
+      /*
       history.record({
         type: 'args',
         definition: JSON.parse(JSON.stringify(entity)),
       })
+      */
       setProperty(editableArgs, key, val)
       selector.events.emit('onArgsUpdate', entity.uid, editableArgs)
     },
@@ -366,9 +346,7 @@ export const Inspector: FC<InspectorProps> = ({
             <div className='detail-row'>
               <span>Rotation: </span>
               <input
-                onChange={ev =>
-                  handleTransformChange('rotation', ev.target.value)
-                }
+                onChange={ev => handleTransformChange('rotation', ev.target.value)}
                 onKeyDown={ev => ev.stopPropagation()}
                 type='number'
                 value={tempRotation}
@@ -377,9 +355,7 @@ export const Inspector: FC<InspectorProps> = ({
             <div className='detail-row'>
               <span>Z-Index:</span>
               <input
-                onChange={ev =>
-                  handleTransformChange('zIndex', ev.target.value)
-                }
+                onChange={ev => handleTransformChange('zIndex', ev.target.value)}
                 onKeyDown={ev => ev.stopPropagation()}
                 type='number'
                 value={tempZIndex}
@@ -467,11 +443,7 @@ export const Inspector: FC<InspectorProps> = ({
                   style={{ marginRight: '4px', fontSize: '0.75rem' }}
                   value={newTag}
                 />
-                <button
-                  onClick={handleAddTag}
-                  style={{ fontSize: '0.75rem' }}
-                  type='button'
-                >
+                <button onClick={handleAddTag} style={{ fontSize: '0.75rem' }} type='button'>
                   +
                 </button>
               </div>
