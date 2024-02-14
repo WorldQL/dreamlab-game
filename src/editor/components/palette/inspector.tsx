@@ -6,8 +6,8 @@ import { useCallback, useEffect, useRef, useState } from 'https://esm.sh/v136/re
 import type { FC } from 'https://esm.sh/v136/react@18.2.0'
 import { styled } from 'https://esm.sh/v136/styled-components@6.1.8'
 import { useDebounceCallback } from 'https://esm.sh/v136/usehooks-ts@2.12.1'
+import type { History } from '../../entities/history'
 import type { Selector } from '../../entities/select'
-import type { HistoryData } from '../history'
 import { renderInputForZodSchema } from '../scene/types'
 
 const EntityButtons = styled.div`
@@ -140,7 +140,7 @@ const InspectorStyle = styled.div`
 interface InspectorProps {
   readonly selector: Selector
   readonly entity: SpawnableEntity
-  history: HistoryData
+  history: History
 }
 
 const roundValue = (
@@ -178,10 +178,7 @@ export const Inspector: FC<InspectorProps> = ({ selector, entity, history }) => 
 
   const handleAddTag = () => {
     if (newTag && !entity.definition.tags?.includes(newTag)) {
-      history.record({
-        type: 'tags',
-        definition: JSON.parse(JSON.stringify(entity)),
-      })
+      history.recordTagsChanged(entity)
       entity.definition.tags?.push(newTag)
       setTags(entity.definition.tags ?? [])
       selector.events.emit('onTagsUpdate', entity.uid, entity.definition.tags)
@@ -192,10 +189,7 @@ export const Inspector: FC<InspectorProps> = ({ selector, entity, history }) => 
   const handleDeleteTag = (tagToDelete: string) => {
     const updatedTags = tags.filter(tag => tag !== tagToDelete)
     setTags(updatedTags)
-    history.record({
-      type: 'tags',
-      definition: JSON.parse(JSON.stringify(entity)),
-    })
+    history.recordTagsChanged(entity)
     entity.definition.tags = updatedTags
     selector.events.emit('onTagsUpdate', entity.uid, entity.definition.tags)
   }
@@ -209,10 +203,7 @@ export const Inspector: FC<InspectorProps> = ({ selector, entity, history }) => 
   }
 
   const _recordTransformHistory = useCallback(() => {
-    history.record({
-      type: 'transform',
-      definition: JSON.parse(JSON.stringify(entity)),
-    })
+    history.recordTransformChanged(entity)
   }, [history, entity])
 
   const recordTransformHistory = useDebounceCallback(_recordTransformHistory, 1_000)
@@ -261,13 +252,9 @@ export const Inspector: FC<InspectorProps> = ({ selector, entity, history }) => 
     (key: string, value?: { _v: unknown }) => {
       const val = value !== undefined ? value._v : (getProperty(editableArgs, key) as unknown)
 
-      /*
-      history.record({
-        type: 'args',
-        definition: JSON.parse(JSON.stringify(entity)),
-      })
-      */
+      history.recordArgsChanged(entity)
       setProperty(editableArgs, key, val)
+      // entity.args[key] = val
       selector.events.emit('onArgsUpdate', entity.uid, editableArgs)
     },
     [editableArgs, entity, history, selector.events],

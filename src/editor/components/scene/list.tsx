@@ -10,18 +10,13 @@ import {
   useNetwork,
   useSpawnableEntities,
 } from '@dreamlab.gg/ui/react'
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from 'https://esm.sh/v136/react@18.2.0'
+import { useCallback, useEffect, useMemo, useState } from 'https://esm.sh/v136/react@18.2.0'
 import type { ChangeEvent, FC } from 'https://esm.sh/v136/react@18.2.0'
 import { styled } from 'https://esm.sh/v136/styled-components@6.1.8'
 import type { EditDetails } from '../../editor'
 import { EditorInputs } from '../../editor'
+import type { History } from '../../entities/history'
 import type { Selector } from '../../entities/select'
-import type { HistoryData } from '../history'
 import { CollapseButton } from '../ui/buttons'
 import { Container } from '../ui/container'
 import CollapsibleSection from './collapsable-section'
@@ -35,8 +30,7 @@ const ListContainer = styled(Container)<{ isCollapsed: boolean }>`
   display: flex;
   flex-direction: column;
   opacity: 0.7;
-  transform: ${props =>
-    props.isCollapsed ? 'translateX(-92%)' : 'translateX(0)'};
+  transform: ${props => (props.isCollapsed ? 'translateX(-92%)' : 'translateX(0)')};
   transition:
     transform 0.3s ease,
     visibility 0.3s ease;
@@ -64,10 +58,7 @@ interface GroupedSpawnableEntities {
   [key: string]: SpawnableEntity[]
 }
 
-function setContainsSelected(
-  set: SpawnableEntity[],
-  selected: string | undefined,
-): boolean {
+function setContainsSelected(set: SpawnableEntity[], selected: string | undefined): boolean {
   for (const _e of set) {
     if (_e.uid === selected) {
       return true
@@ -79,7 +70,7 @@ function setContainsSelected(
 
 const GroupedEntitySet = (
   groupedEntities: GroupedSpawnableEntities,
-  history: HistoryData,
+  history: History,
   selector: Selector,
   selected: string | undefined,
 ) => {
@@ -107,7 +98,7 @@ const GroupedEntitySet = (
 export const SceneList: FC<{
   editDetails?: EditDetails
   readonly selector: Selector
-  history: HistoryData
+  history: History
 }> = ({ editDetails, selector, history }) => {
   const game = useGame()
   const network = useNetwork()
@@ -116,9 +107,7 @@ export const SceneList: FC<{
   const etys = useSpawnableEntities()
 
   const entities = useMemo(() => {
-    return [...etys].sort((a, b) =>
-      a.definition.entity.localeCompare(b.definition.entity),
-    )
+    return [...etys].sort((a, b) => a.definition.entity.localeCompare(b.definition.entity))
   }, [etys])
 
   const entitiesGroupedByType = useMemo(() => {
@@ -164,10 +153,7 @@ export const SceneList: FC<{
   const toggleCollapse = useCallback(() => setIsCollapsed(prev => !prev), [])
 
   const [selected, setSelected] = useState<string | undefined>(undefined)
-  const onSelect = useCallback(
-    (id: string | undefined) => setSelected(id),
-    [setSelected],
-  )
+  const onSelect = useCallback((id: string | undefined) => setSelected(id), [setSelected])
 
   const [groupBy, setGroupBy] = useState<GroupByOptions>(GroupByOptions.None)
   const onChangeGroupBy = useCallback(
@@ -199,11 +185,8 @@ export const SceneList: FC<{
     */
 
     const id = selector.selected.uid
-    history.record({
-      type: 'delete',
-      definition: selector.selected.definition,
-    })
-    await game.destroy(selector.selected)
+    history.recordDeleted(selector.selected)
+    game.destroy(selector.selected)
     await network?.sendEntityDestroy(id)
   }, [game, history, network, selector.selected])
 
@@ -234,56 +217,31 @@ export const SceneList: FC<{
 
   const onMoveForewards = useCallback(async () => {
     if (!selector.selected) return
-    history.record({
-      type: 'transform',
-      definition: JSON.parse(JSON.stringify(selector.selected)),
-    })
+    history.recordTransformChanged(selector.selected)
     selector.selected.transform.zIndex += ctrlHeldDown ? 25 : 1
     forceUpdate()
-    selector.events.emit(
-      'onTransformUpdate',
-      selector.selected.uid,
-      selector.selected.transform,
-    )
+    selector.events.emit('onTransformUpdate', selector.selected.uid, selector.selected.transform)
   }, [selector.selected, selector.events, history, ctrlHeldDown, forceUpdate])
 
   const onMoveBackwards = useCallback(async () => {
     if (!selector.selected) return
-    history.record({
-      type: 'transform',
-      definition: JSON.parse(JSON.stringify(selector.selected)),
-    })
+    history.recordTransformChanged(selector.selected)
     selector.selected.transform.zIndex -= ctrlHeldDown ? 25 : 1
     forceUpdate()
-    selector.events.emit(
-      'onTransformUpdate',
-      selector.selected.uid,
-      selector.selected.transform,
-    )
+    selector.events.emit('onTransformUpdate', selector.selected.uid, selector.selected.transform)
   }, [selector.selected, selector.events, history, ctrlHeldDown, forceUpdate])
 
   const onChangeTiling = useCallback(async () => {
-    if (
-      !selector.selected ||
-      typeof selector.selected.args.spriteSource !== 'object'
-    )
-      return
+    if (!selector.selected || typeof selector.selected.args.spriteSource !== 'object') return
     const originalSpritesource = selector.selected.args.spriteSource.url
     const originalTiling = selector.selected.args.spriteSource.tile
     const newSpritesource: SpriteSource = {
       url: originalSpritesource,
       tile: !originalTiling,
     }
-    history.record({
-      type: 'args',
-      definition: JSON.parse(JSON.stringify(selector.selected)),
-    })
+    history.recordArgsChanged(selector.selected)
     selector.selected.args.spriteSource = newSpritesource
-    selector.events.emit(
-      'onArgsUpdate',
-      selector.selected.uid,
-      selector.selected.args,
-    )
+    selector.events.emit('onArgsUpdate', selector.selected.uid, selector.selected.args)
     // forceUpdate()
   }, [history, selector.events, selector.selected])
 
@@ -302,21 +260,11 @@ export const SceneList: FC<{
         }}
       >
         {isCollapsed ? (
-          <svg
-            height='16'
-            viewBox='0 0 256 512'
-            width='8'
-            xmlns='http://www.w3.org/2000/svg'
-          >
+          <svg height='16' viewBox='0 0 256 512' width='8' xmlns='http://www.w3.org/2000/svg'>
             <path d='M246.6 278.6c12.5-12.5 12.5-32.8 0-45.3l-128-128c-9.2-9.2-22.9-11.9-34.9-6.9s-19.8 16.6-19.8 29.6l0 256c0 12.9 7.8 24.6 19.8 29.6s25.7 2.2 34.9-6.9l128-128z' />
           </svg>
         ) : (
-          <svg
-            height='16'
-            viewBox='0 0 256 512'
-            width='8'
-            xmlns='http://www.w3.org/2000/svg'
-          >
+          <svg height='16' viewBox='0 0 256 512' width='8' xmlns='http://www.w3.org/2000/svg'>
             <path d='M9.4 278.6c-12.5-12.5-12.5-32.8 0-45.3l128-128c9.2-9.2 22.9-11.9 34.9-6.9s19.8 16.6 19.8 29.6l0 256c0 12.9-7.8 24.6-19.8 29.6s-25.7 2.2-34.9-6.9l-128-128z' />
           </svg>
         )}
@@ -355,17 +303,10 @@ export const SceneList: FC<{
             </EntityList>
           )}
           {groupBy === GroupByOptions.Type &&
-            GroupedEntitySet(
-              entitiesGroupedByType,
-              history,
-              selector,
-              selected,
-            )}
+            GroupedEntitySet(entitiesGroupedByType, history, selector, selected)}
           {groupBy === GroupByOptions.Tag &&
             GroupedEntitySet(entitiesGroupedByTag, history, selector, selected)}
-          {editDetails && (
-            <SaveButton editDetails={editDetails} entities={entities} />
-          )}
+          {editDetails && <SaveButton editDetails={editDetails} entities={entities} />}
         </>
       )}
     </ListContainer>

@@ -2,8 +2,8 @@ import { Entity } from '@dreamlab.gg/core'
 import { camera, game, inputs } from '@dreamlab.gg/core/labs'
 import { deferUntilPlayer, ref } from '@dreamlab.gg/core/utils'
 import type { ToServerPacket } from '../packets'
-import type { Action } from './components/history'
 import { renderUI } from './components/ui'
+import { History } from './entities/history'
 import { Navigator } from './entities/navigator'
 import { Selector } from './entities/select'
 
@@ -25,15 +25,8 @@ export interface EditDetails {
 
 export class Editor extends Entity {
   #enabled = ref<boolean>(false)
-  #actionHistory = { value: [] as Action[] }
-  #history = {
-    record: (action: Action) => {
-      this.#actionHistory.value.push(action)
-    },
-    undo: () => this.#actionHistory.value.pop(),
-    getActions: () => this.#actionHistory.value,
-  }
 
+  #history = new History()
   #selector = new Selector(this.#enabled, this.#history, this.sendPacket)
   #navigator = new Navigator(this.#enabled, this.#selector)
 
@@ -44,6 +37,7 @@ export class Editor extends Entity {
     super()
     const $game = game('client', true)
 
+    $game.instantiate(this.#history)
     $game.instantiate(this.#selector)
     $game.instantiate(this.#navigator)
 
@@ -82,7 +76,8 @@ export class Editor extends Entity {
 
   public teardown(): void {
     const $game = game('client', true)
-    $game.destroy(this.#selector)
     $game.destroy(this.#navigator)
+    $game.destroy(this.#selector)
+    $game.destroy(this.#history)
   }
 }

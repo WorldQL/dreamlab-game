@@ -1,16 +1,11 @@
 import type { SpawnableEntity } from '@dreamlab.gg/core'
 import { useGame, useNetwork, usePlayer } from '@dreamlab.gg/ui/react'
-import {
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from 'https://esm.sh/v136/react@18.2.0'
+import { useCallback, useEffect, useRef, useState } from 'https://esm.sh/v136/react@18.2.0'
 import type { FC } from 'https://esm.sh/v136/react@18.2.0'
 import { styled } from 'https://esm.sh/v136/styled-components@6.1.8'
 import { LOCKED_TAG } from '../../editor'
+import type { History } from '../../entities/history'
 import type { Selector } from '../../entities/select'
-import type { HistoryData } from '../history'
 import { DeleteButton, LockButton } from '../ui/buttons'
 
 const EntityButtons = styled.div`
@@ -66,18 +61,13 @@ const SelectButton = styled.button<{ isSelected: boolean }>`
   letter-spacing: 0.025em;
   background-color: white;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-  background-color: ${props =>
-    props.isSelected ? 'rgb(99, 102, 241)' : 'white'};
+  background-color: ${props => (props.isSelected ? 'rgb(99, 102, 241)' : 'white')};
   color: ${props => (props.isSelected ? 'white' : '#333')};
   padding: 6px;
 
   &:hover {
-    background-color: ${props =>
-      props.isSelected ? 'rgb(79, 70, 229)' : 'white'};
-    border: ${props =>
-      props.isSelected
-        ? '2px solid transparent'
-        : '2px solid rgb(79, 70, 229)'};
+    background-color: ${props => (props.isSelected ? 'rgb(79, 70, 229)' : 'white')};
+    border: ${props => (props.isSelected ? '2px solid transparent' : '2px solid rgb(79, 70, 229)')};
   }
 `
 
@@ -85,22 +75,15 @@ interface DisplayProps {
   readonly selector: Selector
   readonly entity: SpawnableEntity
   isSelected: boolean
-  history: HistoryData
+  history: History
 }
 
-export const EntityDisplay: FC<DisplayProps> = ({
-  selector,
-  entity,
-  isSelected,
-  history,
-}) => {
+export const EntityDisplay: FC<DisplayProps> = ({ selector, entity, isSelected, history }) => {
   const game = useGame()
   const network = useNetwork()
   const player = usePlayer()
   const entityRef = useRef<HTMLDivElement>(null)
-  const [isLocked, setIsLocked] = useState(
-    Boolean(entity.definition.tags?.includes(LOCKED_TAG)),
-  )
+  const [isLocked, setIsLocked] = useState(Boolean(entity.definition.tags?.includes(LOCKED_TAG)))
 
   const [isEditingLabel, setIsEditingLabel] = useState(false)
   const [editedLabel, setEditedLabel] = useState(
@@ -133,8 +116,8 @@ export const EntityDisplay: FC<DisplayProps> = ({
 
     const id = entity.uid
     selector.deselect()
-    history.record({ type: 'delete', definition: entity.definition })
-    await game.destroy(entity)
+    history.recordDeleted(entity)
+    game.destroy(entity)
     await network?.sendEntityDestroy(id)
   }, [entity, game, history, network, selector])
 
@@ -143,21 +126,15 @@ export const EntityDisplay: FC<DisplayProps> = ({
       ? entity.definition.tags.filter(tag => tag !== LOCKED_TAG)
       : [...entity.definition.tags, LOCKED_TAG]
 
-    history.record({
-      type: 'tags',
-      definition: JSON.parse(JSON.stringify(entity)),
-    })
+    history.recordTagsChanged(entity)
     entity.definition.tags = newTags
     setTags(entity.definition.tags)
     selector.events.emit('onTagsUpdate', entity.uid, newTags)
   }, [entity, history, isLocked, selector.events])
 
-  const handleLabelChange = useCallback(
-    (event: React.ChangeEvent<HTMLInputElement>) => {
-      setEditedLabel(event.target.value)
-    },
-    [],
-  )
+  const handleLabelChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+    setEditedLabel(event.target.value)
+  }, [])
 
   const handleDoubleClick = useCallback(() => {
     if (isSelected) {
@@ -211,11 +188,7 @@ export const EntityDisplay: FC<DisplayProps> = ({
 
   return (
     <EntityButtons id={entity.uid} ref={entityRef}>
-      <SelectButton
-        className='select-button'
-        isSelected={isSelected}
-        onClick={onSelect}
-      >
+      <SelectButton className='select-button' isSelected={isSelected} onClick={onSelect}>
         {isEditingLabel ? (
           <input
             autoFocus
@@ -269,19 +242,11 @@ export const EntityDisplay: FC<DisplayProps> = ({
           title='Lock/Unlock'
         >
           {isLocked ? (
-            <svg
-              fill='currentColor'
-              viewBox='0 0 448 512'
-              xmlns='http://www.w3.org/2000/svg'
-            >
+            <svg fill='currentColor' viewBox='0 0 448 512' xmlns='http://www.w3.org/2000/svg'>
               <path d='M144 144v48H304V144c0-44.2-35.8-80-80-80s-80 35.8-80 80zM80 192V144C80 64.5 144.5 0 224 0s144 64.5 144 144v48h16c35.3 0 64 28.7 64 64V448c0 35.3-28.7 64-64 64H64c-35.3 0-64-28.7-64-64V256c0-35.3 28.7-64 64-64H80z' />
             </svg>
           ) : (
-            <svg
-              fill='currentColor'
-              viewBox='0 0 576 512'
-              xmlns='http://www.w3.org/2000/svg'
-            >
+            <svg fill='currentColor' viewBox='0 0 576 512' xmlns='http://www.w3.org/2000/svg'>
               <path d='M352 144c0-44.2 35.8-80 80-80s80 35.8 80 80v48c0 17.7 14.3 32 32 32s32-14.3 32-32V144C576 64.5 511.5 0 432 0S288 64.5 288 144v48H64c-35.3 0-64 28.7-64 64V448c0 35.3 28.7 64 64 64H384c35.3 0 64-28.7 64-64V256c0-35.3-28.7-64-64-64H352V144z' />
             </svg>
           )}

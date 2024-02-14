@@ -20,8 +20,8 @@ import { drawBox, drawCircle, setProperty } from '@dreamlab.gg/core/utils'
 import cuid2 from '@paralleldrive/cuid2'
 import { Container, Graphics } from 'pixi.js'
 import type { ToServerPacket } from '../../packets'
-import type { HistoryData } from '../components/history'
 import { LOCKED_TAG } from '../editor'
+import type { History } from './history'
 
 type CornerHandle = `${'bottom' | 'top'}${'Left' | 'Right'}`
 type Handle = CornerHandle | 'rotation'
@@ -82,7 +82,7 @@ const onDragOver = (ev: DragEvent) => {
 export class Selector extends Entity {
   public constructor(
     public editorEnabled: Ref<boolean>,
-    public history: HistoryData,
+    public history: History,
     public sendPacket?: (packet: ToServerPacket) => void,
   ) {
     super()
@@ -175,15 +175,9 @@ export class Selector extends Entity {
   public onMouseUp = () => {
     if (this.prevEntityData && this.action && this.actionOccurred) {
       if (this.action.type !== 'scale' && this.action.type !== 'clear') {
-        this.history.record({
-          type: 'transform',
-          definition: this.prevEntityData,
-        })
+        this.history.recordTransformChanged(this.prevEntityData)
       } else {
-        this.history.record({
-          type: 'args',
-          definition: this.prevEntityData,
-        })
+        this.history.recordArgsChanged(this.prevEntityData)
       }
 
       this.prevEntityData = undefined
@@ -229,12 +223,12 @@ export class Selector extends Entity {
     const network = $game.client.network
 
     if (network) {
-      network.sendEntityCreate(definition)
+      void network.sendEntityCreate(definition)
     } else {
       $game.spawn(definition)
     }
 
-    this.history.record({ type: 'create', uid: definition.uid })
+    // this.history.record({ type: 'create', uid: definition.uid })
   }
 
   public select(entity: SpawnableEntity | undefined) {
@@ -324,27 +318,23 @@ export class Selector extends Entity {
         const $game = game('client', true)
         const network = $game.client.network
         if (network) {
-          network.sendEntityCreate(definition)
+          void network.sendEntityCreate(definition)
         } else {
           $game.spawn(definition)
         }
 
-        this.history.record({ type: 'create', uid: definition.uid })
+        // this.history.record({ type: 'create', uid: definition.uid })
       }, 20) // when dragging the cursor doesn't exist but it immediately reappears after dropping
       return
     }
 
-    const prevEntity = JSON.parse(JSON.stringify(this.selected))
+    this.history.recordArgsChanged(this.selected)
+
     if ('spriteSource' in this.selected.argsSchema.shape) {
       this.selected.args.spriteSource = { url }
     } else if (this.selected.definition.entity === '@dreamlab/BackgroundTrigger') {
       this.selected.args.onEnter = { action: 'set', textureURL: url }
     }
-
-    this.history.record({
-      type: 'args',
-      definition: prevEntity,
-    })
 
     this.events.emit('onArgsUpdate', this.selected.uid, this.selected.args)
   }
