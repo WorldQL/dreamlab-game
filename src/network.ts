@@ -6,23 +6,14 @@ import type { KnownPlayerAnimation, Player } from '@dreamlab.gg/core/entities'
 import { createGear } from '@dreamlab.gg/core/managers'
 import { isTrackedTransform, trackedSymbol } from '@dreamlab.gg/core/math'
 import { updateSyncedValue } from '@dreamlab.gg/core/network'
-import type {
-  BareNetClient,
-  MessageListenerClient,
-} from '@dreamlab.gg/core/network'
+import type { BareNetClient, MessageListenerClient } from '@dreamlab.gg/core/network'
 import { LevelSchema } from '@dreamlab.gg/core/sdk'
-import {
-  clone,
-  createSignal,
-  onChange,
-  setProperty,
-} from '@dreamlab.gg/core/utils'
+import { clone, createSignal, onChange, setProperty } from '@dreamlab.gg/core/utils'
 import { jwtDecode as decodeJWT } from 'jwt-decode'
 import Matter from 'matter-js'
 import type { Body } from 'matter-js'
 import { createClientControlManager } from './client-phys-control.js'
 import type { EditDetails } from './editor/editor.js'
-import { createEditor } from './editor/editor.js'
 import { PROTOCOL_VERSION } from './packets.js'
 import type {
   IncomingArgsChangedPacket as ArgsChangedPacket,
@@ -58,15 +49,9 @@ window.addEventListener('message', ev => {
   const data = ev.data
 
   if (data?.fallbackUrl) {
-    window.localStorage.setItem(
-      '@dreamlab/worlds/fallbackUrl',
-      data.fallbackUrl,
-    )
+    window.localStorage.setItem('@dreamlab/worlds/fallbackUrl', data.fallbackUrl)
     const url = new URL(data.fallbackUrl)
-    window.localStorage.setItem(
-      '@dreamlab/NextAPIURL',
-      url.protocol + '//' + url.host,
-    )
+    window.localStorage.setItem('@dreamlab/NextAPIURL', url.protocol + '//' + url.host)
   }
 })
 
@@ -119,9 +104,7 @@ function incrementReloadCount() {
 
 incrementReloadCount()
 
-export const connect = async (
-  params: Params | undefined,
-): Promise<WebSocket | undefined> => {
+export const connect = async (params: Params | undefined): Promise<WebSocket | undefined> => {
   if (!params) return undefined
 
   const serverURL = new URL(params.server)
@@ -140,16 +123,13 @@ export const connect = async (
     ws.addEventListener('error', () => {
       console.log('Got error in websocket event listener')
       if (getReloadCount() > 20) {
-        const worldDetails = localStorage.getItem(
-          '@dreamlab/worlds/fallbackUrl',
-        )
+        const worldDetails = localStorage.getItem('@dreamlab/worlds/fallbackUrl')
         if (worldDetails) window.location.href = worldDetails
         return
       }
 
       if (getReloadCount() > 3) {
-        document.querySelector('#retrycount')!.innerHTML =
-          `Retries: ${getReloadCount()}/20`
+        document.querySelector('#retrycount')!.innerHTML = `Retries: ${getReloadCount()}/20`
       }
 
       setTimeout(() => {
@@ -174,11 +154,7 @@ export const createNetwork = (
   params: Params,
   ws: WebSocket,
   game: Game<false>,
-): [
-  network: BareNetClient,
-  sendPacket: (packet: ToServerPacket) => void,
-  ready: Promise<void>,
-] => {
+): [network: BareNetClient, sendPacket: (packet: ToServerPacket) => void, ready: Promise<void>] => {
   let didSetReloadTimeout = false
 
   const sendPacket = (_packet: ToServerPacket) => {
@@ -350,9 +326,7 @@ export const createNetwork = (
             const netplayer = players.get(info.entity_id)
             if (!netplayer) continue
 
-            netplayer.setGear(
-              info.gear === null ? undefined : createGear(info.gear),
-            )
+            netplayer.setGear(info.gear === null ? undefined : createGear(info.gear))
           }
 
           break
@@ -380,9 +354,7 @@ export const createNetwork = (
             )
               return
 
-            const entity = existingEntity
-              ? existingEntity
-              : await game.spawn(definition)
+            const entity = existingEntity ? existingEntity : await game.spawn(definition)
             if (entity === undefined) return
             affectedEntities.push(entity.uid)
 
@@ -397,8 +369,7 @@ export const createNetwork = (
 
         case 'PhysicsDeltaSnapshot': {
           const tickNumber = packet.lastClientTickNumber
-          const { bodyUpdates, destroyedEntities, newEntities } =
-            packet.snapshot
+          const { bodyUpdates, destroyedEntities, newEntities } = packet.snapshot
 
           const affectedEntities: string[] = []
 
@@ -419,10 +390,7 @@ export const createNetwork = (
           const updateJobs = bodyUpdates.map(async entityInfo => {
             const entity = game.lookup(entityInfo.entityId)
             if (entity === undefined) return
-            if (
-              clientControl.isControllingEntity(entityInfo.entityId, tickNumber)
-            )
-              return
+            if (clientControl.isControllingEntity(entityInfo.entityId, tickNumber)) return
 
             affectedEntities.push(entity.uid)
             const bodies = game.physics.getBodies(entity)
@@ -615,14 +583,9 @@ export const createNetwork = (
           }
 
           // @ts-expect-error global variable
-          globalThis.dreamlab_world_script_url_base =
-            packet.world_script_url_base
+          globalThis.dreamlab_world_script_url_base = packet.world_script_url_base
 
-          await loadScript(
-            packet.world_script_url_base ?? undefined,
-            packet.world_id,
-            game,
-          )
+          await loadScript(packet.world_script_url_base ?? undefined, packet.world_id, game)
 
           const payload: HandshakeReadyPacket = { t: 'HandshakeReady' }
           sendPacket(payload)
@@ -663,15 +626,10 @@ export const createNetwork = (
     if (localPlayer !== undefined) {
       const entities = game.queryTags(
         'fn',
-        tags =>
-          tags.includes('net/replicated') &&
-          !tags.includes('net/server-authoritative'),
+        tags => tags.includes('net/replicated') && !tags.includes('net/server-authoritative'),
       )
       for (const entity of entities) {
-        if (
-          clientControl.isControllingEntity(entity.uid, clientTickNumber + 30)
-        )
-          continue
+        if (clientControl.isControllingEntity(entity.uid, clientTickNumber + 30)) continue
 
         const bodies = game.physics.getBodies(entity)
         for (const body of bodies) {

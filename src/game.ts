@@ -2,15 +2,10 @@ import { createGame } from '@dreamlab.gg/core'
 import { Cursor, PlayerInput } from '@dreamlab.gg/core/entities'
 // import { createConsole } from './console/console.js'
 import { isDebug } from './debug.js'
-import { createEditor } from './editor/editor.js'
+import { Editor } from './editor/editor.js'
 import { createKeybinds } from './keybinds/entity.js'
 import { bindInput, loadBindings } from './keybinds/persist.js'
-import {
-  connect,
-  createNetwork,
-  decodeParams,
-  setReloadCount,
-} from './network.js'
+import { connect, createNetwork, decodeParams, setReloadCount } from './network.js'
 import { loadLevel, loadScript, spawnPlayer } from './scripting.js'
 
 export const init = async () => {
@@ -72,7 +67,7 @@ export const init = async () => {
 
   // #region Utility Entities
   const cursor = new Cursor()
-  await game.instantiate(cursor)
+  game.instantiate(cursor)
   // #endregion
 
   if (ws) {
@@ -82,9 +77,7 @@ export const init = async () => {
     await connected
     console.log('connected successfully!')
     setReloadCount(0)
-    const connectionMessage = document.querySelector(
-      '#connectingmessage',
-    ) as HTMLElement
+    const connectionMessage = document.querySelector('#connectingmessage') as HTMLElement
     connectionMessage.style.display = 'none'
 
     game.events.common.on('onTickSkipped', () => {
@@ -99,18 +92,25 @@ export const init = async () => {
       const world = url.searchParams.get('level')
 
       if (world) {
-        // const editor = createEditor(undefined, {
-        //   secret: 'secret',
-        //   server: 'http://localhost',
-        //   instance: 'instance',
-        // })
+        const editor = new Editor(undefined, {
+          secret: 'secret',
+          server: 'http://localhost',
+          instance: 'instance',
+        })
 
         document.querySelector('#connectingmessage')?.remove()
-        // await game.instantiate(editor)
+        game.instantiate(editor)
 
         await loadScript(undefined, world, game)
         await loadLevel(undefined, world, game)
         await spawnPlayer(game, undefined)
+        game.spawn({
+          entity: '@dreamlab/BouncyBall',
+          args: { width: 1_290, height: 50 },
+          transform: {
+            position: [0, -616],
+          },
+        })
       }
     }
 
