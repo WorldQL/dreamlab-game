@@ -32,15 +32,12 @@ export const Spawnables: React.FC<SpawnablesProps> = ({ selector, navigator, his
   const network = useNetwork()
   const spawnedAwaitingSelectionRef = useRef<string[]>([])
 
-  // TODO: fix me
   const registered = useRegisteredSpawnables()
-  console.log('registered spawnables:')
-  console.log(registered)
   const spawnable = registered.filter(({ hasDefaults }) => hasDefaults)
 
   // make background not be able to be spawned manually
-  // const indexOfBackground = spawnable.findIndex(entity => entity[0] === '@dreamlab/Background')
-  // spawnable.splice(indexOfBackground, 1)
+  const indexOfBackground = spawnable.findIndex(({ name }) => name === '@dreamlab/Background')
+  spawnable.splice(indexOfBackground, 1)
 
   const onSpawn = useCallback<EventHandler<'onSpawn'>>(
     entity => {
