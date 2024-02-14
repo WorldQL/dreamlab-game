@@ -13,7 +13,8 @@ import { jwtDecode as decodeJWT } from 'jwt-decode'
 import Matter from 'matter-js'
 import type { Body } from 'matter-js'
 import { createClientControlManager } from './client-phys-control.js'
-import type { EditDetails } from './editor/editor.js'
+import type { EditDetails } from './editor/editor'
+import { Editor } from './editor/editor'
 import { PROTOCOL_VERSION } from './packets.js'
 import type {
   IncomingArgsChangedPacket as ArgsChangedPacket,
@@ -219,15 +220,11 @@ export const createNetwork = (
         if (entity === undefined) continue
 
         if (typeof entity.onPhysicsStep === 'function') {
-          const entityData = dataManager.getData(entity)
           const ticksRemaining = clientTickNumber - i - 1
-          entity.onPhysicsStep(
-            {
-              delta: 1 / 60,
-              time: now - (1 / 60) * ticksRemaining,
-            },
-            entityData,
-          )
+          entity.onPhysicsStep({
+            delta: 1 / 60,
+            time: now - (1 / 60) * ticksRemaining,
+          })
         }
 
         const bodies = game.physics.getBodies(entity)
@@ -262,7 +259,6 @@ export const createNetwork = (
             const netplayer = new NetPlayer(
               packet.peer_id,
               packet.entity_id,
-              game,
               packet.character_id,
               packet.nickname,
             )
@@ -293,7 +289,7 @@ export const createNetwork = (
 
             netplayer.setPosition(info.position)
             netplayer.setVelocity(info.velocity)
-            netplayer.setFlipped(info.flipped)
+            // netplayer.setFlipped(info.flipped)
           }
 
           break
@@ -304,7 +300,7 @@ export const createNetwork = (
             const netplayer = players.get(info.entity_id)
             if (!netplayer) continue
 
-            void netplayer.setCharacterId(info.character_id ?? undefined)
+            netplayer.characterId = info.character_id ?? undefined
           }
 
           break
@@ -316,7 +312,7 @@ export const createNetwork = (
             if (!netplayer) continue
 
             // TODO: Maybe validate this string
-            netplayer.setAnimation(info.animation as KnownPlayerAnimation)
+            // netplayer.setAnimation(info.animation as KnownPlayerAnimation)
           }
 
           break
@@ -327,7 +323,7 @@ export const createNetwork = (
             const netplayer = players.get(info.entity_id)
             if (!netplayer) continue
 
-            netplayer.setGear(info.gear === null ? undefined : createGear(info.gear))
+            // netplayer.setGear(info.gear === null ? undefined : createGear(info.gear))
           }
 
           break
@@ -480,9 +476,7 @@ export const createNetwork = (
           const previousArgs = clone(argsTarget)
           setProperty(argsTarget, packet.path, packet.value)
 
-          const data = dataManager.getData(entity)
-          const render = dataManager.getRenderData(entity)
-          entity.onArgsUpdate?.(packet.path, previousArgs, data, render)
+          entity.onArgsUpdate?.(packet.path, previousArgs)
           game.events.common.emit('onArgsChanged', entity)
 
           break
@@ -580,7 +574,7 @@ export const createNetwork = (
                 }
               : undefined
 
-            const editor = createEditor(sendPacket, details)
+            const editor = new Editor(sendPacket, details)
             game.instantiate(editor)
           }
 

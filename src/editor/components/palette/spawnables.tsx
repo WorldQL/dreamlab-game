@@ -27,23 +27,20 @@ interface SpawnablesProps {
   history: HistoryData
 }
 
-export const Spawnables: React.FC<SpawnablesProps> = ({
-  selector,
-  navigator,
-  history,
-}) => {
+export const Spawnables: React.FC<SpawnablesProps> = ({ selector, navigator, history }) => {
   const game = useGame()
   const network = useNetwork()
   const spawnedAwaitingSelectionRef = useRef<string[]>([])
 
+  // TODO: fix me
   const registered = useRegisteredSpawnables()
-  const spawnable = registered.filter(([, fn]) => fn.hasDefaults)
+  console.log('registered spawnables:')
+  console.log(registered)
+  const spawnable = registered.filter(({ hasDefaults }) => hasDefaults)
 
   // make background not be able to be spawned manually
-  const indexOfBackground = spawnable.findIndex(
-    entity => entity[0] === '@dreamlab/Background',
-  )
-  spawnable.splice(indexOfBackground, 1)
+  // const indexOfBackground = spawnable.findIndex(entity => entity[0] === '@dreamlab/Background')
+  // spawnable.splice(indexOfBackground, 1)
 
   const onSpawn = useCallback<EventHandler<'onSpawn'>>(
     entity => {
@@ -81,7 +78,7 @@ export const Spawnables: React.FC<SpawnablesProps> = ({
         entity,
         args: {},
         transform: {
-          position: navigator.position,
+          position: navigator.position(),
           zIndex: 100,
         },
         uid,
@@ -97,7 +94,7 @@ export const Spawnables: React.FC<SpawnablesProps> = ({
     <div>
       <h3>Spawn Object</h3>
       <SpawnableList>
-        {spawnable.map(([name]) => (
+        {spawnable.map(({ name }) => (
           <Button
             key={name}
             onClick={async () => create(name)}
