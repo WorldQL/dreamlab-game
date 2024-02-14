@@ -201,10 +201,7 @@ export class Selector extends Entity {
   }
 
   public select(entity: SpawnableEntity | undefined) {
-    const _game = game('client')
-    if (!_game) {
-      return
-    }
+    const $game = game('client', true)
 
     const prev = this.selected
     this.selected = entity
@@ -226,7 +223,7 @@ export class Selector extends Entity {
 
     if (this.selected !== prev) {
       if (prev) {
-        _game.physics.resume('@editor', [prev])
+        $game.physics.resume('@editor', [prev])
         this.sendPacket?.({
           t: 'PhysicsSuspendResume',
           action: 'resume',
@@ -235,7 +232,7 @@ export class Selector extends Entity {
       }
 
       if (this.selected) {
-        _game.physics.suspend('@editor', [this.selected])
+        $game.physics.suspend('@editor', [this.selected])
         this.sendPacket?.({
           t: 'PhysicsSuspendResume',
           action: 'suspend',
@@ -320,12 +317,7 @@ export class Selector extends Entity {
     bounds: Bounds,
     handle: Handle,
   ): Vector => {
-    const _game = game('client')
-    if (!_game) {
-      return Vec.create(0, 0)
-    }
-
-    const inverse = 1 / _game.client.render.camera.scale
+    const inverse = 1 / camera().scale
     const { width, height } = bounds
     const angle = toRadians(selected.transform.rotation)
 
@@ -510,20 +502,16 @@ export class Selector extends Entity {
   }
 
   public onMouseMove = () => {
-    const _game = game('client')
-    if (!_game) {
-      return
-    }
-
-    const pos = _game.client.inputs.getCursor()
+    const pos = inputs().getCursor()
     if (!pos) return
     this.updateCursor(pos)
 
     if (!this.selected || !this.action) return
-    const shift = _game.client.inputs.getKey('ShiftLeft')
-    const ctrl = _game.client.inputs.getKey('ControlLeft')
+    const shift = inputs().getKey('ShiftLeft')
+    const ctrl = inputs().getKey('ControlLeft')
     this.actionOccurred = true
 
+    const $game = game('client', true)
     switch (this.action.type) {
       case 'rotate': {
         const radians = angleBetween(this.selected.transform.position, pos)
@@ -557,7 +545,7 @@ export class Selector extends Entity {
             ? { width: size, height: size / this.action.aspect }
             : { width, height }
 
-          _game.resize(this.selected, bounds)
+          $game.resize(this.selected, bounds)
           this.events.emit('onArgsUpdate', this.selected.uid, this.selected.args)
         } else {
           const rotated = Vec.rotateAbout(pos, inverseRadians, this.action.opposite)
@@ -581,7 +569,7 @@ export class Selector extends Entity {
             position: newOrigin,
           }
           this.selected.transform.position = newOrigin
-          _game.resize(this.selected, { width, height })
+          $game.resize(this.selected, { width, height })
           this.events.emit('onTransformUpdate', this.selected.uid, newTransform)
           this.events.emit('onArgsUpdate', this.selected.uid, this.selected.args)
         }
@@ -611,21 +599,18 @@ export class Selector extends Entity {
   }
   public onRenderFrame(_: RenderTime): void {
     const bounds = this.selected?.bounds()
-    const _game = game('client')
-    if (!_game) return
-
     if (!this.selected || !bounds) {
-      _game.client?.inputs?.enable('mouse', 'editor')
+      inputs().enable('mouse', 'editor')
       this.container.alpha = 0
       return
     }
 
-    _game.client?.inputs?.disable('mouse', 'editor')
+    inputs().disable('mouse', 'editor')
     const entity = this.selected
-    const inverse = 1 / _game.client.render.camera.scale
+    const inverse = 1 / camera().scale
     const scaledWidth = this.strokeWidth * inverse
 
-    const pos = Vec.add(entity.transform.position, _game.client.render.camera.offset)
+    const pos = Vec.add(entity.transform.position, camera().offset)
     this.container.alpha = 1
     this.container.position = pos
     this.container.angle = entity.transform.rotation
