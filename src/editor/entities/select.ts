@@ -52,7 +52,7 @@ type ActionData =
       aspect: number
     }
   | { type: 'clear' }
-  | { type: 'rotate' }
+  | { type: 'rotate'; prev: number }
   | { type: 'translate'; origin: Vector; prev: Vector }
 
 const getPngDimensions = async (url: string): Promise<{ width: number; height: number }> => {
@@ -201,7 +201,14 @@ export class Selector extends Entity {
         }
 
         case 'rotate': {
-          // TODO: Implement recording rotation history
+          const matches = this.selected.transform.rotation === this.action.prev
+          if (matches) break
+
+          this.history.recordTransformChanged(this.selected.uid, {
+            ...this.selected.transform,
+            rotation: this.action.prev,
+          })
+
           break
         }
 
@@ -537,7 +544,7 @@ export class Selector extends Entity {
     if (this.selected && bounds) {
       const handle = this.isHandle(pos)
       if (handle === 'rotation') {
-        this.action = { type: 'rotate' }
+        this.action = { type: 'rotate', prev: this.selected.transform.rotation }
       } else if (handle) {
         const locked = getOppositeCorner(handle)
         const opposite = this.getHandlePosition(this.selected, bounds, locked)
