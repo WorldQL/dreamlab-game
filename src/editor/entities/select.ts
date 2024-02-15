@@ -50,6 +50,7 @@ type ActionData =
       locked: CornerHandle
       opposite: Vector
       aspect: number
+      prev: Bounds
     }
   | { type: 'clear' }
   | { type: 'rotate'; prev: number }
@@ -555,6 +556,7 @@ export class Selector extends Entity {
           locked,
           opposite,
           aspect: bounds.width / bounds.height,
+          prev: { width: bounds.width, height: bounds.height },
         }
       } else if (this.selected.isPointInside(pos)) {
         this.action = {
