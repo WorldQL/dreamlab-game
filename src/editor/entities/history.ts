@@ -168,6 +168,7 @@ export class History extends Entity {
       }
     }
 
+    this.events.emit('onUndo')
     return true
   }
 
@@ -226,6 +227,7 @@ export class History extends Entity {
       }
     }
 
+    this.events.emit('onRedo')
     return true
   }
 }
