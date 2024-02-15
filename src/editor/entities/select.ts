@@ -7,6 +7,7 @@ import { camera, canvas, events, game, inputs, stage } from '@dreamlab.gg/core/l
 import {
   absolute,
   angleBetween,
+  cloneTransform,
   distance,
   snap,
   snapVector,
@@ -52,7 +53,7 @@ type ActionData =
     }
   | { type: 'clear' }
   | { type: 'rotate' }
-  | { type: 'translate'; origin: Vector }
+  | { type: 'translate'; origin: Vector; prev: Vector }
 
 const getPngDimensions = async (url: string): Promise<{ width: number; height: number }> => {
   return new Promise((resolve, reject) => {
@@ -183,7 +184,38 @@ export class Selector extends Entity {
       this.prevEntityData = undefined
     }
 
-    if (this.action !== undefined) {
+    if (this.action !== undefined && this.selected !== undefined) {
+      switch (this.action.type) {
+        case 'translate': {
+          const matches =
+            this.selected.transform.position.x === this.action.prev.x &&
+            this.selected.transform.position.y === this.action.prev.y
+          if (matches) break
+
+          this.history.recordTransformChanged(this.selected.uid, {
+            ...this.selected.transform,
+            position: this.action.prev,
+          })
+
+          break
+        }
+
+        case 'rotate': {
+          // TODO: Implement recording rotation history
+          break
+        }
+
+        case 'scale': {
+          // TODO: Implement recording scale history
+          break
+        }
+
+        case 'clear': {
+          // No-op
+          break
+        }
+      }
+
       this.action = { type: 'clear' }
     }
   }
@@ -521,6 +553,7 @@ export class Selector extends Entity {
         this.action = {
           type: 'translate',
           origin: Vec.sub(this.selected.transform.position, pos),
+          prev: Vec.clone(this.selected.transform.position),
         }
       }
     }

@@ -52,33 +52,43 @@ export class History extends Entity {
   })
 
   public recordCreated(entity: SpawnableEntity): void {
-    console.trace('created')
     const definition = this.#cloneDefinition(entity.definition)
     this.#undoActions.push({ type: 'create', uid: entity.uid, definition })
     this.#redoActions = []
   }
 
   public recordDeleted(entity: SpawnableEntity): void {
-    console.trace('deleted')
     const definition = this.#cloneDefinition(entity.definition)
     this.#undoActions.push({ type: 'delete', uid: entity.uid, definition })
     this.#redoActions = []
   }
 
-  public recordTransformChanged(entity: SpawnableEntity): void {
-    console.trace('transform changed')
-    const definition = this.#cloneDefinition(entity.definition)
-    this.#undoActions.push({
-      type: 'update-transform',
-      uid: entity.uid,
-      transform: definition.transform,
-    })
+  public recordTransformChanged(uid: string, transform: Transform): void
+  public recordTransformChanged(entity: SpawnableEntity): void
+  public recordTransformChanged(arg: SpawnableEntity | string, transform?: Transform): void {
+    if (typeof arg === 'string') {
+      const uid = arg
+      if (typeof transform === 'undefined') throw new Error('must specify transform')
+
+      this.#undoActions.push({
+        type: 'update-transform',
+        uid,
+        transform: cloneTransform(transform),
+      })
+    } else {
+      const entity = arg
+      const definition = this.#cloneDefinition(entity.definition)
+      this.#undoActions.push({
+        type: 'update-transform',
+        uid: entity.uid,
+        transform: definition.transform,
+      })
+    }
 
     this.#redoActions = []
   }
 
   public recordArgsChanged(entity: SpawnableEntity): void {
-    console.trace('args changed')
     const definition = this.#cloneDefinition(entity.definition)
     this.#undoActions.push({
       type: 'update-args',
@@ -90,7 +100,6 @@ export class History extends Entity {
   }
 
   public recordTagsChanged(entity: SpawnableEntity): void {
-    console.trace('tags changed')
     const definition = this.#cloneDefinition(entity.definition)
     this.#undoActions.push({
       type: 'update-tags',
@@ -130,7 +139,21 @@ export class History extends Entity {
       }
 
       case 'update-transform': {
-        // TODO: Undo update transform
+        const entity = $game.lookup(action.uid)
+        if (!entity) return false
+
+        const previous = cloneTransform(entity.transform)
+        entity.transform.position.x = action.transform.position.x
+        entity.transform.position.y = action.transform.position.y
+        entity.transform.rotation = action.transform.rotation
+        entity.transform.zIndex = action.transform.zIndex
+
+        this.#redoActions.push({
+          type: 'update-transform',
+          uid: action.uid,
+          transform: previous,
+        })
+
         break
       }
 
@@ -174,7 +197,21 @@ export class History extends Entity {
       }
 
       case 'update-transform': {
-        // TODO: Redo update transform
+        const entity = $game.lookup(action.uid)
+        if (!entity) return false
+
+        const previous = cloneTransform(entity.transform)
+        entity.transform.position.x = action.transform.position.x
+        entity.transform.position.y = action.transform.position.y
+        entity.transform.rotation = action.transform.rotation
+        entity.transform.zIndex = action.transform.zIndex
+
+        this.#undoActions.push({
+          type: 'update-transform',
+          uid: action.uid,
+          transform: previous,
+        })
+
         break
       }
 
