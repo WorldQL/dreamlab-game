@@ -220,16 +220,14 @@ export const SceneList: FC<{
     history.recordTransformChanged(selector.selected)
     selector.selected.transform.zIndex += ctrlHeldDown ? 25 : 1
     forceUpdate()
-    selector.events.emit('onTransformUpdate', selector.selected.uid, selector.selected.transform)
-  }, [selector.selected, selector.events, history, ctrlHeldDown, forceUpdate])
+  }, [selector.selected, history, ctrlHeldDown, forceUpdate])
 
   const onMoveBackwards = useCallback(async () => {
     if (!selector.selected) return
     history.recordTransformChanged(selector.selected)
     selector.selected.transform.zIndex -= ctrlHeldDown ? 25 : 1
     forceUpdate()
-    selector.events.emit('onTransformUpdate', selector.selected.uid, selector.selected.transform)
-  }, [selector.selected, selector.events, history, ctrlHeldDown, forceUpdate])
+  }, [selector.selected, history, ctrlHeldDown, forceUpdate])
 
   const onChangeTiling = useCallback(async () => {
     if (!selector.selected || typeof selector.selected.args.spriteSource !== 'object') return
@@ -241,9 +239,8 @@ export const SceneList: FC<{
     }
     history.recordArgsChanged(selector.selected)
     selector.selected.args.spriteSource = newSpritesource
-    selector.events.emit('onArgsUpdate', selector.selected.uid, selector.selected.args)
-    // forceUpdate()
-  }, [history, selector.events, selector.selected])
+    forceUpdate()
+  }, [history, selector.selected, forceUpdate])
 
   useEventListener(selector.events, 'onSelect', onSelect)
   useInputPressed(EditorInputs.DeleteEntity, onDelete)

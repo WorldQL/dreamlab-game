@@ -102,43 +102,6 @@ export class Selector extends Entity {
     this.container.sortableChildren = true
     this.container.zIndex = 999_999_999 // always render on top
 
-    this.events.addListener('onTransformUpdate', (entityId, newTransform) => {
-      if (!this.selected || this.selected.uid !== entityId) return
-
-      const { position, zIndex, rotation } = newTransform
-
-      this.selected.definition.transform = newTransform
-      this.selected.transform.position = position
-      this.selected.transform.zIndex = zIndex
-      this.selected.transform.rotation = rotation
-    })
-
-    this.events.addListener('onArgsUpdate', (entityId, args) => {
-      let _selected = this.selected
-      const _game = game('client')
-      if (!_selected && _game) {
-        _selected = _game.lookup(entityId)
-      }
-
-      if (_selected === undefined) {
-        return
-      }
-
-      for (const key of Object.keys(args)) {
-        const value = args[key]
-        if (_selected.args[key] !== value) {
-          setProperty(_selected.args, key, value)
-        }
-      }
-
-      for (const key of Object.keys(_selected.args)) {
-        // eslint-disable-next-line prefer-object-has-own
-        if (!Object.hasOwnProperty.call(args, key)) {
-          setProperty(_selected.args, key, undefined)
-        }
-      }
-    })
-
     this.container.addChild(this.boundsGfx)
     this.container.addChild(this.topLeftGfx)
     this.container.addChild(this.topRightGfx)
@@ -375,8 +338,6 @@ export class Selector extends Entity {
     } else if (this.selected.definition.entity === '@dreamlab/BackgroundTrigger') {
       this.selected.args.onEnter = { action: 'set', textureURL: url }
     }
-
-    this.events.emit('onArgsUpdate', this.selected.uid, this.selected.args)
   }
 
   public getHandlePosition = (
@@ -588,12 +549,8 @@ export class Selector extends Entity {
         const degrees = toDegrees(radians + Math.PI / 2)
 
         const angle = shift ? snap(degrees, 15) : degrees
-        const newTransform = {
-          position: this.selected.transform.position,
-          rotation: angle,
-          zIndex: this.selected.transform.zIndex,
-        }
-        this.events.emit('onTransformUpdate', this.selected.uid, newTransform)
+        this.selected.transform.rotation = angle
+
         break
       }
 
@@ -616,7 +573,6 @@ export class Selector extends Entity {
             : { width, height }
 
           $game.resize(this.selected, bounds)
-          this.events.emit('onArgsUpdate', this.selected.uid, this.selected.args)
         } else {
           const rotated = Vec.rotateAbout(pos, inverseRadians, this.action.opposite)
 
@@ -634,14 +590,8 @@ export class Selector extends Entity {
             this.action.opposite,
           )
 
-          const newTransform = {
-            ...this.selected.transform,
-            position: newOrigin,
-          }
           this.selected.transform.position = newOrigin
           $game.resize(this.selected, { width, height })
-          this.events.emit('onTransformUpdate', this.selected.uid, newTransform)
-          this.events.emit('onArgsUpdate', this.selected.uid, this.selected.args)
         }
 
         break
@@ -651,12 +601,8 @@ export class Selector extends Entity {
         const offset = Vec.add(pos, this.action.origin)
         const newPosition = shift ? snapVector(offset, 10) : offset
 
-        const newTransform = {
-          ...this.selected.transform,
-          position: newPosition,
-        }
+        this.selected.transform.position = newPosition
 
-        this.events.emit('onTransformUpdate', this.selected.uid, newTransform)
         break
       }
 
@@ -758,7 +704,7 @@ export class Selector extends Entity {
 
 interface EntityEvents {
   onSelect: [id: string | undefined]
-  onArgsUpdate: [id: string, args: Record<string, unknown>]
-  onTransformUpdate: [id: string, transform: Transform]
-  onTagsUpdate: [id: string, tags: string[]]
+  // onArgsUpdate: [id: string, args: Record<string, unknown>]
+  // onTransformUpdate: [id: string, transform: Transform]
+  // onTagsUpdate: [id: string, tags: string[]]
 }

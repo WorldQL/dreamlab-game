@@ -1,7 +1,8 @@
 import type { SpawnableEntity } from '@dreamlab.gg/core'
+import type { EventHandler } from '@dreamlab.gg/core/dist/events'
 import type { Transform } from '@dreamlab.gg/core/math'
-import { getProperty, setProperty } from '@dreamlab.gg/core/utils'
-import { useTransform } from '@dreamlab.gg/ui/dist/react'
+import { clone, getProperty, setProperty } from '@dreamlab.gg/core/utils'
+import { useCommonEventListener, useForceUpdate, useTransform } from '@dreamlab.gg/ui/dist/react'
 import { useCallback, useEffect, useRef, useState } from 'https://esm.sh/v136/react@18.2.0'
 import type { FC } from 'https://esm.sh/v136/react@18.2.0'
 import { styled } from 'https://esm.sh/v136/styled-components@6.1.8'
@@ -158,13 +159,13 @@ const roundValue = (
 }
 
 export const Inspector: FC<InspectorProps> = ({ selector, entity, history }) => {
+  const forceUpdate = useForceUpdate()
   const entityRef = useRef<HTMLDivElement>(null)
 
   const [editableArgs, setEditableArgs] = useState(entity.args)
   const [newTag, setNewTag] = useState('')
   const [tags, setTags] = useState(entity.definition.tags)
 
-  const transform = useTransform(entity.transform)
   const [tempX, setTempX] = useState<string>(roundValue(String(entity.transform.position.x), 2)[0])
   const [tempY, setTempY] = useState<string>(roundValue(String(entity.transform.position.y), 2)[0])
   const [tempRotation, setTempRotation] = useState<string>(
@@ -174,6 +175,15 @@ export const Inspector: FC<InspectorProps> = ({ selector, entity, history }) => 
     roundValue(String(entity.transform.zIndex), 0)[0],
   )
 
+  const handleTransformUpdate = useCallback((transform: Transform) => {
+    setTempX(roundValue(String(transform.position.x), 2)[0])
+    setTempY(roundValue(String(transform.position.y), 2)[0])
+    setTempRotation(roundValue(String(transform.rotation), 0)[0])
+    setTempZIndex(roundValue(String(transform.zIndex), 0)[0])
+  }, [])
+
+  const transform = useTransform(entity.transform, handleTransformUpdate)
+
   const argsInputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({})
 
   const handleAddTag = () => {
@@ -181,26 +191,64 @@ export const Inspector: FC<InspectorProps> = ({ selector, entity, history }) => 
       history.recordTagsChanged(entity)
       entity.definition.tags?.push(newTag)
       setTags(entity.definition.tags ?? [])
-      selector.events.emit('onTagsUpdate', entity.uid, entity.definition.tags)
       setNewTag('')
     }
   }
 
   const handleDeleteTag = (tagToDelete: string) => {
-    const updatedTags = tags.filter(tag => tag !== tagToDelete)
-    setTags(updatedTags)
-    history.recordTagsChanged(entity)
-    entity.definition.tags = updatedTags
-    selector.events.emit('onTagsUpdate', entity.uid, entity.definition.tags)
+    setTags(prevTags => {
+      const idx = prevTags.indexOf(tagToDelete)
+      if (idx === -1) return prevTags
+
+      history.recordTagsChanged(entity)
+      entity.tags.splice(idx, 1)
+
+      return [...entity.tags]
+    })
   }
 
+  // TODO: Don't clobber arg input when args change externally
   const handleArgChange = (key: string, value: unknown) => {
     setEditableArgs(prevArgs => {
-      const updatedArgs = JSON.parse(JSON.stringify(prevArgs))
+      const updatedArgs = clone(prevArgs)
       setProperty(updatedArgs, key, value)
       return updatedArgs
     })
   }
+
+  const handleArgSave = useCallback(
+    (key: string, value?: { _v: unknown }) => {
+      const val = value !== undefined ? value._v : (getProperty(editableArgs, key) as unknown)
+
+      history.recordArgsChanged(entity)
+      setProperty(entity.args, key, val)
+    },
+    [editableArgs, entity, history],
+  )
+
+  const onArgsChanged = useCallback<EventHandler<'onArgsChanged'>>(
+    ({ uid, args }) => {
+      if (uid !== entity.uid) return
+
+      setEditableArgs(args)
+      forceUpdate()
+    },
+    [entity.uid, forceUpdate],
+  )
+
+  useCommonEventListener('onArgsChanged', onArgsChanged)
+
+  const onTagsChanged = useCallback<EventHandler<'onTagsChanged'>>(
+    ({ uid, tags }) => {
+      if (uid !== entity.uid) return
+
+      setTags(tags)
+      forceUpdate()
+    },
+    [entity.uid, forceUpdate],
+  )
+
+  useCommonEventListener('onTagsChanged', onTagsChanged)
 
   const _recordTransformHistory = useCallback(() => {
     history.recordTransformChanged(entity)
@@ -241,60 +289,6 @@ export const Inspector: FC<InspectorProps> = ({ selector, entity, history }) => 
       }
     }
   }
-
-  // const handleTransformSave = useCallback(async () => {
-  //   const updatedTransform = await commitTransformChanges()
-
-  //   selector.events.emit('onTransformUpdate', entity.uid, updatedTransform)
-  // }, [commitTransformChanges, entity, history, selector.events])
-
-  const handleArgSave = useCallback(
-    (key: string, value?: { _v: unknown }) => {
-      const val = value !== undefined ? value._v : (getProperty(editableArgs, key) as unknown)
-
-      history.recordArgsChanged(entity)
-      setProperty(editableArgs, key, val)
-      // entity.args[key] = val
-      selector.events.emit('onArgsUpdate', entity.uid, editableArgs)
-    },
-    [editableArgs, entity, history, selector.events],
-  )
-
-  useEffect(() => {
-    const handleArgsUpdate = (entityId: string, newArgs: unknown) => {
-      if (entityId === entity.uid) {
-        setEditableArgs(prevArgs => ({
-          ...prevArgs,
-          ...(newArgs as Record<string, unknown>),
-        }))
-      }
-    }
-
-    const handleTransformUpdate = (entityId: string, transform: Transform) => {
-      if (entityId === entity.uid) {
-        setTempX(roundValue(String(transform.position.x), 2)[0])
-        setTempY(roundValue(String(transform.position.y), 2)[0])
-        setTempRotation(roundValue(String(transform.rotation), 0)[0])
-        setTempZIndex(roundValue(String(transform.zIndex), 0)[0])
-      }
-    }
-
-    const handleTagsUpdate = (entityId: string, tags: string[]) => {
-      if (entityId === entity.uid) {
-        setTags(tags)
-      }
-    }
-
-    selector.events.addListener('onArgsUpdate', handleArgsUpdate)
-    selector.events.addListener('onTransformUpdate', handleTransformUpdate)
-    selector.events.addListener('onTagsUpdate', handleTagsUpdate)
-
-    return () => {
-      selector.events.removeListener('onArgsUpdate', handleArgsUpdate)
-      selector.events.removeListener('onTransformUpdate', handleTransformUpdate)
-      selector.events.removeListener('onTagsUpdate', handleTagsUpdate)
-    }
-  }, [entity, entity.definition, entity.uid, history, selector.events])
 
   return (
     <EntityButtons id={entity.uid} ref={entityRef}>
