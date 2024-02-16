@@ -6,11 +6,14 @@ import { cloneTransform } from '@dreamlab.gg/core/math'
 import type { Transform } from '@dreamlab.gg/core/math'
 import { clone, onChange } from '@dreamlab.gg/core/utils'
 
+type ArgUpdateEntry = readonly [path: string, value: unknown]
+type TagUpdateEntry = readonly [action: 'add' | 'remove', tag: string]
+
 type HistoryAction =
   | { type: 'create'; uid: string; definition: SpawnableDefinition }
   | { type: 'delete'; uid: string; definition: SpawnableDefinition }
-  | { type: 'update-args'; uid: string; args: Record<string, unknown> }
-  | { type: 'update-tags'; uid: string; tags: string[] }
+  | { type: 'update-args'; uid: string; updates: readonly ArgUpdateEntry[] }
+  | { type: 'update-tags'; uid: string; updates: readonly TagUpdateEntry[] }
   | { type: 'update-transform'; uid: string; transform: Transform }
 
 interface HistoryEvents {
@@ -88,23 +91,28 @@ export class History extends Entity {
     this.#redoActions = []
   }
 
-  public recordArgsChanged(entity: SpawnableEntity): void {
-    const definition = this.#cloneDefinition(entity.definition)
+  public recordArgsChanged(
+    uid: string,
+    ...updates: readonly [entry: ArgUpdateEntry, ...entries: ArgUpdateEntry[]]
+  ): void {
+    console.trace(uid, updates)
     this.#undoActions.push({
       type: 'update-args',
-      uid: entity.uid,
-      args: definition.args,
+      uid,
+      updates,
     })
 
     this.#redoActions = []
   }
 
-  public recordTagsChanged(entity: SpawnableEntity): void {
-    const definition = this.#cloneDefinition(entity.definition)
+  public recordTagsChanged(
+    uid: string,
+    ...updates: readonly [entry: TagUpdateEntry, ...entries: TagUpdateEntry[]]
+  ): void {
     this.#undoActions.push({
       type: 'update-tags',
-      uid: entity.uid,
-      tags: definition.tags,
+      uid,
+      updates,
     })
 
     this.#redoActions = []

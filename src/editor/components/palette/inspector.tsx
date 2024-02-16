@@ -188,7 +188,7 @@ export const Inspector: FC<InspectorProps> = ({ selector, entity, history }) => 
 
   const handleAddTag = () => {
     if (newTag && !entity.definition.tags?.includes(newTag)) {
-      history.recordTagsChanged(entity)
+      history.recordTagsChanged(entity.uid, ['add', newTag])
       entity.definition.tags?.push(newTag)
       setTags(entity.definition.tags ?? [])
       setNewTag('')
@@ -200,7 +200,7 @@ export const Inspector: FC<InspectorProps> = ({ selector, entity, history }) => 
       const idx = prevTags.indexOf(tagToDelete)
       if (idx === -1) return prevTags
 
-      history.recordTagsChanged(entity)
+      history.recordTagsChanged(entity.uid, ['remove', tagToDelete])
       entity.tags.splice(idx, 1)
 
       return [...entity.tags]
@@ -220,7 +220,7 @@ export const Inspector: FC<InspectorProps> = ({ selector, entity, history }) => 
     (key: string, value?: { _v: unknown }) => {
       const val = value !== undefined ? value._v : (getProperty(editableArgs, key) as unknown)
 
-      history.recordArgsChanged(entity)
+      history.recordArgsChanged(entity.uid, [key, val])
       setProperty(entity.args, key, val)
     },
     [editableArgs, entity, history],

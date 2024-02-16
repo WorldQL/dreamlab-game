@@ -138,16 +138,6 @@ export class Selector extends Entity {
   public actionOccurred = false
 
   public onMouseUp = () => {
-    if (this.prevEntityData && this.action && this.actionOccurred) {
-      if (this.action.type !== 'scale' && this.action.type !== 'clear') {
-        this.history.recordTransformChanged(this.prevEntityData)
-      } else {
-        this.history.recordArgsChanged(this.prevEntityData)
-      }
-
-      this.prevEntityData = undefined
-    }
-
     if (this.action !== undefined && this.selected !== undefined) {
       switch (this.action.type) {
         case 'translate': {
@@ -177,7 +167,12 @@ export class Selector extends Entity {
         }
 
         case 'scale': {
-          // TODO: Implement recording scale history
+          this.history.recordArgsChanged(
+            this.selected.uid,
+            ['width', this.action.prev.width],
+            ['height', this.action.prev.height],
+          )
+
           break
         }
 
@@ -331,11 +326,14 @@ export class Selector extends Entity {
       return
     }
 
-    this.history.recordArgsChanged(this.selected)
-
     if ('spriteSource' in this.selected.argsSchema.shape) {
+      this.history.recordArgsChanged(this.selected.uid, ['spriteSource', { url }])
       this.selected.args.spriteSource = { url }
     } else if (this.selected.definition.entity === '@dreamlab/BackgroundTrigger') {
+      this.history.recordArgsChanged(this.selected.uid, [
+        'onEnter',
+        { action: 'set', textureURL: url },
+      ])
       this.selected.args.onEnter = { action: 'set', textureURL: url }
     }
   }
