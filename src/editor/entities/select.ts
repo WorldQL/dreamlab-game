@@ -17,7 +17,7 @@ import {
 } from '@dreamlab.gg/core/math'
 import type { Bounds, Transform, Vector } from '@dreamlab.gg/core/math'
 import type { Ref } from '@dreamlab.gg/core/utils'
-import { drawBox, drawCircle, setProperty } from '@dreamlab.gg/core/utils'
+import { drawBox, drawCircle } from '@dreamlab.gg/core/utils'
 import cuid2 from '@paralleldrive/cuid2'
 import { Container, Graphics } from 'pixi.js'
 import type { ToServerPacket } from '../../packets'
@@ -51,6 +51,7 @@ type ActionData =
       opposite: Vector
       aspect: number
       prev: Bounds
+      prevTransform: Transform
     }
   | { type: 'clear' }
   | { type: 'rotate'; prev: number }
@@ -167,11 +168,15 @@ export class Selector extends Entity {
         }
 
         case 'scale': {
-          this.history.recordArgsChanged(
-            this.selected.uid,
-            ['width', this.action.prev.width],
-            ['height', this.action.prev.height],
-          )
+          this.history.record({
+            uid: this.selected.uid,
+            type: 'update',
+            actions: [
+              { action: 'arg-update', path: 'width', value: this.action.prev.width },
+              { action: 'arg-update', path: 'height', value: this.action.prev.height },
+              { action: 'transform-update', transform: this.action.prevTransform },
+            ],
+          })
 
           break
         }
@@ -327,13 +332,32 @@ export class Selector extends Entity {
     }
 
     if ('spriteSource' in this.selected.argsSchema.shape) {
-      this.history.recordArgsChanged(this.selected.uid, ['spriteSource', { url }])
+      this.history.record({
+        uid: this.selected.uid,
+        type: 'update',
+        actions: [
+          {
+            action: 'arg-update',
+            path: 'spriteSource',
+            value: structuredClone(this.selected.args.spriteSource),
+          },
+        ],
+      })
+
       this.selected.args.spriteSource = { url }
     } else if (this.selected.definition.entity === '@dreamlab/BackgroundTrigger') {
-      this.history.recordArgsChanged(this.selected.uid, [
-        'onEnter',
-        { action: 'set', textureURL: url },
-      ])
+      this.history.record({
+        uid: this.selected.uid,
+        type: 'update',
+        actions: [
+          {
+            action: 'arg-update',
+            path: 'onEnter',
+            value: structuredClone(this.selected.args.onEnter),
+          },
+        ],
+      })
+
       this.selected.args.onEnter = { action: 'set', textureURL: url }
     }
   }
@@ -516,6 +540,7 @@ export class Selector extends Entity {
           opposite,
           aspect: bounds.width / bounds.height,
           prev: { width: bounds.width, height: bounds.height },
+          prevTransform: cloneTransform(this.selected.transform),
         }
       } else if (this.selected.isPointInside(pos)) {
         this.action = {

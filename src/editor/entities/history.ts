@@ -4,17 +4,22 @@ import { EventEmitter } from '@dreamlab.gg/core/events'
 import { game } from '@dreamlab.gg/core/labs'
 import { cloneTransform } from '@dreamlab.gg/core/math'
 import type { Transform } from '@dreamlab.gg/core/math'
-import { clone, onChange } from '@dreamlab.gg/core/utils'
+import { clone, getProperty, onChange, setProperty } from '@dreamlab.gg/core/utils'
 
-type ArgUpdateEntry = readonly [path: string, value: unknown]
-type TagUpdateEntry = readonly [action: 'add' | 'remove', tag: string]
+type UpdateAction =
+  | { action: 'arg-update'; path: string; value: unknown }
+  | { action: 'tag-add'; tag: string }
+  | { action: 'tag-remove'; tag: string }
+  | { action: 'transform-update'; transform: Transform }
 
-type HistoryAction =
+type HistoryEntry =
+  | {
+      type: 'update'
+      uid: string
+      actions: readonly [action: UpdateAction, ...actions: UpdateAction[]]
+    }
   | { type: 'create'; uid: string; definition: SpawnableDefinition }
   | { type: 'delete'; uid: string; definition: SpawnableDefinition }
-  | { type: 'update-args'; uid: string; updates: readonly ArgUpdateEntry[] }
-  | { type: 'update-tags'; uid: string; updates: readonly TagUpdateEntry[] }
-  | { type: 'update-transform'; uid: string; transform: Transform }
 
 interface HistoryEvents {
   readonly onUndo: []
@@ -24,8 +29,8 @@ interface HistoryEvents {
 export class History extends Entity {
   public readonly events = new EventEmitter<HistoryEvents>()
 
-  #undoActions: HistoryAction[] = []
-  #redoActions: HistoryAction[] = []
+  #undoEntries: HistoryEntry[] = []
+  #redoEntries: HistoryEntry[] = []
 
   public constructor() {
     super()
@@ -54,16 +59,19 @@ export class History extends Entity {
     tags: clone(definition.tags),
   })
 
+  public record(action: HistoryEntry): void {
+    this.#redoEntries = []
+    this.#undoEntries.push(action)
+  }
+
   public recordCreated(entity: SpawnableEntity): void {
     const definition = this.#cloneDefinition(entity.definition)
-    this.#undoActions.push({ type: 'create', uid: entity.uid, definition })
-    this.#redoActions = []
+    this.record({ type: 'create', uid: entity.uid, definition })
   }
 
   public recordDeleted(entity: SpawnableEntity): void {
     const definition = this.#cloneDefinition(entity.definition)
-    this.#undoActions.push({ type: 'delete', uid: entity.uid, definition })
-    this.#redoActions = []
+    this.record({ type: 'delete', uid: entity.uid, definition })
   }
 
   public recordTransformChanged(uid: string, transform: Transform): void
@@ -73,105 +81,97 @@ export class History extends Entity {
       const uid = arg
       if (typeof transform === 'undefined') throw new Error('must specify transform')
 
-      this.#undoActions.push({
-        type: 'update-transform',
+      this.record({
+        type: 'update',
         uid,
-        transform: cloneTransform(transform),
+        actions: [{ action: 'transform-update', transform: cloneTransform(transform) }],
       })
     } else {
       const entity = arg
       const definition = this.#cloneDefinition(entity.definition)
-      this.#undoActions.push({
-        type: 'update-transform',
+      this.record({
+        type: 'update',
         uid: entity.uid,
-        transform: definition.transform,
+        actions: [{ action: 'transform-update', transform: definition.transform }],
       })
     }
-
-    this.#redoActions = []
   }
 
-  public recordArgsChanged(
-    uid: string,
-    ...updates: readonly [entry: ArgUpdateEntry, ...entries: ArgUpdateEntry[]]
-  ): void {
-    console.trace(uid, updates)
-    this.#undoActions.push({
-      type: 'update-args',
-      uid,
-      updates,
-    })
-
-    this.#redoActions = []
-  }
-
-  public recordTagsChanged(
-    uid: string,
-    ...updates: readonly [entry: TagUpdateEntry, ...entries: TagUpdateEntry[]]
-  ): void {
-    this.#undoActions.push({
-      type: 'update-tags',
-      uid,
-      updates,
-    })
-
-    this.#redoActions = []
-  }
-
-  public undo(): boolean {
-    const action = this.#undoActions.pop()
-    if (!action) return false
-
-    const $game = game('client', true)
-    switch (action.type) {
-      case 'create': {
-        const entity = $game.lookup(action.uid)
-        if (!entity) return false
-
-        $game.destroy(entity)
-        action.definition.uid = action.uid
-        this.#redoActions.push(action)
-
-        break
-      }
-
-      case 'delete': {
-        const entity = $game.spawn(action.definition)
-        if (!entity) return false
-
-        action.uid = entity.uid
-        action.definition.uid = entity.uid
-        this.#redoActions.push(action)
-
-        break
-      }
-
-      case 'update-transform': {
-        const entity = $game.lookup(action.uid)
-        if (!entity) return false
-
+  private applyUpdate(entity: SpawnableEntity, action: UpdateAction): UpdateAction {
+    switch (action.action) {
+      case 'transform-update': {
         const previous = cloneTransform(entity.transform)
         entity.transform.position.x = action.transform.position.x
         entity.transform.position.y = action.transform.position.y
         entity.transform.rotation = action.transform.rotation
         entity.transform.zIndex = action.transform.zIndex
 
-        this.#redoActions.push({
-          type: 'update-transform',
-          uid: action.uid,
-          transform: previous,
+        return { action: 'transform-update', transform: previous }
+      }
+
+      case 'arg-update': {
+        const current: unknown = structuredClone(getProperty(entity.args, action.path))
+        setProperty(entity.args, action.path, action.value)
+
+        return { action: 'arg-update', path: action.path, value: current }
+      }
+
+      case 'tag-add': {
+        const idx = entity.tags.indexOf(action.tag)
+        if (idx !== -1) entity.tags.splice(idx, 1)
+
+        return { action: 'tag-remove', tag: action.tag }
+      }
+
+      case 'tag-remove': {
+        entity.tags.push(action.tag)
+
+        console.log(entity.tags)
+        return { action: 'tag-add', tag: action.tag }
+      }
+    }
+  }
+
+  public undo(): boolean {
+    const entry = this.#undoEntries.pop()
+    if (!entry) return false
+
+    const $game = game('client', true)
+    switch (entry.type) {
+      case 'create': {
+        const entity = $game.lookup(entry.uid)
+        if (!entity) return false
+
+        $game.destroy(entity)
+        entry.definition.uid = entry.uid
+        this.#redoEntries.push(entry)
+
+        break
+      }
+
+      case 'delete': {
+        const entity = $game.spawn(entry.definition)
+        if (!entity) return false
+
+        entry.uid = entity.uid
+        entry.definition.uid = entity.uid
+        this.#redoEntries.push(entry)
+
+        break
+      }
+
+      case 'update': {
+        const entity = $game.lookup(entry.uid)
+        if (!entity || entry.actions.length === 0) return false
+
+        const redo = entry.actions.map(action => this.applyUpdate(entity, action))
+        this.#redoEntries.push({
+          type: 'update',
+          uid: entry.uid,
+          // @ts-expect-error length bounds
+          actions: redo,
         })
 
-        break
-      }
-
-      case 'update-args': {
-        // TODO: Undo update args
-        break
-      }
-
-      case 'update-tags': {
-        // TODO: Undo update tags
         break
       }
     }
@@ -181,13 +181,13 @@ export class History extends Entity {
   }
 
   public redo(): boolean {
-    const action = this.#redoActions.pop()
-    if (!action) return false
+    const entry = this.#redoEntries.pop()
+    if (!entry) return false
 
     const $game = game('client', true)
-    switch (action.type) {
+    switch (entry.type) {
       case 'create': {
-        const entity = $game.spawn(action.definition)
+        const entity = $game.spawn(entry.definition)
         if (!entity) return false
 
         this.recordCreated(entity)
@@ -196,7 +196,7 @@ export class History extends Entity {
       }
 
       case 'delete': {
-        const entity = $game.lookup(action.uid)
+        const entity = $game.lookup(entry.uid)
         if (!entity) return false
 
         $game.destroy(entity)
@@ -205,32 +205,18 @@ export class History extends Entity {
         break
       }
 
-      case 'update-transform': {
-        const entity = $game.lookup(action.uid)
-        if (!entity) return false
+      case 'update': {
+        const entity = $game.lookup(entry.uid)
+        if (!entity || entry.actions.length === 0) return false
 
-        const previous = cloneTransform(entity.transform)
-        entity.transform.position.x = action.transform.position.x
-        entity.transform.position.y = action.transform.position.y
-        entity.transform.rotation = action.transform.rotation
-        entity.transform.zIndex = action.transform.zIndex
-
-        this.#undoActions.push({
-          type: 'update-transform',
-          uid: action.uid,
-          transform: previous,
+        const undo = entry.actions.map(action => this.applyUpdate(entity, action))
+        this.#undoEntries.push({
+          type: 'update',
+          uid: entry.uid,
+          // @ts-expect-error length bounds
+          actions: undo,
         })
 
-        break
-      }
-
-      case 'update-args': {
-        // TODO: Redo update args
-        break
-      }
-
-      case 'update-tags': {
-        // TODO: Redo update tags
         break
       }
     }

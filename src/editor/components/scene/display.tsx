@@ -126,7 +126,11 @@ export const EntityDisplay: FC<DisplayProps> = ({ selector, entity, isSelected, 
       ? entity.definition.tags.filter(tag => tag !== LOCKED_TAG)
       : [...entity.definition.tags, LOCKED_TAG]
 
-    history.recordTagsChanged(entity.uid, [isLocked ? 'remove' : 'add', LOCKED_TAG])
+    history.record({
+      uid: entity.uid,
+      type: 'update',
+      actions: [{ action: isLocked ? 'tag-remove' : 'tag-add', tag: LOCKED_TAG }],
+    })
 
     entity.definition.tags = newTags
     setTags(entity.definition.tags)

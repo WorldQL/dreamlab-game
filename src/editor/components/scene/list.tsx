@@ -232,7 +232,18 @@ export const SceneList: FC<{
   const onChangeTiling = useCallback(async () => {
     if (!selector.selected || typeof selector.selected.args.spriteSource !== 'object') return
     const originalTiling = selector.selected.args.spriteSource.tile
-    history.recordArgsChanged(selector.selected.uid, ['spriteSource.tile', !originalTiling])
+    history.record({
+      uid: selector.selected.uid,
+      type: 'update',
+      actions: [
+        {
+          action: 'arg-update',
+          path: 'spriteSource.tile',
+          value: originalTiling,
+        },
+      ],
+    })
+
     selector.selected.args.spriteSource.tile = !originalTiling
     forceUpdate()
   }, [history, selector.selected, forceUpdate])
