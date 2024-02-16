@@ -17,7 +17,7 @@ import {
 } from '@dreamlab.gg/core/math'
 import type { Bounds, Transform, Vector } from '@dreamlab.gg/core/math'
 import type { Ref } from '@dreamlab.gg/core/utils'
-import { drawBox, drawCircle } from '@dreamlab.gg/core/utils'
+import { clone, drawBox, drawCircle } from '@dreamlab.gg/core/utils'
 import cuid2 from '@paralleldrive/cuid2'
 import { Container, Graphics } from 'pixi.js'
 import type { ToServerPacket } from '../../packets'
@@ -339,7 +339,7 @@ export class Selector extends Entity {
           {
             action: 'arg-update',
             path: 'spriteSource',
-            value: structuredClone(this.selected.args.spriteSource),
+            value: clone(this.selected.args.spriteSource),
           },
         ],
       })
@@ -353,7 +353,7 @@ export class Selector extends Entity {
           {
             action: 'arg-update',
             path: 'onEnter',
-            value: structuredClone(this.selected.args.onEnter),
+            value: clone(this.selected.args.onEnter),
           },
         ],
       })

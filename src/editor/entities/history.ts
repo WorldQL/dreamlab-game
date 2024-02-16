@@ -110,7 +110,7 @@ export class History extends Entity {
       }
 
       case 'arg-update': {
-        const current: unknown = structuredClone(getProperty(entity.args, action.path))
+        const current: unknown = clone(getProperty(entity.args, action.path))
         setProperty(entity.args, action.path, action.value)
 
         return { action: 'arg-update', path: action.path, value: current }
