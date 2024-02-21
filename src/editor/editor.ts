@@ -26,16 +26,17 @@ export interface EditDetails {
 export class Editor extends Entity {
   #enabled = ref<boolean>(false)
 
-  #history = new History()
-  #selector = new Selector(this.#enabled, this.#history, this.sendPacket)
-  #navigator = new Navigator(this.#enabled, this.#selector)
+  readonly #history: History
+  readonly #selector: Selector
+  readonly #navigator: Navigator
 
-  public constructor(
-    public sendPacket?: (packet: ToServerPacket) => void,
-    public editDetails?: EditDetails,
-  ) {
+  public constructor(sendPacket?: (packet: ToServerPacket) => void, editDetails?: EditDetails) {
     super()
     const $game = game('client', true)
+
+    this.#history = new History()
+    this.#selector = new Selector(this.#enabled, this.#history, sendPacket)
+    this.#navigator = new Navigator(this.#enabled, this.#selector)
 
     $game.instantiate(this.#history)
     $game.instantiate(this.#selector)
