@@ -262,7 +262,11 @@ export const Assets: React.FC<AssetsProps> = ({ nextAPIBaseURL, jwt }) => {
           <AssetItem draggable key={asset.id}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
               {' '}
-              <ImagePreview alt={asset.name} src={asset.imageURL} />
+              <ImagePreview
+                alt={asset.name}
+                crossOrigin='anonymous'
+                src={asset.imageURL}
+              />
               {editingId === asset.id ? (
                 <input
                   autoFocus
