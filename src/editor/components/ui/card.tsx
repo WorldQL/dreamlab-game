@@ -1,4 +1,4 @@
-import { styled } from 'https://esm.sh/v135/styled-components@6.1.8'
+import { styled } from 'https://esm.sh/styled-components@6.1.8?pin=v135'
 
 export const Card = styled.div`
   pointer-events: auto;

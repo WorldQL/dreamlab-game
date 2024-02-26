@@ -1,9 +1,9 @@
 import type { InputCode } from '@dreamlab.gg/core/input'
 import { inputCodes, InputCodeSchema } from '@dreamlab.gg/core/input'
 import { useForceUpdate, useGame, useRegisteredInputs } from '@dreamlab.gg/ui/react'
-import { useCallback, useEffect, useState } from 'https://esm.sh/v135/react@18.2.0'
-import type { FC } from 'https://esm.sh/v135/react@18.2.0'
-import { styled } from 'https://esm.sh/v135/styled-components@6.1.8'
+import { useCallback, useEffect, useState } from 'https://esm.sh/react@18.2.0'
+import type { FC } from 'https://esm.sh/react@18.2.0'
+import { styled } from 'https://esm.sh/styled-components@6.1.8?pin=v135'
 import { Input } from './input'
 import { bindInput } from './persist'
 
