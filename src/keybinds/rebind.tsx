@@ -1,17 +1,9 @@
 import type { InputCode } from '@dreamlab.gg/core/input'
 import { inputCodes, InputCodeSchema } from '@dreamlab.gg/core/input'
-import {
-  useForceUpdate,
-  useGame,
-  useRegisteredInputs,
-} from '@dreamlab.gg/ui/react'
-import {
-  useCallback,
-  useEffect,
-  useState,
-} from 'https://esm.sh/v136/react@18.2.0'
-import type { FC } from 'https://esm.sh/v136/react@18.2.0'
-import { styled } from 'https://esm.sh/v136/styled-components@6.1.8'
+import { useForceUpdate, useGame, useRegisteredInputs } from '@dreamlab.gg/ui/react'
+import { useCallback, useEffect, useState } from 'https://esm.sh/v135/react@18.2.0'
+import type { FC } from 'https://esm.sh/v135/react@18.2.0'
+import { styled } from 'https://esm.sh/v135/styled-components@6.1.8'
 import { Input } from './input'
 import { bindInput } from './persist'
 
@@ -158,12 +150,7 @@ export const Rebind: FC<Props> = ({ visible, setVisible }) => {
         const secondary: InputCode | undefined = keys[1]
         const prev = rebinding[1] === 'primary' ? primary : secondary
 
-        const code =
-          ev.button === 0
-            ? 'MouseLeft'
-            : ev.button === 1
-              ? 'MouseMiddle'
-              : 'MouseRight'
+        const code = ev.button === 0 ? 'MouseLeft' : ev.button === 1 ? 'MouseMiddle' : 'MouseRight'
 
         bindInput(game, prev, undefined)
         bindInput(game, code, id)
@@ -206,11 +193,7 @@ export const Rebind: FC<Props> = ({ visible, setVisible }) => {
               viewBox='0 0 24 24'
               xmlns='http://www.w3.org/2000/svg'
             >
-              <path
-                d='M6 18L18 6M6 6l12 12'
-                strokeLinecap='round'
-                strokeLinejoin='round'
-              />
+              <path d='M6 18L18 6M6 6l12 12' strokeLinecap='round' strokeLinejoin='round' />
             </svg>
           </CloseIcon>
         </Header>
@@ -218,9 +201,7 @@ export const Rebind: FC<Props> = ({ visible, setVisible }) => {
         <InputGrid>
           {inputs.map(([id, name, keys]) => (
             <Input
-              active={
-                rebinding && rebinding[0] === id ? rebinding[1] : undefined
-              }
+              active={rebinding && rebinding[0] === id ? rebinding[1] : undefined}
               id={id}
               key={id}
               keys={keys}

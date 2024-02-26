@@ -1,8 +1,8 @@
 import type { InputCode } from '@dreamlab.gg/core/input'
 import { useGame } from '@dreamlab.gg/ui/react'
-import { useCallback } from 'https://esm.sh/v136/react@18.2.0'
-import type { FC, MouseEventHandler } from 'https://esm.sh/v136/react@18.2.0'
-import { styled } from 'https://esm.sh/v136/styled-components@6.1.8'
+import { useCallback } from 'https://esm.sh/v135/react@18.2.0'
+import type { FC, MouseEventHandler } from 'https://esm.sh/v135/react@18.2.0'
+import { styled } from 'https://esm.sh/v135/styled-components@6.1.8'
 
 const Name = styled.p`
   margin: 0;

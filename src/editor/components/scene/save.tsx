@@ -1,8 +1,8 @@
 import type { SpawnableEntity } from '@dreamlab.gg/core'
 import axios from 'axios'
-import type { FC, ReactNode } from 'https://esm.sh/v136/react@18.2.0'
-import { useCallback, useState } from 'https://esm.sh/v136/react@18.2.0'
-import { styled } from 'https://esm.sh/v136/styled-components@6.1.8'
+import type { FC, ReactNode } from 'https://esm.sh/v135/react@18.2.0'
+import { useCallback, useState } from 'https://esm.sh/v135/react@18.2.0'
+import { styled } from 'https://esm.sh/v135/styled-components@6.1.8'
 import type { EditDetails } from '../../editor'
 import { Button } from '../ui/buttons'
 
@@ -34,10 +34,7 @@ export const level: LooseSpawnableDefinition[] = ${json}
   )
 }
 
-const writeLevelScript = async (
-  levelScript: string,
-  editDetails?: EditDetails,
-) => {
+const writeLevelScript = async (levelScript: string, editDetails?: EditDetails) => {
   if (editDetails === undefined) return
 
   const editUrl = new URL(editDetails.server)

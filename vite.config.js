@@ -69,7 +69,7 @@ const esmLink = async (pkg, linkRoot) => {
   const { version } = await packageJson(pkg, linkRoot)
   if (!version) throw new Error(`unknown version for package: ${pkg}`)
 
-  return `https://esm.sh/v136/${pkg}@${version}`
+  return `https://esm.sh/v135/${pkg}@${version}`
 }
 // #endregion
 
@@ -100,15 +100,9 @@ const importMapPlugin = () => ({
     }
 
     //#region Core Modules
-    const coreModulesPath = await resolve(
-      `${core}/modules.json`,
-      import.meta.url,
-    )
+    const coreModulesPath = await resolve(`${core}/modules.json`, import.meta.url)
 
-    const coreModulesJson = await readFile(
-      fileURLToPath(coreModulesPath),
-      'utf8',
-    )
+    const coreModulesJson = await readFile(fileURLToPath(coreModulesPath), 'utf8')
 
     const coreModules = JSON.parse(coreModulesJson)
     for (const module of coreModules) {

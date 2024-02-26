@@ -10,9 +10,9 @@ import {
   useNetwork,
   useSpawnableEntities,
 } from '@dreamlab.gg/ui/react'
-import { useCallback, useEffect, useMemo, useState } from 'https://esm.sh/v136/react@18.2.0'
-import type { ChangeEvent, FC } from 'https://esm.sh/v136/react@18.2.0'
-import { styled } from 'https://esm.sh/v136/styled-components@6.1.8'
+import { useCallback, useEffect, useMemo, useState } from 'https://esm.sh/v135/react@18.2.0'
+import type { ChangeEvent, FC } from 'https://esm.sh/v135/react@18.2.0'
+import { styled } from 'https://esm.sh/v135/styled-components@6.1.8'
 import type { EditDetails } from '../../editor'
 import { EditorInputs } from '../../editor'
 import type { History } from '../../entities/history'
