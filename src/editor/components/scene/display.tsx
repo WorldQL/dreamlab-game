@@ -1,5 +1,5 @@
 import type { SpawnableEntity } from '@dreamlab.gg/core'
-import { useGame, useNetwork, usePlayer } from '@dreamlab.gg/ui/react'
+import { useGame, usePlayer } from '@dreamlab.gg/ui/react'
 import { useCallback, useEffect, useRef, useState } from 'https://esm.sh/react@18.2.0'
 import type { FC } from 'https://esm.sh/react@18.2.0'
 import { styled } from 'https://esm.sh/styled-components@6.1.8?pin=v135'
@@ -80,7 +80,6 @@ interface DisplayProps {
 
 export const EntityDisplay: FC<DisplayProps> = ({ selector, entity, isSelected, history }) => {
   const game = useGame()
-  const network = useNetwork()
   const player = usePlayer()
   const entityRef = useRef<HTMLDivElement>(null)
   const [isLocked, setIsLocked] = useState(Boolean(entity.definition.tags?.includes(LOCKED_TAG)))
@@ -114,12 +113,15 @@ export const EntityDisplay: FC<DisplayProps> = ({ selector, entity, isSelected, 
     )
     if (!isConfirmed) return
 
-    const id = entity.uid
     selector.deselect()
     history.recordDeleted(entity)
     game.destroy(entity)
-    await network?.sendEntityDestroy(id)
-  }, [entity, game, history, network, selector])
+
+    window.sendPacket?.({
+      t: 'DestroyEntity',
+      entity_id: entity.uid,
+    })
+  }, [entity, game, history, selector])
 
   const onLockToggle = useCallback(() => {
     const newTags = isLocked

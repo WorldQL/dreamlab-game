@@ -1,13 +1,12 @@
 /* eslint-disable typescript-sort-keys/string-enum */
 // The order of my enums affects the order they're rendered on the UI!
 import type { SpawnableEntity } from '@dreamlab.gg/core'
-import type { SpriteSource } from '@dreamlab.gg/core/textures'
+// import type { SpriteSource } from '@dreamlab.gg/core/textures'
 import {
   useEventListener,
   useForceUpdate,
   useGame,
   useInputPressed,
-  useNetwork,
   useSpawnableEntities,
 } from '@dreamlab.gg/ui/react'
 import { useCallback, useEffect, useMemo, useState } from 'https://esm.sh/react@18.2.0'
@@ -101,7 +100,6 @@ export const SceneList: FC<{
   history: History
 }> = ({ editDetails, selector, history }) => {
   const game = useGame()
-  const network = useNetwork()
   const forceUpdate = useForceUpdate()
 
   const etys = useSpawnableEntities()
@@ -187,8 +185,9 @@ export const SceneList: FC<{
     const id = selector.selected.uid
     history.recordDeleted(selector.selected)
     game.destroy(selector.selected)
-    await network?.sendEntityDestroy(id)
-  }, [game, history, network, selector.selected])
+
+    window.sendPacket?.({ t: 'DestroyEntity', entity_id: id })
+  }, [game, history, selector.selected])
 
   const [ctrlHeldDown, setCtrlHeldDown] = useState(false)
 

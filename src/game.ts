@@ -3,10 +3,18 @@ import { Cursor, PlayerInput } from '@dreamlab.gg/core/entities'
 // import { createConsole } from './console/console.js'
 import { isDebug } from './debug.js'
 import { Editor } from './editor/editor.js'
-import { createKeybinds } from './keybinds/entity.js'
+// import { createKeybinds } from './keybinds/entity.js'
 import { bindInput, loadBindings } from './keybinds/persist.js'
 import { connect, createNetwork, decodeParams, setReloadCount } from './network.js'
+import type { ToServerPacket } from './packets.js'
 import { loadLevel, loadScript, spawnPlayer } from './scripting.js'
+
+declare global {
+  interface Window {
+    // TODO: Make this slightly more hidden lol
+    sendPacket?(packet: ToServerPacket): void
+  }
+}
 
 export const init = async () => {
   // #region Setup
@@ -83,6 +91,8 @@ export const init = async () => {
     game.events.common.on('onTickSkipped', () => {
       sendPacket({ t: 'RequestFullSnapshot' })
     })
+
+    window.sendPacket = sendPacket
 
     // const serverLog = createConsole(params!.server, params!.instance)
     // game.instantiate(serverLog)

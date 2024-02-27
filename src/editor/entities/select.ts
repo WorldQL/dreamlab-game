@@ -223,10 +223,12 @@ export class Selector extends Entity {
     }
 
     const $game = game('client', true)
-    const network = $game.client.network
 
-    if (network) {
-      void network.sendEntityCreate(definition)
+    if (window.sendPacket) {
+      window.sendPacket({
+        t: 'SpawnEntity',
+        definition,
+      })
     } else {
       $game.spawn(definition)
     }
@@ -319,9 +321,11 @@ export class Selector extends Entity {
         } satisfies LooseSpawnableDefinition
 
         const $game = game('client', true)
-        const network = $game.client.network
-        if (network) {
-          void network.sendEntityCreate(definition)
+        if (window.sendPacket) {
+          window.sendPacket({
+            t: 'SpawnEntity',
+            definition,
+          })
         } else {
           $game.spawn(definition)
         }

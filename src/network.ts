@@ -2,13 +2,18 @@
 import { SpawnableDefinitionSchema } from '@dreamlab.gg/core'
 import type { Game } from '@dreamlab.gg/core'
 import { NetPlayer } from '@dreamlab.gg/core/entities'
-import type { KnownPlayerAnimation, Player } from '@dreamlab.gg/core/entities'
-import { createGear } from '@dreamlab.gg/core/managers'
+import type { KnownAnimation, Player } from '@dreamlab.gg/core/entities'
 import { isTrackedTransform, trackedSymbol } from '@dreamlab.gg/core/math'
 import { updateSyncedValue } from '@dreamlab.gg/core/network'
 import type { BareNetClient, MessageListenerClient } from '@dreamlab.gg/core/network'
 import { LevelSchema } from '@dreamlab.gg/core/sdk'
-import { clone, createSignal, onChange, setProperty } from '@dreamlab.gg/core/utils'
+import {
+  clone,
+  createSignal,
+  deferUntilPlayer,
+  onChange,
+  setProperty,
+} from '@dreamlab.gg/core/utils'
 import { jwtDecode as decodeJWT } from 'jwt-decode'
 import Matter from 'matter-js'
 import type { Body } from 'matter-js'
@@ -17,23 +22,12 @@ import type { EditDetails } from './editor/editor'
 import { Editor } from './editor/editor'
 import { PROTOCOL_VERSION } from './packets.js'
 import type {
-  IncomingArgsChangedPacket as ArgsChangedPacket,
   BodyInfo,
   CustomMessagePacket,
-  IncomingDestroyEntityPacket as DestroyEntityPacket,
   HandshakePacket,
   HandshakeReadyPacket,
-  IncomingLabelChangedPacket as LabelChangedPacket,
-  PlayerAnimationChangePacket,
-  PlayerCharacterIdChangePacket,
-  PlayerGearChangePacket,
-  PlayerInputsPacket,
-  PlayerMotionPacket,
-  IncomingSpawnEntityPacket as SpawnEntityPacket,
-  IncomingTagsChangedPacket as TagsChangedPacket,
   ToClientPacket,
   ToServerPacket,
-  IncomingTransformChangedPacket as TransformChangedPacket,
 } from './packets.js'
 import { getCharacterId, loadScript, spawnPlayer } from './scripting.js'
 
@@ -207,6 +201,41 @@ export const createNetwork = (
   let localPlayer: Player | undefined
   let clientTickNumber = 0
 
+  deferUntilPlayer(player => {
+    player.events.addListener('onMove', (position, velocity, flipped) => {
+      window.sendPacket?.({
+        t: 'PlayerMotion',
+        position: [position.x, position.y],
+        velocity: [velocity.x, velocity.y],
+        flipped,
+        tick_number: clientTickNumber,
+      })
+    })
+
+    player.events.addListener('onInput', ({ walkLeft, walkRight, jump, crouch }) => {
+      window.sendPacket?.({
+        t: 'PlayerInputs',
+        left: walkLeft,
+        right: walkRight,
+        jump,
+        fall_through: crouch,
+        attack: false, // TODO
+        tick_number: clientTickNumber,
+      })
+    })
+
+    // TODO: Character ID change packet
+
+    player.events.addListener('onAnimationChanged', animation => {
+      console.log('hi :3', animation)
+      window.sendPacket?.({ t: 'PlayerAnimationChange', animation })
+    })
+
+    player.events.addListener('onGearChanged', gear => {
+      window.sendPacket?.({ t: 'PlayerGearChange', gear })
+    })
+  })
+
   const clientControl = createClientControlManager(game)
 
   const runPhysicsCatchUp = (tickNumber: number, entityIds: string[]) => {
@@ -289,7 +318,7 @@ export const createNetwork = (
 
             netplayer.setPosition(info.position)
             netplayer.setVelocity(info.velocity)
-            // netplayer.setFlipped(info.flipped)
+            netplayer.setFlipped(info.flipped)
           }
 
           break
@@ -312,7 +341,7 @@ export const createNetwork = (
             if (!netplayer) continue
 
             // TODO: Maybe validate this string
-            // netplayer.setAnimation(info.animation as KnownPlayerAnimation)
+            netplayer.setAnimation(info.animation as KnownAnimation)
           }
 
           break
@@ -477,7 +506,7 @@ export const createNetwork = (
           setProperty(argsTarget, packet.path, packet.value)
 
           entity.onArgsUpdate?.(packet.path, previousArgs)
-          game.events.common.emit('onArgsChanged', entity)
+          game.events.common.emit('onArgsChanged', entity, packet.path, packet.value, true)
 
           break
         }
@@ -672,130 +701,6 @@ export const createNetwork = (
       set.delete(listener)
 
       listeners.set(channel, set)
-    },
-
-    sendPlayerPosition(position, velocity, flipped) {
-      const payload: PlayerMotionPacket = {
-        t: 'PlayerMotion',
-        position: [position.x, position.y],
-        velocity: [velocity.x, velocity.y],
-        flipped,
-        tick_number: clientTickNumber,
-      }
-
-      sendPacket(payload)
-    },
-
-    sendPlayerMotionInputs({ crouch, jump, walkLeft, walkRight, attack }) {
-      const payload: PlayerInputsPacket = {
-        t: 'PlayerInputs',
-        tick_number: clientTickNumber,
-        jump,
-        fall_through: crouch,
-        left: walkLeft,
-        right: walkRight,
-        attack,
-      }
-
-      sendPacket(payload)
-    },
-
-    sendPlayerCharacterId(characterId) {
-      const payload: PlayerCharacterIdChangePacket = {
-        t: 'PlayerCharacterIdChange',
-        character_id: characterId ?? null,
-      }
-
-      sendPacket(payload)
-    },
-
-    sendPlayerAnimation(animation) {
-      const payload: PlayerAnimationChangePacket = {
-        t: 'PlayerAnimationChange',
-        animation,
-      }
-
-      sendPacket(payload)
-    },
-
-    sendPlayerGear(gear) {
-      if (gear === undefined) {
-        const payload: PlayerGearChangePacket = {
-          t: 'PlayerGearChange',
-          gear: null,
-        }
-
-        sendPacket(payload)
-      } else {
-        const { texture: _, ...base } = gear
-        const payload: PlayerGearChangePacket = {
-          t: 'PlayerGearChange',
-          gear: base,
-        }
-
-        sendPacket(payload)
-      }
-    },
-
-    sendEntityCreate(definition) {
-      const payload: SpawnEntityPacket = {
-        t: 'SpawnEntity',
-        definition,
-      }
-
-      sendPacket(payload)
-    },
-
-    sendEntityDestroy(entityID) {
-      const payload: DestroyEntityPacket = {
-        t: 'DestroyEntity',
-        entity_id: entityID,
-      }
-
-      sendPacket(payload)
-    },
-
-    sendTransformUpdate(entityID, transform) {
-      const payload: TransformChangedPacket = {
-        t: 'TransformChanged',
-        entity_id: entityID,
-        position: [transform.position.x, transform.position.y],
-        rotation: transform.rotation,
-        z_index: transform.zIndex,
-      }
-
-      sendPacket(payload)
-    },
-
-    sendArgsUpdate(entityID, path, value) {
-      const payload: ArgsChangedPacket = {
-        t: 'ArgsChanged',
-        entity_id: entityID,
-        path,
-        value,
-      }
-
-      sendPacket(payload)
-    },
-
-    sendLabelUpdate(entityID, label) {
-      const payload: LabelChangedPacket = {
-        t: 'LabelChanged',
-        entity_id: entityID,
-        label,
-      }
-
-      sendPacket(payload)
-    },
-
-    sendTagsUpdate(entityID, tags) {
-      const payload: TagsChangedPacket = {
-        t: 'TagsChanged',
-        entity_id: entityID,
-        tags,
-      }
-
-      sendPacket(payload)
     },
   }
 

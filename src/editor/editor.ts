@@ -1,4 +1,5 @@
-import { Entity } from '@dreamlab.gg/core'
+import type { SpawnableEntity } from '@dreamlab.gg/core'
+import { Entity, isSpawnableEntity } from '@dreamlab.gg/core'
 import { camera, game, inputs } from '@dreamlab.gg/core/labs'
 import { deferUntilPlayer, ref } from '@dreamlab.gg/core/utils'
 import type { ToServerPacket } from '../packets'
@@ -30,6 +31,50 @@ export class Editor extends Entity {
   readonly #selector: Selector
   readonly #navigator: Navigator
 
+  readonly #onTransformChanged = (entity: Entity, noBroadcast?: boolean) => {
+    if (noBroadcast) return
+    if (!isSpawnableEntity(entity)) return
+
+    window.sendPacket?.({
+      t: 'TransformChanged',
+      entity_id: entity.uid,
+      position: [entity.transform.position.x, entity.transform.position.y],
+      rotation: entity.transform.rotation,
+      z_index: entity.transform.zIndex,
+    })
+  }
+
+  readonly #onArgsChanged = (
+    entity: SpawnableEntity,
+    path: string,
+    value: unknown,
+    noBroadcast?: boolean,
+  ) => {
+    if (noBroadcast) return
+    window.sendPacket?.({
+      t: 'ArgsChanged',
+      entity_id: entity.uid,
+      path,
+      value,
+    })
+  }
+
+  readonly #onLabelChanged = (entity: SpawnableEntity, label: string | undefined) => {
+    window.sendPacket?.({
+      t: 'LabelChanged',
+      entity_id: entity.uid,
+      label,
+    })
+  }
+
+  readonly #onTagsChanged = (entity: SpawnableEntity, tags: string[]) => {
+    window.sendPacket?.({
+      t: 'TagsChanged',
+      entity_id: entity.uid,
+      tags,
+    })
+  }
+
   public constructor(sendPacket?: (packet: ToServerPacket) => void, editDetails?: EditDetails) {
     super()
     const $game = game('client', true)
@@ -41,6 +86,11 @@ export class Editor extends Entity {
     $game.instantiate(this.#history)
     $game.instantiate(this.#selector)
     $game.instantiate(this.#navigator)
+
+    $game.events.common.addListener('onTransformChanged', this.#onTransformChanged)
+    $game.events.common.addListener('onArgsChanged', this.#onArgsChanged)
+    $game.events.common.addListener('onLabelChanged', this.#onLabelChanged)
+    $game.events.common.addListener('onTagsChanged', this.#onTagsChanged)
 
     inputs().registerInput(EditorInputs.DeleteEntity, 'Delete Entity', 'Backspace')
     inputs().registerInput(EditorInputs.MoveForewards, 'Move Into Foreground', 'BracketRight')
@@ -80,5 +130,10 @@ export class Editor extends Entity {
     $game.destroy(this.#navigator)
     $game.destroy(this.#selector)
     $game.destroy(this.#history)
+
+    $game.events.common.removeListener('onTransformChanged', this.#onTransformChanged)
+    $game.events.common.removeListener('onArgsChanged', this.#onArgsChanged)
+    $game.events.common.removeListener('onLabelChanged', this.#onLabelChanged)
+    $game.events.common.removeListener('onTagsChanged', this.#onTagsChanged)
   }
 }

@@ -45,7 +45,10 @@ export const Spawnables: React.FC<SpawnablesProps> = ({ selector, navigator, his
           }
 
           game.events.common.addListener('onSpawn', onSpawn)
-          void network.sendEntityCreate(definition)
+          window.sendPacket?.({
+            t: 'SpawnEntity',
+            definition,
+          })
         } else {
           const entity = game.spawn(definition)
           resolve(entity)
