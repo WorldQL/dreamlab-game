@@ -231,7 +231,16 @@ export const createNetwork = (
     })
 
     player.events.addListener('onGearChanged', gear => {
-      window.sendPacket?.({ t: 'PlayerGearChange', gear })
+      // Serialize the gear object to exclude the texture property
+      const serializedGear = {
+        displayName: gear?.displayName,
+        animationName: gear?.animationName,
+        anchor: gear?.anchor,
+        rotation: gear?.rotation,
+        bone: gear?.bone,
+        speedMultiplier: gear?.speedMultiplier,
+      }
+      window.sendPacket?.({ t: 'PlayerGearChange', gear: serializedGear })
     })
   })
 
