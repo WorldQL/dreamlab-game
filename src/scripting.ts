@@ -45,7 +45,7 @@ export const loadLevel = async (
 
   if ('level' in module && Array.isArray(module.level)) {
     const level = LevelSchema.parse(module.level)
-    await game.spawnMany(...level)
+    game.spawnMany(...level)
   }
 }
 

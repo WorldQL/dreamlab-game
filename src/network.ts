@@ -227,7 +227,6 @@ export const createNetwork = (
     // TODO: Character ID change packet
 
     player.events.addListener('onAnimationChanged', animation => {
-      console.log('hi :3', animation)
       window.sendPacket?.({ t: 'PlayerAnimationChange', animation })
     })
 
