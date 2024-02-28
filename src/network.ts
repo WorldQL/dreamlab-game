@@ -212,14 +212,14 @@ export const createNetwork = (
       })
     })
 
-    player.events.addListener('onInput', ({ walkLeft, walkRight, jump, crouch }) => {
+    player.events.addListener('onInput', ({ walkLeft, walkRight, jump, crouch, attack }) => {
       window.sendPacket?.({
         t: 'PlayerInputs',
         left: walkLeft,
         right: walkRight,
         jump,
         fall_through: crouch,
-        attack: false, // TODO
+        attack,
         tick_number: clientTickNumber,
       })
     })
