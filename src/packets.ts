@@ -58,9 +58,7 @@ export const PlayerMotionInfoSchema = z.object({
   flipped: z.boolean(),
 })
 
-export type PlayerMotionSnapshotPacket = z.infer<
-  typeof PlayerMotionSnapshotSchema
->
+export type PlayerMotionSnapshotPacket = z.infer<typeof PlayerMotionSnapshotSchema>
 export const PlayerMotionSnapshotSchema = z.object({
   t: z.literal('PlayerMotionSnapshot'),
 
@@ -73,9 +71,7 @@ export const PlayerCharacterIdInfoSchema = z.object({
   character_id: z.string().nullable(),
 })
 
-export type PlayerCharacterIdSnapshotPacket = z.infer<
-  typeof PlayerCharacterIdSnapshotSchema
->
+export type PlayerCharacterIdSnapshotPacket = z.infer<typeof PlayerCharacterIdSnapshotSchema>
 export const PlayerCharacterIdSnapshotSchema = z.object({
   t: z.literal('PlayerCharacterIdSnapshot'),
 
@@ -88,9 +84,7 @@ export const PlayerAnimationInfoSchema = z.object({
   animation: z.string(),
 })
 
-export type PlayerAnimationSnapshotPacket = z.infer<
-  typeof PlayerAnimationSnapshotSchema
->
+export type PlayerAnimationSnapshotPacket = z.infer<typeof PlayerAnimationSnapshotSchema>
 export const PlayerAnimationSnapshotSchema = z.object({
   t: z.literal('PlayerAnimationSnapshot'),
 
@@ -149,18 +143,14 @@ export const PlayerInputsPacketSchema = z.object({
   attack: z.boolean(),
 })
 
-export type PlayerCharacterIdChangePacket = z.infer<
-  typeof PlayerCharacterIdChangeSchema
->
+export type PlayerCharacterIdChangePacket = z.infer<typeof PlayerCharacterIdChangeSchema>
 export const PlayerCharacterIdChangeSchema = z.object({
   t: z.literal('PlayerCharacterIdChange'),
 
   character_id: z.string().nullable(),
 })
 
-export type PlayerAnimationChangePacket = z.infer<
-  typeof PlayerAnimationChangeSchema
->
+export type PlayerAnimationChangePacket = z.infer<typeof PlayerAnimationChangeSchema>
 export const PlayerAnimationChangeSchema = z.object({
   t: z.literal('PlayerAnimationChange'),
 
@@ -190,9 +180,7 @@ export const EntitySnapshotSchema = z.object({
   bodyInfo: BodyInfoSchema.array(),
 })
 
-export type PhysicsFullSnapshotPacket = z.infer<
-  typeof PhysicsFullSnapshotSchema
->
+export type PhysicsFullSnapshotPacket = z.infer<typeof PhysicsFullSnapshotSchema>
 export const PhysicsFullSnapshotSchema = z.object({
   t: z.literal('PhysicsFullSnapshot'),
   lastClientTickNumber: z.number(),
@@ -203,9 +191,7 @@ export const PhysicsFullSnapshotSchema = z.object({
   }),
 })
 
-export type PhysicsDeltaSnapshotPacket = z.infer<
-  typeof PhysicsFullSnapshotSchema
->
+export type PhysicsDeltaSnapshotPacket = z.infer<typeof PhysicsFullSnapshotSchema>
 export const PhysicsDeltaSnapshotSchema = z.object({
   t: z.literal('PhysicsDeltaSnapshot'),
   lastClientTickNumber: z.number(),
@@ -218,18 +204,14 @@ export const PhysicsDeltaSnapshotSchema = z.object({
   }),
 })
 
-export type PhysicsGrantObjectControlPacket = z.infer<
-  typeof PhysicsGrantObjectControlSchema
->
+export type PhysicsGrantObjectControlPacket = z.infer<typeof PhysicsGrantObjectControlSchema>
 export const PhysicsGrantObjectControlSchema = z.object({
   t: z.literal('PhysicsGrantObjectControl'),
   entity_id: z.string(),
   expiry_tick: z.number(),
 })
 
-export type PhysicsRevokeObjectControlPacket = z.infer<
-  typeof PhysicsRevokeObjectControlSchema
->
+export type PhysicsRevokeObjectControlPacket = z.infer<typeof PhysicsRevokeObjectControlSchema>
 export const PhysicsRevokeObjectControlSchema = z.object({
   t: z.literal('PhysicsRevokeObjectControl'),
   entity_id: z.string(),
@@ -243,25 +225,19 @@ export const UpdateSyncedValueSchema = z.object({
   value: z.unknown(),
 })
 
-export type IncomingSpawnEntityPacket = z.infer<
-  typeof IncomingSpawnEntitySchema
->
+export type IncomingSpawnEntityPacket = z.infer<typeof IncomingSpawnEntitySchema>
 export const IncomingSpawnEntitySchema = z.object({
   t: z.literal('SpawnEntity'),
   definition: z.unknown(),
 })
 
-export type IncomingDestroyEntityPacket = z.infer<
-  typeof IncomingDestroyEntitySchema
->
+export type IncomingDestroyEntityPacket = z.infer<typeof IncomingDestroyEntitySchema>
 export const IncomingDestroyEntitySchema = z.object({
   t: z.literal('DestroyEntity'),
   entity_id: z.string(),
 })
 
-export type IncomingTransformChangedPacket = z.infer<
-  typeof IncomingTransformChangedSchema
->
+export type IncomingTransformChangedPacket = z.infer<typeof IncomingTransformChangedSchema>
 export const IncomingTransformChangedSchema = z.object({
   t: z.literal('TransformChanged'),
 
@@ -271,9 +247,7 @@ export const IncomingTransformChangedSchema = z.object({
   z_index: z.number(),
 })
 
-export type IncomingArgsChangedPacket = z.infer<
-  typeof IncomingArgsChangedSchema
->
+export type IncomingArgsChangedPacket = z.infer<typeof IncomingArgsChangedSchema>
 export const IncomingArgsChangedSchema = z.object({
   t: z.literal('ArgsChanged'),
 
@@ -282,9 +256,7 @@ export const IncomingArgsChangedSchema = z.object({
   value: z.unknown(),
 })
 
-export type IncomingLabelChangedPacket = z.infer<
-  typeof IncomingLabelChangedSchema
->
+export type IncomingLabelChangedPacket = z.infer<typeof IncomingLabelChangedSchema>
 export const IncomingLabelChangedSchema = z.object({
   t: z.literal('LabelChanged'),
 
@@ -292,9 +264,7 @@ export const IncomingLabelChangedSchema = z.object({
   label: z.string().optional(),
 })
 
-export type IncomingTagsChangedPacket = z.infer<
-  typeof IncomingTagsChangedSchema
->
+export type IncomingTagsChangedPacket = z.infer<typeof IncomingTagsChangedSchema>
 export const IncomingTagsChangedSchema = z.object({
   t: z.literal('TagsChanged'),
 
@@ -302,9 +272,7 @@ export const IncomingTagsChangedSchema = z.object({
   tags: z.string().array(),
 })
 
-export type IncomingPhysicsSuspendResumePacket = z.infer<
-  typeof IncomingPhysicsSuspendResumeSchema
->
+export type IncomingPhysicsSuspendResumePacket = z.infer<typeof IncomingPhysicsSuspendResumeSchema>
 export const IncomingPhysicsSuspendResumeSchema = z.object({
   t: z.literal('PhysicsSuspendResume'),
 
@@ -312,58 +280,42 @@ export const IncomingPhysicsSuspendResumeSchema = z.object({
   action: z.enum(['suspend', 'resume']),
 })
 
-export type OutgoingSpawnEntityPacket = z.infer<
-  typeof OutgoingSpawnEntitySchema
->
+export type OutgoingSpawnEntityPacket = z.infer<typeof OutgoingSpawnEntitySchema>
 export const OutgoingSpawnEntitySchema = IncomingSpawnEntitySchema.extend({
   peer_id: z.string(),
 })
 
-export type OutgoingDestroyEntityPacket = z.infer<
-  typeof OutgoingDestroyEntitySchema
->
+export type OutgoingDestroyEntityPacket = z.infer<typeof OutgoingDestroyEntitySchema>
 export const OutgoingDestroyEntitySchema = IncomingDestroyEntitySchema.extend({
   peer_id: z.string(),
 })
 
-export type OutgoingTransformChangedPacket = z.infer<
-  typeof OutgoingTransformChangedSchema
->
-export const OutgoingTransformChangedSchema =
-  IncomingTransformChangedSchema.extend({ peer_id: z.string() })
+export type OutgoingTransformChangedPacket = z.infer<typeof OutgoingTransformChangedSchema>
+export const OutgoingTransformChangedSchema = IncomingTransformChangedSchema.extend({
+  peer_id: z.string(),
+})
 
-export type OutgoingArgsChangedPacket = z.infer<
-  typeof OutgoingArgsChangedSchema
->
+export type OutgoingArgsChangedPacket = z.infer<typeof OutgoingArgsChangedSchema>
 export const OutgoingArgsChangedSchema = IncomingArgsChangedSchema.extend({
   peer_id: z.string(),
 })
 
-export type OutgoingLabelChangedPacket = z.infer<
-  typeof OutgoingLabelChangedSchema
->
+export type OutgoingLabelChangedPacket = z.infer<typeof OutgoingLabelChangedSchema>
 export const OutgoingLabelChangedSchema = IncomingLabelChangedSchema.extend({
   peer_id: z.string(),
 })
 
-export type OutgoingTagsChangedPacket = z.infer<
-  typeof OutgoingTagsChangedSchema
->
+export type OutgoingTagsChangedPacket = z.infer<typeof OutgoingTagsChangedSchema>
 export const OutgoingTagsChangedSchema = IncomingTagsChangedSchema.extend({
   peer_id: z.string(),
 })
 
-export type OutgoingPhysicsSuspendResumePacket = z.infer<
-  typeof OutgoingPhysicsSuspendResumeSchema
->
-export const OutgoingPhysicsSuspendResumeSchema =
-  IncomingPhysicsSuspendResumeSchema.extend({
-    peer_id: z.string(),
-  })
+export type OutgoingPhysicsSuspendResumePacket = z.infer<typeof OutgoingPhysicsSuspendResumeSchema>
+export const OutgoingPhysicsSuspendResumeSchema = IncomingPhysicsSuspendResumeSchema.extend({
+  peer_id: z.string(),
+})
 
-export type PhysicsRequestObjectControlPacket = z.infer<
-  typeof OutgoingPhysicsSuspendResumeSchema
->
+export type PhysicsRequestObjectControlPacket = z.infer<typeof OutgoingPhysicsSuspendResumeSchema>
 export const PhysicsRequestObjectControlSchema = z.object({
   t: z.literal('PhysicsRequestObjectControl'),
 
@@ -379,9 +331,7 @@ export const PhysicsControlledObjectsSnapshotSchema = z.object({
   snapshot: z.unknown(),
 })
 
-export type RequestFullSnapshotPacket = z.infer<
-  typeof RequestFullSnapshotSchema
->
+export type RequestFullSnapshotPacket = z.infer<typeof RequestFullSnapshotSchema>
 export const RequestFullSnapshotSchema = z.object({
   t: z.literal('RequestFullSnapshot'),
   // TODO

@@ -4,11 +4,7 @@ import type { InputCode } from '@dreamlab.gg/core/input'
 
 const storageKey = (key: InputCode): string => `@dreamlab/Input/${key}`
 
-export const bindInput = (
-  game: Game<false>,
-  key: InputCode,
-  input: string | undefined,
-): void => {
+export const bindInput = (game: Game<false>, key: InputCode, input: string | undefined): void => {
   const inputs = game.client.inputs
   inputs.bindInput(key, input)
 

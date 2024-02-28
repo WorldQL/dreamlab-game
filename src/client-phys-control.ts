@@ -9,9 +9,7 @@ export interface ClientControlManager {
 }
 
 // Shortcut for physics netcode feel until we get nice server-authoritative replication working
-export function createClientControlManager(
-  game: Game<false>,
-): ClientControlManager {
+export function createClientControlManager(game: Game<false>): ClientControlManager {
   const controlledEntities = new Map<string, { expiry: number }>()
 
   return {
@@ -45,8 +43,7 @@ export function createClientControlManager(
         if (entity === undefined) continue
 
         // forget about control after 4000ms
-        if (clientTickNumber > controlInfo.expiry + 240)
-          controlledEntities.delete(entityId)
+        if (clientTickNumber > controlInfo.expiry + 240) controlledEntities.delete(entityId)
 
         if (clientTickNumber > controlInfo.expiry) continue
 

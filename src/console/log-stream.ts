@@ -6,10 +6,7 @@ export interface LogStreamingClient {
   removeListener(listener: LogListener): void
 }
 
-export const createLogStreamingClient = (
-  server: string,
-  instance: string,
-): LogStreamingClient => {
+export const createLogStreamingClient = (server: string, instance: string): LogStreamingClient => {
   const listeners: LogListener[] = []
   const history: [Date, string][] = []
 
