@@ -249,7 +249,13 @@ export const Assets: React.FC<AssetsProps> = ({ nextAPIBaseURL, jwt }) => {
       </div>
       <AssetList>
         {assets.map(asset => (
-          <AssetItem draggable key={asset.id}>
+          <AssetItem
+            draggable
+            key={asset.id}
+            onDragStart={event => {
+              event.dataTransfer.setData('text/plain', asset.imageURL)
+            }}
+          >
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
               {' '}
               <ImagePreview alt={asset.name} crossOrigin='anonymous' src={asset.imageURL} />
