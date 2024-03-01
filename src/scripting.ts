@@ -17,15 +17,15 @@ export const loadScript = async (
 ): Promise<void> => {
   const module: unknown =
     baseURL === undefined
-      ? await import(/* @vite-ignore */ `/worlds/${world}/client.js`)
-      : await import(/* @vite-ignore */ `${baseURL}/client.js`)
+      ? await import(/* @vite-ignore */ `/worlds/${world}/client.bundled.js`)
+      : await import(/* @vite-ignore */ `${baseURL}/client.bundled.js`)
 
   if (module === undefined) return
   if (module === null) return
   if (typeof module !== 'object') return
 
   if ('init' in module && typeof module.init === 'function') {
-    await module.init(game)
+    void module.init(game)
   }
 }
 
