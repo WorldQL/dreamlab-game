@@ -434,4 +434,5 @@ export const ToServerPacketSchema = z.discriminatedUnion('t', [
   PhysicsRequestObjectControlSchema,
   PhysicsControlledObjectsSnapshotSchema,
   RequestFullSnapshotSchema,
+  UpdateSyncedValueSchema,
 ])

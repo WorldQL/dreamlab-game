@@ -28,6 +28,7 @@ import type {
   HandshakeReadyPacket,
   ToClientPacket,
   ToServerPacket,
+  UpdateSyncedValuePacket,
 } from './packets.js'
 import { getCharacterId, loadScript, spawnPlayer } from './scripting.js'
 
@@ -696,6 +697,17 @@ export const createNetwork = (
         t: 'CustomMessage',
         channel,
         data,
+      }
+
+      sendPacket(payload)
+    },
+
+    updateSyncedValue(entityID, key, value) {
+      const payload: UpdateSyncedValuePacket = {
+        t: 'UpdateSyncedValue',
+        entity_id: entityID,
+        key,
+        value,
       }
 
       sendPacket(payload)
