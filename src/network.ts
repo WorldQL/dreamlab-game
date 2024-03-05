@@ -226,6 +226,10 @@ export const createNetwork = (
 
     // TODO: Character ID change packet
 
+    player.events.addListener('onCharacterIdChange', characterId => {
+      window.sendPacket?.({ t: 'PlayerCharacterIdChange', character_id: characterId ?? null })
+    })
+
     player.events.addListener('onAnimationChanged', animation => {
       window.sendPacket?.({ t: 'PlayerAnimationChange', animation })
     })
