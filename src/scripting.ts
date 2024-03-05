@@ -25,7 +25,7 @@ export const loadScript = async (
   if (typeof module !== 'object') return
 
   if ('init' in module && typeof module.init === 'function') {
-    void module.init(game)
+    await module.init(game)
   }
 }
 
