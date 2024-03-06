@@ -17,8 +17,8 @@ export const loadScript = async (
 ): Promise<void> => {
   const module: unknown =
     baseURL === undefined
-      ? await import(/* @vite-ignore */ `/worlds/${world}/client.js`)
-      : await import(/* @vite-ignore */ `${baseURL}/client.js`)
+      ? await import(/* @vite-ignore */ `/worlds/${world}/client.bundled.js`)
+      : await import(/* @vite-ignore */ `${baseURL}/client.bundled.js`)
 
   if (module === undefined) return
   if (module === null) return
