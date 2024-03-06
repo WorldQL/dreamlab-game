@@ -65,11 +65,11 @@ const packageJson = async (pkg, linkRoot) => {
  * @param {string} pkg - Package Name
  * @param {string} [linkRoot] - npm link root
  */
-const esmLink = async (pkg, linkRoot) => {
+const esmLink = async (pkg, linkRoot, { pin = 'v132', exports = '' } = {}) => {
   const { version } = await packageJson(pkg, linkRoot)
   if (!version) throw new Error(`unknown version for package: ${pkg}`)
 
-  return `https://esm.sh/v135/${pkg}@${version}`
+  return `https://esm.sh/${pkg}@${version}${exports}?pin=${pin}`
 }
 // #endregion
 
@@ -83,18 +83,17 @@ const importMapPlugin = () => ({
     const pixi = 'pixi.js'
 
     const [corePkg, uiPkg, matterPkg, pixiPkg] = await Promise.all([
-      esmLink(core),
+      esmLink(core, undefined, { exports: '/dist/bundled' }),
       esmLink(ui),
       esmLink(matter, core),
       esmLink(pixi, core),
     ])
 
-    const coreBundled = `${corePkg}/dist/bundled`
     const map = {
       imports: {
         [matter]: matterPkg,
         [pixi]: pixiPkg,
-        [core]: coreBundled,
+        [core]: corePkg,
         [ui]: uiPkg,
       },
     }
@@ -104,7 +103,6 @@ const importMapPlugin = () => ({
       `${core}/modules.json`,
       import.meta.url,
     )
-
     const coreModulesJson = await readFile(
       fileURLToPath(coreModulesPath),
       'utf8',
@@ -112,8 +110,8 @@ const importMapPlugin = () => ({
 
     const coreModules = JSON.parse(coreModulesJson)
     for (const module of coreModules) {
-      map.imports[`${core}/${module}`] = coreBundled
-      map.imports[`${core}/dist/${module}`] = coreBundled
+      map.imports[`${core}/${module}`] = corePkg
+      map.imports[`${core}/dist/${module}`] = corePkg
     }
     //#endregion
 
@@ -123,7 +121,11 @@ const importMapPlugin = () => ({
 
     const uiModules = JSON.parse(uiModulesJson)
     for (const module of uiModules) {
-      const url = `${uiPkg}/dist/${module}?external=${core}`
+      const moduleURL = new URL(uiPkg)
+      moduleURL.pathname += `/dist/${module}`
+      moduleURL.searchParams.append('external', core)
+      const url = moduleURL.toString()
+
       map.imports[`${ui}/${module}`] = url
       map.imports[`${ui}/dist/${module}`] = url
     }
