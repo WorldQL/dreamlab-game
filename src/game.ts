@@ -11,7 +11,6 @@ import {
   setReloadCount,
 } from './network.js'
 import { loadLevel, loadScript, spawnPlayer } from './scripting.js'
-import { createConsole } from './console/console.js'
 
 export const init = async () => {
   // #region Setup
@@ -91,8 +90,8 @@ export const init = async () => {
       sendPacket({ t: 'RequestFullSnapshot' })
     })
 
-    const serverLog = createConsole(params!.server, params!.instance)
-    await game.instantiate(serverLog)
+    // const serverLog = createConsole(params!.server, params!.instance)
+    // await game.instantiate(serverLog)
   } else {
     if (import.meta.env.DEV) {
       const url = new URL(window.location.href)
