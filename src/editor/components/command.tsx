@@ -1,12 +1,8 @@
 import { base58 } from '@scure/base'
 import copy from 'copy-to-clipboard'
-import {
-  useCallback,
-  useMemo,
-  useState,
-} from 'https://esm.sh/v135/react@18.2.0'
-import type { FC } from 'https://esm.sh/v135/react@18.2.0'
-import { styled } from 'https://esm.sh/v135/styled-components@6.1.8'
+import { useCallback, useMemo, useState } from 'https://esm.sh/react@18.2.0'
+import type { FC } from 'https://esm.sh/react@18.2.0'
+import { styled } from 'https://esm.sh/styled-components@6.1.8?pin=v135'
 import type { EditDetails } from '../editor'
 import { Card } from './ui/card'
 
@@ -49,9 +45,7 @@ const encodeBlob = (baseUrl: string, editToken: string) => {
   const encodedBaseUrl = new TextEncoder().encode(baseUrl)
   const encodedEditToken = new TextEncoder().encode(editToken)
 
-  const array = new Uint8Array(
-    4 + encodedBaseUrl.length + encodedEditToken.length,
-  )
+  const array = new Uint8Array(4 + encodedBaseUrl.length + encodedEditToken.length)
   const view = new DataView(array.buffer, array.byteOffset, array.byteLength)
   view.setInt16(0, encodedBaseUrl.byteLength)
   array.set(encodedBaseUrl, 2)
@@ -83,9 +77,7 @@ export const CLICommand: FC<Props> = ({ details }) => {
     <Container>
       <Card>
         <Text>
-          {copied
-            ? 'Command copied! Paste it in your terminal.'
-            : 'Attach VS Code (copy command)'}
+          {copied ? 'Command copied! Paste it in your terminal.' : 'Attach VS Code (copy command)'}
         </Text>
         <Copy onClick={onClick}>
           <svg

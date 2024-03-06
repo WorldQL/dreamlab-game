@@ -11,10 +11,7 @@ type HandleArgSave = (key: string, value?: { _v: unknown }) => void
 type RenderInputFunctionType = (
   key: string,
   value: any | number | string,
-  handleArgChange: (
-    key: string,
-    newValue: any | boolean | number | string,
-  ) => void,
+  handleArgChange: (key: string, newValue: any | boolean | number | string) => void,
   handleArgSave: HandleArgSave,
   argsInputRefs: React.MutableRefObject<{
     [key: string]: HTMLInputElement | null
@@ -263,13 +260,7 @@ export const renderInputForZodSchema: RenderInputForZodSchemaFunctionType = (
   switch (zodTypeDef.typeName) {
     case 'ZodLiteral':
     case 'ZodString':
-      return renderStringInput(
-        key,
-        value,
-        handleArgChange,
-        handleArgSave,
-        argsInputRefs,
-      )
+      return renderStringInput(key, value, handleArgChange, handleArgSave, argsInputRefs)
     case 'ZodArray': {
       const arraySchema = unwrappedSchema as z.ZodArray<z.ZodTypeAny>
 
@@ -309,9 +300,7 @@ export const renderInputForZodSchema: RenderInputForZodSchemaFunctionType = (
                     marginBottom: '5px',
                   }}
                 >
-                  <span style={{ marginRight: '10px' }}>{`Item ${
-                    index + 1
-                  }`}</span>
+                  <span style={{ marginRight: '10px' }}>{`Item ${index + 1}`}</span>
                   <button
                     onClick={() => handleRemoveItem(index)}
                     style={{
@@ -347,11 +336,7 @@ export const renderInputForZodSchema: RenderInputForZodSchemaFunctionType = (
                 )}
               </div>
             ))}
-          <button
-            onClick={handleAddItem}
-            style={{ marginTop: '5px' }}
-            type='button'
-          >
+          <button onClick={handleAddItem} style={{ marginTop: '5px' }} type='button'>
             Add Item
           </button>
         </div>
@@ -362,9 +347,7 @@ export const renderInputForZodSchema: RenderInputForZodSchemaFunctionType = (
       const recordSchema = unwrappedSchema as z.ZodRecord<z.ZodTypeAny>
 
       if (!value || typeof value !== 'object') {
-        console.error(
-          `Invalid or undefined record value detected for key: ${key}`,
-        )
+        console.error(`Invalid or undefined record value detected for key: ${key}`)
         return <p>Invalid Value</p>
       }
 
@@ -398,29 +381,11 @@ export const renderInputForZodSchema: RenderInputForZodSchemaFunctionType = (
     }
 
     case 'ZodBoolean':
-      return renderBooleanCheckbox(
-        key,
-        value,
-        handleArgChange,
-        handleArgSave,
-        argsInputRefs,
-      )
+      return renderBooleanCheckbox(key, value, handleArgChange, handleArgSave, argsInputRefs)
     case 'ZodNumber':
-      return renderNumberInput(
-        key,
-        value,
-        handleArgChange,
-        handleArgSave,
-        argsInputRefs,
-      )
+      return renderNumberInput(key, value, handleArgChange, handleArgSave, argsInputRefs)
     case 'ZodEnum':
-      return renderEnumSelect(
-        key,
-        value,
-        unwrappedSchema,
-        handleArgChange,
-        handleArgSave,
-      )
+      return renderEnumSelect(key, value, unwrappedSchema, handleArgChange, handleArgSave)
     case 'ZodUnion':
       return unwrappedSchema.options.map((unionType: unknown) =>
         renderInputForZodSchema(
@@ -469,9 +434,7 @@ export const renderInputForZodSchema: RenderInputForZodSchemaFunctionType = (
             : schema
 
       if (!objectSchema?.shape) {
-        console.error(
-          `Invalid or undefined object schema detected for key: ${key}`,
-        )
+        console.error(`Invalid or undefined object schema detected for key: ${key}`)
         return <p>Invalid Schema</p>
       }
 
@@ -484,9 +447,7 @@ export const renderInputForZodSchema: RenderInputForZodSchemaFunctionType = (
           {Object.keys(objectSchema.shape).map(propertyKey => {
             const propertySchema = objectSchema.shape[propertyKey]
             const propertyValue =
-              typeof value === 'object' && value
-                ? value[propertyKey]
-                : undefined
+              typeof value === 'object' && value ? value[propertyKey] : undefined
             return (
               <div
                 key={`${key}.${propertyKey}`}

@@ -4,4 +4,5 @@ export default {
   singleQuote: true,
   jsxSingleQuote: true,
   arrowParens: 'avoid',
+  printWidth: 100,
 }

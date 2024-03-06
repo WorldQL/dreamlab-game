@@ -1,16 +1,8 @@
 /* eslint-disable unicorn/prefer-string-replace-all */
 import axios from 'axios'
-import {
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from 'https://esm.sh/v135/react@18.2.0'
-import type {
-  ChangeEventHandler,
-  DragEventHandler,
-} from 'https://esm.sh/v135/react@18.2.0'
-import { styled } from 'https://esm.sh/v135/styled-components@6.1.8'
+import { useCallback, useEffect, useRef, useState } from 'https://esm.sh/react@18.2.0'
+import type { ChangeEventHandler, DragEventHandler } from 'https://esm.sh/react@18.2.0'
+import { styled } from 'https://esm.sh/styled-components@6.1.8?pin=v135'
 import { DeleteButton, LinkButton } from '../ui/buttons'
 
 const AssetUploader = styled.div`
@@ -208,9 +200,7 @@ export const Assets: React.FC<AssetsProps> = ({ nextAPIBaseURL, jwt }) => {
 
   const confirmDeleteImage = async (name: string, id: string) => {
     // eslint-disable-next-line no-alert
-    const reply = confirm(
-      `Delete "${name}"? Make sure it's not used by any objects in your game.`,
-    )
+    const reply = confirm(`Delete "${name}"? Make sure it's not used by any objects in your game.`)
     if (reply) {
       const requestURL = nextAPIBaseURL + '/api/gameclient/deleteImage'
       const response = await axios.post(
@@ -259,10 +249,16 @@ export const Assets: React.FC<AssetsProps> = ({ nextAPIBaseURL, jwt }) => {
       </div>
       <AssetList>
         {assets.map(asset => (
-          <AssetItem draggable key={asset.id}>
+          <AssetItem
+            draggable
+            key={asset.id}
+            onDragStart={event => {
+              event.dataTransfer.setData('text/plain', asset.imageURL)
+            }}
+          >
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
               {' '}
-              <ImagePreview alt={asset.name} src={asset.imageURL} />
+              <ImagePreview alt={asset.name} crossOrigin='anonymous' src={asset.imageURL} />
               {editingId === asset.id ? (
                 <input
                   autoFocus
@@ -283,15 +279,11 @@ export const Assets: React.FC<AssetsProps> = ({ nextAPIBaseURL, jwt }) => {
                     setNewName(asset.name.replace('.png', ''))
                   }}
                 >
-                  {asset.name.length > 16
-                    ? `${asset.name.slice(0, 16)}...`
-                    : asset.name}
+                  {asset.name.length > 16 ? `${asset.name.slice(0, 16)}...` : asset.name}
                 </div>
               )}
             </div>
-            <DeleteButton
-              onClick={async () => confirmDeleteImage(asset.name, asset.id)}
-            >
+            <DeleteButton onClick={async () => confirmDeleteImage(asset.name, asset.id)}>
               <svg
                 className='w-6 h-6'
                 fill='currentColor'

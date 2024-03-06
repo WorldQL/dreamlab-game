@@ -1,5 +1,5 @@
 import type { Game } from '@dreamlab.gg/core'
-import { createPlayer } from '@dreamlab.gg/core/entities'
+import { Player } from '@dreamlab.gg/core/entities'
 import type { Vector } from '@dreamlab.gg/core/math'
 import { LevelSchema } from '@dreamlab.gg/core/sdk'
 
@@ -17,8 +17,8 @@ export const loadScript = async (
 ): Promise<void> => {
   const module: unknown =
     baseURL === undefined
-      ? await import(/* @vite-ignore */ `/worlds/${world}/client.js`)
-      : await import(/* @vite-ignore */ `${baseURL}/client.js`)
+      ? await import(/* @vite-ignore */ `/worlds/${world}/client.bundled.js`)
+      : await import(/* @vite-ignore */ `${baseURL}/client.bundled.js`)
 
   if (module === undefined) return
   if (module === null) return
@@ -45,17 +45,17 @@ export const loadLevel = async (
 
   if ('level' in module && Array.isArray(module.level)) {
     const level = LevelSchema.parse(module.level)
-    await game.spawnMany(...level)
+    game.spawnMany(...level)
   }
 }
 
 export const spawnPlayer = async (game: Game<false>, position?: Vector) => {
   const characterId = getCharacterId()
-  const player = await createPlayer(characterId)
-  await game.instantiate(player)
+  const player = new Player(characterId)
+  game.instantiate(player)
 
   if (position) player.teleport(position, true)
-  game.client.render.camera.setTarget(player)
+  game.client.render.camera.target = player
 
   return player
 }

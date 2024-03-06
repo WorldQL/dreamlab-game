@@ -1,10 +1,12 @@
-import { createEntity } from '@dreamlab.gg/core'
+import type { SpawnableEntity } from '@dreamlab.gg/core'
+import { Entity, isSpawnableEntity } from '@dreamlab.gg/core'
+import { camera, game, inputs } from '@dreamlab.gg/core/labs'
 import { deferUntilPlayer, ref } from '@dreamlab.gg/core/utils'
 import type { ToServerPacket } from '../packets'
-import type { Action } from './components/history'
 import { renderUI } from './components/ui'
-import { createNavigator } from './entities/navigator'
-import { createEntitySelect } from './entities/select'
+import { History } from './entities/history'
+import { Navigator } from './entities/navigator'
+import { Selector } from './entities/select'
 
 export const LOCKED_TAG = 'editor/locked'
 
@@ -22,98 +24,116 @@ export interface EditDetails {
   readonly instance: string
 }
 
-export const createEditor = (
-  sendPacket?: (packet: ToServerPacket) => void,
-  editDetails?: EditDetails,
-) => {
-  const enabled = ref<boolean>(false)
-  const actionHistory = { value: [] as Action[] }
+export class Editor extends Entity {
+  #enabled = ref<boolean>(false)
 
-  const history = {
-    record: (action: Action) => {
-      actionHistory.value.push(action)
-    },
-    undo: () => actionHistory.value.pop(),
-    getActions: () => actionHistory.value,
+  readonly #history: History
+  readonly #selector: Selector
+  readonly #navigator: Navigator
+
+  readonly #onTransformChanged = (entity: Entity, noBroadcast?: boolean) => {
+    if (noBroadcast) return
+    if (!isSpawnableEntity(entity)) return
+
+    window.sendPacket?.({
+      t: 'TransformChanged',
+      entity_id: entity.uid,
+      position: [entity.transform.position.x, entity.transform.position.y],
+      rotation: entity.transform.rotation,
+      z_index: entity.transform.zIndex,
+    })
   }
 
-  const selector = createEntitySelect(enabled, history, sendPacket)
-  const navigator = createNavigator(enabled, selector)
+  readonly #onArgsChanged = (
+    entity: SpawnableEntity,
+    path: string,
+    value: unknown,
+    noBroadcast?: boolean,
+  ) => {
+    if (noBroadcast) return
+    window.sendPacket?.({
+      t: 'ArgsChanged',
+      entity_id: entity.uid,
+      path,
+      value,
+    })
+  }
 
-  return createEntity({
-    async init({ game }) {
-      await game.instantiate(selector)
-      await game.instantiate(navigator)
+  readonly #onLabelChanged = (entity: SpawnableEntity, label: string | undefined) => {
+    window.sendPacket?.({
+      t: 'LabelChanged',
+      entity_id: entity.uid,
+      label,
+    })
+  }
 
-      const inputs = game.client?.inputs
-      inputs?.registerInput(
-        EditorInputs.DeleteEntity,
-        'Delete Entity',
-        'Backspace',
-      )
+  readonly #onTagsChanged = (entity: SpawnableEntity, tags: string[]) => {
+    window.sendPacket?.({
+      t: 'TagsChanged',
+      entity_id: entity.uid,
+      tags,
+    })
+  }
 
-      inputs?.registerInput(
-        EditorInputs.MoveForewards,
-        'Move Into Foreground',
-        'BracketRight',
-      )
-      inputs?.registerInput(
-        EditorInputs.MoveBackwards,
-        'Move Into Background',
-        'BracketLeft',
-      )
+  public constructor(sendPacket?: (packet: ToServerPacket) => void, editDetails?: EditDetails) {
+    super()
+    const $game = game('client', true)
 
-      inputs?.registerInput(
-        EditorInputs.ToggleTiling,
-        'Toggle Sprite Tiling',
-        'Backslash',
-      )
+    this.#history = new History()
+    this.#selector = new Selector(this.#enabled, this.#history, sendPacket)
+    this.#navigator = new Navigator(this.#enabled, this.#selector)
 
-      deferUntilPlayer(game, player => {
-        player.events.addListener('onToggleNoclip', noclip => {
-          enabled.value = noclip
-          if (noclip) {
-            game.client?.render.camera.setSmoothing(0.02)
-            navigator.setPosition(player.position)
-          } else {
-            player.teleport(navigator.position)
-            game.client?.render.camera.setTarget(player)
-            game.client?.render.camera.setSmoothing(0.125)
-            inputs?.enable('mouse', 'editor')
-            selector.deselect()
-            game.client?.inputs.setKey('MouseLeft', false)
-          }
-        })
+    $game.instantiate(this.#history)
+    $game.instantiate(this.#selector)
+    $game.instantiate(this.#navigator)
+
+    $game.events.common.addListener('onTransformChanged', this.#onTransformChanged)
+    $game.events.common.addListener('onArgsChanged', this.#onArgsChanged)
+    $game.events.common.addListener('onLabelChanged', this.#onLabelChanged)
+    $game.events.common.addListener('onTagsChanged', this.#onTagsChanged)
+
+    inputs().registerInput(EditorInputs.DeleteEntity, 'Delete Entity', 'Backspace')
+    inputs().registerInput(EditorInputs.MoveForewards, 'Move Into Foreground', 'BracketRight')
+    inputs().registerInput(EditorInputs.MoveBackwards, 'Move Into Background', 'BracketLeft')
+    inputs().registerInput(EditorInputs.ToggleTiling, 'Toggle Sprite Tiling', 'Backslash')
+
+    deferUntilPlayer(player => {
+      player.events.addListener('onToggleNoclip', noclip => {
+        this.#enabled.value = noclip
+        if (noclip) {
+          camera().smoothing = 0.02
+          this.#navigator.setPosition(player.position)
+        } else {
+          player.teleport(this.#navigator.position)
+          camera().target = player
+          camera().smoothing = 0.125
+
+          inputs().enable('mouse', 'editor')
+          this.#selector.deselect()
+          inputs().setKey('MouseLeft', false)
+        }
       })
+    })
 
-      return { game }
-    },
+    const { container } = renderUI(this.#selector, this.#navigator, this.#history, editDetails)
+    container.style.display = 'none'
 
-    initRenderContext({ game }, _render) {
-      const { container, unmount } = renderUI(
-        game,
-        selector,
-        navigator,
-        history,
-        editDetails,
-      )
-      container.style.display = 'none'
-
-      deferUntilPlayer(game, player => {
-        player.events.addListener('onToggleNoclip', noclip => {
-          container.style.display = noclip ? '' : 'none'
-        })
+    deferUntilPlayer(player => {
+      player.events.addListener('onToggleNoclip', noclip => {
+        container.style.display = noclip ? '' : 'none'
       })
+    })
+  }
 
-      return { unmount }
-    },
+  public teardown(): void {
+    const $game = game('client', true)
+    $game.destroy(this.#navigator)
+    $game.destroy(this.#selector)
+    $game.destroy(this.#history)
 
-    async teardown({ game }) {
-      await game.destroy(selector)
-    },
-
-    teardownRenderContext({ unmount }) {
-      unmount()
-    },
-  })
+    $game.events.common.removeListener('onTransformChanged', this.#onTransformChanged)
+    $game.events.common.removeListener('onArgsChanged', this.#onArgsChanged)
+    $game.events.common.removeListener('onLabelChanged', this.#onLabelChanged)
+    $game.events.common.removeListener('onTagsChanged', this.#onTagsChanged)
+  }
 }

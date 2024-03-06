@@ -13,11 +13,7 @@ export const createConsole = (server: string, instance: string) => {
   return createEntity({
     init({ game }) {
       const inputs = game.client?.inputs
-      inputs?.registerInput(
-        ConsoleInputs.ToggleConsole,
-        'Toggle Console',
-        'Semicolon',
-      )
+      inputs?.registerInput(ConsoleInputs.ToggleConsole, 'Toggle Console', 'Semicolon')
 
       return { game }
     },

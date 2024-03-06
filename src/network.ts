@@ -1,23 +1,16 @@
 /* eslint-disable id-length */
-import { dataManager, SpawnableDefinitionSchema } from '@dreamlab.gg/core'
+import { SpawnableDefinitionSchema } from '@dreamlab.gg/core'
 import type { Game } from '@dreamlab.gg/core'
-import { createNetPlayer } from '@dreamlab.gg/core/entities'
-import type {
-  KnownPlayerAnimation,
-  NetPlayer,
-  Player,
-} from '@dreamlab.gg/core/entities'
-import { createGear } from '@dreamlab.gg/core/managers'
+import { NetPlayer } from '@dreamlab.gg/core/entities'
+import type { KnownAnimation, Player } from '@dreamlab.gg/core/entities'
 import { isTrackedTransform, trackedSymbol } from '@dreamlab.gg/core/math'
 import { updateSyncedValue } from '@dreamlab.gg/core/network'
-import type {
-  BareNetClient,
-  MessageListenerClient,
-} from '@dreamlab.gg/core/network'
+import type { BareNetClient, MessageListenerClient } from '@dreamlab.gg/core/network'
 import { LevelSchema } from '@dreamlab.gg/core/sdk'
 import {
   clone,
   createSignal,
+  deferUntilPlayer,
   onChange,
   setProperty,
 } from '@dreamlab.gg/core/utils'
@@ -25,27 +18,17 @@ import { jwtDecode as decodeJWT } from 'jwt-decode'
 import Matter from 'matter-js'
 import type { Body } from 'matter-js'
 import { createClientControlManager } from './client-phys-control.js'
-import type { EditDetails } from './editor/editor.js'
-import { createEditor } from './editor/editor.js'
+import type { EditDetails } from './editor/editor'
+import { Editor } from './editor/editor'
 import { PROTOCOL_VERSION } from './packets.js'
 import type {
-  IncomingArgsChangedPacket as ArgsChangedPacket,
   BodyInfo,
   CustomMessagePacket,
-  IncomingDestroyEntityPacket as DestroyEntityPacket,
   HandshakePacket,
   HandshakeReadyPacket,
-  IncomingLabelChangedPacket as LabelChangedPacket,
-  PlayerAnimationChangePacket,
-  PlayerCharacterIdChangePacket,
-  PlayerGearChangePacket,
-  PlayerInputsPacket,
-  PlayerMotionPacket,
-  IncomingSpawnEntityPacket as SpawnEntityPacket,
-  IncomingTagsChangedPacket as TagsChangedPacket,
   ToClientPacket,
   ToServerPacket,
-  IncomingTransformChangedPacket as TransformChangedPacket,
+  UpdateSyncedValuePacket,
 } from './packets.js'
 import { getCharacterId, loadScript, spawnPlayer } from './scripting.js'
 
@@ -62,15 +45,9 @@ window.addEventListener('message', ev => {
   const data = ev.data
 
   if (data?.fallbackUrl) {
-    window.localStorage.setItem(
-      '@dreamlab/worlds/fallbackUrl',
-      data.fallbackUrl,
-    )
+    window.localStorage.setItem('@dreamlab/worlds/fallbackUrl', data.fallbackUrl)
     const url = new URL(data.fallbackUrl)
-    window.localStorage.setItem(
-      '@dreamlab/NextAPIURL',
-      url.protocol + '//' + url.host,
-    )
+    window.localStorage.setItem('@dreamlab/NextAPIURL', url.protocol + '//' + url.host)
   }
 })
 
@@ -123,9 +100,7 @@ function incrementReloadCount() {
 
 incrementReloadCount()
 
-export const connect = async (
-  params: Params | undefined,
-): Promise<WebSocket | undefined> => {
+export const connect = async (params: Params | undefined): Promise<WebSocket | undefined> => {
   if (!params) return undefined
 
   const serverURL = new URL(params.server)
@@ -144,16 +119,13 @@ export const connect = async (
     ws.addEventListener('error', () => {
       console.log('Got error in websocket event listener')
       if (getReloadCount() > 20) {
-        const worldDetails = localStorage.getItem(
-          '@dreamlab/worlds/fallbackUrl',
-        )
+        const worldDetails = localStorage.getItem('@dreamlab/worlds/fallbackUrl')
         if (worldDetails) window.location.href = worldDetails
         return
       }
 
       if (getReloadCount() > 3) {
-        document.querySelector('#retrycount')!.innerHTML =
-          `Retries: ${getReloadCount()}/20`
+        document.querySelector('#retrycount')!.innerHTML = `Retries: ${getReloadCount()}/20`
       }
 
       setTimeout(() => {
@@ -178,11 +150,7 @@ export const createNetwork = (
   params: Params,
   ws: WebSocket,
   game: Game<false>,
-): [
-  network: BareNetClient,
-  sendPacket: (packet: ToServerPacket) => void,
-  ready: Promise<void>,
-] => {
+): [network: BareNetClient, sendPacket: (packet: ToServerPacket) => void, ready: Promise<void>] => {
   let didSetReloadTimeout = false
 
   const sendPacket = (_packet: ToServerPacket) => {
@@ -220,6 +188,7 @@ export const createNetwork = (
       }
     }
 
+    // TODO: Why are these IIFEs everywhere what??
     ;(async () => sendWhenOpen())()
   }
 
@@ -232,6 +201,53 @@ export const createNetwork = (
   const players = new Map<string, NetPlayer>()
   let localPlayer: Player | undefined
   let clientTickNumber = 0
+
+  deferUntilPlayer(player => {
+    player.events.addListener('onMove', (position, velocity, flipped) => {
+      window.sendPacket?.({
+        t: 'PlayerMotion',
+        position: [position.x, position.y],
+        velocity: [velocity.x, velocity.y],
+        flipped,
+        tick_number: clientTickNumber,
+      })
+    })
+
+    player.events.addListener('onInput', ({ walkLeft, walkRight, jump, crouch, attack }) => {
+      window.sendPacket?.({
+        t: 'PlayerInputs',
+        left: walkLeft,
+        right: walkRight,
+        jump,
+        fall_through: crouch,
+        attack,
+        tick_number: clientTickNumber,
+      })
+    })
+
+    // TODO: Character ID change packet
+
+    player.events.addListener('onCharacterIdChange', characterId => {
+      window.sendPacket?.({ t: 'PlayerCharacterIdChange', character_id: characterId ?? null })
+    })
+
+    player.events.addListener('onAnimationChanged', animation => {
+      window.sendPacket?.({ t: 'PlayerAnimationChange', animation })
+    })
+
+    player.events.addListener('onGearChanged', gear => {
+      // Serialize the gear object to exclude the texture property
+      const serializedGear = {
+        displayName: gear?.displayName,
+        animationName: gear?.animationName,
+        anchor: gear?.anchor,
+        rotation: gear?.rotation,
+        bone: gear?.bone,
+        speedMultiplier: gear?.speedMultiplier,
+      }
+      window.sendPacket?.({ t: 'PlayerGearChange', gear: serializedGear })
+    })
+  })
 
   const clientControl = createClientControlManager(game)
 
@@ -246,15 +262,11 @@ export const createNetwork = (
         if (entity === undefined) continue
 
         if (typeof entity.onPhysicsStep === 'function') {
-          const entityData = dataManager.getData(entity)
           const ticksRemaining = clientTickNumber - i - 1
-          entity.onPhysicsStep(
-            {
-              delta: 1 / 60,
-              time: now - (1 / 60) * ticksRemaining,
-            },
-            entityData,
-          )
+          entity.onPhysicsStep({
+            delta: 1 / 60,
+            time: now - (1 / 60) * ticksRemaining,
+          })
         }
 
         const bodies = game.physics.getBodies(entity)
@@ -281,21 +293,20 @@ export const createNetwork = (
           if (packet.peer_id === selfID) {
             const resp = LevelSchema.safeParse(packet.level)
             if (resp.success) {
-              await game.spawnMany(...resp.data)
+              game.spawnMany(...resp.data)
             }
 
             localPlayer = await spawnPlayer(game)
           } else {
-            const netplayer = await createNetPlayer(
+            const netplayer = new NetPlayer(
               packet.peer_id,
               packet.entity_id,
-              game,
               packet.character_id,
               packet.nickname,
             )
 
             players.set(packet.entity_id, netplayer)
-            await game.instantiate(netplayer)
+            game.instantiate(netplayer)
           }
 
           break
@@ -307,7 +318,7 @@ export const createNetwork = (
 
           if (netplayer) {
             players.delete(packet.entity_id)
-            await game.destroy(netplayer)
+            game.destroy(netplayer)
           }
 
           break
@@ -331,7 +342,7 @@ export const createNetwork = (
             const netplayer = players.get(info.entity_id)
             if (!netplayer) continue
 
-            void netplayer.setCharacterId(info.character_id ?? undefined)
+            netplayer.characterId = info.character_id ?? undefined
           }
 
           break
@@ -343,7 +354,7 @@ export const createNetwork = (
             if (!netplayer) continue
 
             // TODO: Maybe validate this string
-            netplayer.setAnimation(info.animation as KnownPlayerAnimation)
+            netplayer.setAnimation(info.animation as KnownAnimation)
           }
 
           break
@@ -354,9 +365,7 @@ export const createNetwork = (
             const netplayer = players.get(info.entity_id)
             if (!netplayer) continue
 
-            netplayer.setGear(
-              info.gear === null ? undefined : createGear(info.gear),
-            )
+            // netplayer.setGear(info.gear === null ? undefined : createGear(info.gear))
           }
 
           break
@@ -384,9 +393,7 @@ export const createNetwork = (
             )
               return
 
-            const entity = existingEntity
-              ? existingEntity
-              : await game.spawn(definition)
+            const entity = existingEntity ? existingEntity : game.spawn(definition)
             if (entity === undefined) return
             affectedEntities.push(entity.uid)
 
@@ -401,8 +408,7 @@ export const createNetwork = (
 
         case 'PhysicsDeltaSnapshot': {
           const tickNumber = packet.lastClientTickNumber
-          const { bodyUpdates, destroyedEntities, newEntities } =
-            packet.snapshot
+          const { bodyUpdates, destroyedEntities, newEntities } = packet.snapshot
 
           const affectedEntities: string[] = []
 
@@ -412,7 +418,7 @@ export const createNetwork = (
               uid: entityInfo.entityId,
             }
 
-            const entity = await game.spawn(definition)
+            const entity = game.spawn(definition)
             if (entity === undefined) return
             affectedEntities.push(entity.uid)
 
@@ -423,10 +429,7 @@ export const createNetwork = (
           const updateJobs = bodyUpdates.map(async entityInfo => {
             const entity = game.lookup(entityInfo.entityId)
             if (entity === undefined) return
-            if (
-              clientControl.isControllingEntity(entityInfo.entityId, tickNumber)
-            )
-              return
+            if (clientControl.isControllingEntity(entityInfo.entityId, tickNumber)) return
 
             affectedEntities.push(entity.uid)
             const bodies = game.physics.getBodies(entity)
@@ -435,7 +438,7 @@ export const createNetwork = (
 
           const destroyJobs = destroyedEntities.map(async uid => {
             const entity = game.lookup(uid)
-            if (entity) await game.destroy(entity)
+            if (entity) game.destroy(entity)
           })
 
           await Promise.all([...spawnJobs, ...updateJobs, ...destroyJobs])
@@ -463,7 +466,7 @@ export const createNetwork = (
 
         case 'SpawnEntity': {
           const resp = SpawnableDefinitionSchema.safeParse(packet.definition)
-          if (resp.success) await game.spawn(resp.data)
+          if (resp.success) game.spawn(resp.data)
 
           break
         }
@@ -472,7 +475,7 @@ export const createNetwork = (
           if (packet.peer_id === selfID) return
 
           const entity = game.lookup(packet.entity_id)
-          if (entity) await game.destroy(entity)
+          if (entity) game.destroy(entity)
 
           break
         }
@@ -515,10 +518,8 @@ export const createNetwork = (
           const previousArgs = clone(argsTarget)
           setProperty(argsTarget, packet.path, packet.value)
 
-          const data = dataManager.getData(entity)
-          const render = dataManager.getRenderData(entity)
-          entity.onArgsUpdate?.(packet.path, previousArgs, data, render)
-          game.events.common.emit('onArgsChanged', entity)
+          entity.onArgsUpdate?.(packet.path, previousArgs)
+          game.events.common.emit('onArgsChanged', entity, packet.path, packet.value, true)
 
           break
         }
@@ -596,6 +597,7 @@ export const createNetwork = (
       // this is an unsafe cast but we're in a try-catch so it's okay
       const packet: ToClientPacket = JSON.parse(ev.data)
 
+      // TODO: What the heck is this IIFE doing here??????
       await (async () => {
         if (packet.t === 'Handshake') {
           if (packet.protocol_version !== PROTOCOL_VERSION) {
@@ -614,19 +616,14 @@ export const createNetwork = (
                 }
               : undefined
 
-            const editor = createEditor(sendPacket, details)
-            await game.instantiate(editor)
+            const editor = new Editor(sendPacket, details)
+            game.instantiate(editor)
           }
 
           // @ts-expect-error global variable
-          globalThis.dreamlab_world_script_url_base =
-            packet.world_script_url_base
+          globalThis.dreamlab_world_script_url_base = packet.world_script_url_base
 
-          await loadScript(
-            packet.world_script_url_base ?? undefined,
-            packet.world_id,
-            game,
-          )
+          await loadScript(packet.world_script_url_base ?? undefined, packet.world_id, game)
 
           const payload: HandshakeReadyPacket = { t: 'HandshakeReady' }
           sendPacket(payload)
@@ -667,15 +664,10 @@ export const createNetwork = (
     if (localPlayer !== undefined) {
       const entities = game.queryTags(
         'fn',
-        tags =>
-          tags.includes('net/replicated') &&
-          !tags.includes('net/server-authoritative'),
+        tags => tags.includes('net/replicated') && !tags.includes('net/server-authoritative'),
       )
       for (const entity of entities) {
-        if (
-          clientControl.isControllingEntity(entity.uid, clientTickNumber + 30)
-        )
-          continue
+        if (clientControl.isControllingEntity(entity.uid, clientTickNumber + 30)) continue
 
         const bodies = game.physics.getBodies(entity)
         for (const body of bodies) {
@@ -710,6 +702,17 @@ export const createNetwork = (
       sendPacket(payload)
     },
 
+    updateSyncedValue(entityID, key, value) {
+      const payload: UpdateSyncedValuePacket = {
+        t: 'UpdateSyncedValue',
+        entity_id: entityID,
+        key,
+        value,
+      }
+
+      sendPacket(payload)
+    },
+
     addCustomMessageListener(channel, listener) {
       const set = listeners.get(channel) ?? new Set()
       set.add(listener)
@@ -722,130 +725,6 @@ export const createNetwork = (
       set.delete(listener)
 
       listeners.set(channel, set)
-    },
-
-    sendPlayerPosition(position, velocity, flipped) {
-      const payload: PlayerMotionPacket = {
-        t: 'PlayerMotion',
-        position: [position.x, position.y],
-        velocity: [velocity.x, velocity.y],
-        flipped,
-        tick_number: clientTickNumber,
-      }
-
-      sendPacket(payload)
-    },
-
-    sendPlayerMotionInputs({ crouch, jump, walkLeft, walkRight, attack }) {
-      const payload: PlayerInputsPacket = {
-        t: 'PlayerInputs',
-        tick_number: clientTickNumber,
-        jump,
-        fall_through: crouch,
-        left: walkLeft,
-        right: walkRight,
-        attack,
-      }
-
-      sendPacket(payload)
-    },
-
-    sendPlayerCharacterId(characterId) {
-      const payload: PlayerCharacterIdChangePacket = {
-        t: 'PlayerCharacterIdChange',
-        character_id: characterId ?? null,
-      }
-
-      sendPacket(payload)
-    },
-
-    sendPlayerAnimation(animation) {
-      const payload: PlayerAnimationChangePacket = {
-        t: 'PlayerAnimationChange',
-        animation,
-      }
-
-      sendPacket(payload)
-    },
-
-    sendPlayerGear(gear) {
-      if (gear === undefined) {
-        const payload: PlayerGearChangePacket = {
-          t: 'PlayerGearChange',
-          gear: null,
-        }
-
-        sendPacket(payload)
-      } else {
-        const { texture: _, ...base } = gear
-        const payload: PlayerGearChangePacket = {
-          t: 'PlayerGearChange',
-          gear: base,
-        }
-
-        sendPacket(payload)
-      }
-    },
-
-    sendEntityCreate(definition) {
-      const payload: SpawnEntityPacket = {
-        t: 'SpawnEntity',
-        definition,
-      }
-
-      sendPacket(payload)
-    },
-
-    sendEntityDestroy(entityID) {
-      const payload: DestroyEntityPacket = {
-        t: 'DestroyEntity',
-        entity_id: entityID,
-      }
-
-      sendPacket(payload)
-    },
-
-    sendTransformUpdate(entityID, transform) {
-      const payload: TransformChangedPacket = {
-        t: 'TransformChanged',
-        entity_id: entityID,
-        position: [transform.position.x, transform.position.y],
-        rotation: transform.rotation,
-        z_index: transform.zIndex,
-      }
-
-      sendPacket(payload)
-    },
-
-    sendArgsUpdate(entityID, path, value) {
-      const payload: ArgsChangedPacket = {
-        t: 'ArgsChanged',
-        entity_id: entityID,
-        path,
-        value,
-      }
-
-      sendPacket(payload)
-    },
-
-    sendLabelUpdate(entityID, label) {
-      const payload: LabelChangedPacket = {
-        t: 'LabelChanged',
-        entity_id: entityID,
-        label,
-      }
-
-      sendPacket(payload)
-    },
-
-    sendTagsUpdate(entityID, tags) {
-      const payload: TagsChangedPacket = {
-        t: 'TagsChanged',
-        entity_id: entityID,
-        tags,
-      }
-
-      sendPacket(payload)
     },
   }
 

@@ -1,16 +1,20 @@
 import { createGame } from '@dreamlab.gg/core'
-import { createCursor, PlayerInput } from '@dreamlab.gg/core/entities'
+import { Cursor, PlayerInput } from '@dreamlab.gg/core/entities'
+// import { createConsole } from './console/console.js'
 import { isDebug } from './debug.js'
-import { createEditor } from './editor/editor.js'
-import { createKeybinds } from './keybinds/entity.js'
+import { Editor } from './editor/editor.js'
+// import { createKeybinds } from './keybinds/entity.js'
 import { bindInput, loadBindings } from './keybinds/persist.js'
-import {
-  connect,
-  createNetwork,
-  decodeParams,
-  setReloadCount,
-} from './network.js'
+import { connect, createNetwork, decodeParams, setReloadCount } from './network.js'
+import type { ToServerPacket } from './packets.js'
 import { loadLevel, loadScript, spawnPlayer } from './scripting.js'
+
+declare global {
+  interface Window {
+    // TODO: Make this slightly more hidden lol
+    sendPacket?(packet: ToServerPacket): void
+  }
+}
 
 export const init = async () => {
   // #region Setup
@@ -70,8 +74,8 @@ export const init = async () => {
   // #endregion
 
   // #region Utility Entities
-  const cursor = createCursor()
-  await game.instantiate(cursor)
+  const cursor = new Cursor()
+  game.instantiate(cursor)
   // #endregion
 
   if (ws) {
@@ -81,35 +85,42 @@ export const init = async () => {
     await connected
     console.log('connected successfully!')
     setReloadCount(0)
-    const connectionMessage = document.querySelector(
-      '#connectingmessage',
-    ) as HTMLElement
+    const connectionMessage = document.querySelector('#connectingmessage') as HTMLElement
     connectionMessage.style.display = 'none'
 
     game.events.common.on('onTickSkipped', () => {
       sendPacket({ t: 'RequestFullSnapshot' })
     })
 
+    window.sendPacket = sendPacket
+
     // const serverLog = createConsole(params!.server, params!.instance)
-    // await game.instantiate(serverLog)
+    // game.instantiate(serverLog)
   } else {
     if (import.meta.env.DEV) {
       const url = new URL(window.location.href)
       const world = url.searchParams.get('level')
 
       if (world) {
-        const editor = createEditor(undefined, {
+        const editor = new Editor(undefined, {
           secret: 'secret',
           server: 'http://localhost',
           instance: 'instance',
         })
 
         document.querySelector('#connectingmessage')?.remove()
-        await game.instantiate(editor)
+        game.instantiate(editor)
 
         await loadScript(undefined, world, game)
         await loadLevel(undefined, world, game)
         await spawnPlayer(game, undefined)
+        game.spawn({
+          entity: '@dreamlab/BouncyBall',
+          args: { width: 1_290, height: 50 },
+          transform: {
+            position: [0, -616],
+          },
+        })
       }
     }
 
@@ -126,6 +137,6 @@ export const init = async () => {
     bindInput(game, 'KeyW', PlayerInput.Jump)
   }
 
-  const keybinds = createKeybinds()
-  await game.instantiate(keybinds)
+  // const keybinds = createKeybinds()
+  // game.instantiate(keybinds)
 }
