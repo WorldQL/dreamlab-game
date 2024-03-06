@@ -90,7 +90,7 @@ export class Selector extends Entity {
   ) {
     super()
 
-    inputs().addListener('Space', this.onSpace)
+    inputs()?.addListener('Space', this.onSpace)
 
     const $canvas = canvas()
     $canvas.addEventListener('dragover', onDragOver)
@@ -204,7 +204,7 @@ export class Selector extends Entity {
     $canvas.removeEventListener('mousemove', this.onMouseMove)
 
     events().common.removeListener('onDestroy', this.onDestroy)
-    inputs().removeListener('Space', this.onSpace)
+    inputs()?.removeListener('Space', this.onSpace)
 
     this.container.destroy({ children: true })
   }
@@ -296,7 +296,7 @@ export class Selector extends Entity {
       setTimeout(async () => {
         const dimensions = await getPngDimensions(url)
 
-        const cursorPosition = inputs().getCursor('world')
+        const cursorPosition = inputs()?.getCursor('world')
         if (!cursorPosition) {
           console.log('Returning from drop event because no cursorPosition')
           return
@@ -560,13 +560,13 @@ export class Selector extends Entity {
   }
 
   public onMouseMove = () => {
-    const pos = inputs().getCursor()
+    const pos = inputs()?.getCursor()
     if (!pos) return
     this.updateCursor(pos)
 
     if (!this.selected || !this.action) return
-    const shift = inputs().getKey('ShiftLeft')
-    const ctrl = inputs().getKey('ControlLeft')
+    const shift = inputs()?.getKey('ShiftLeft')
+    const ctrl = inputs()?.getKey('ControlLeft')
     this.actionOccurred = true
 
     const $game = game('client', true)
@@ -643,12 +643,12 @@ export class Selector extends Entity {
   public onRenderFrame(_: RenderTime): void {
     const bounds = this.selected?.bounds()
     if (!this.selected || !bounds) {
-      inputs().enable('mouse', 'editor')
+      inputs()?.enable('mouse', 'editor')
       this.container.alpha = 0
       return
     }
 
-    inputs().disable('mouse', 'editor')
+    inputs()?.disable('mouse', 'editor')
     const entity = this.selected
     const inverse = 1 / camera().scale
     const scaledWidth = this.strokeWidth * inverse
@@ -733,5 +733,7 @@ interface EntityEvents {
   onSelect: [id: string | undefined]
   // onArgsUpdate: [id: string, args: Record<string, unknown>]
   // onTransformUpdate: [id: string, transform: Transform]
-  // onTagsUpdate: [id: string, tags: string[]]
+
+  // TODO: Make this not use events
+  onTagsUpdate: [id: string, tags: string[]]
 }

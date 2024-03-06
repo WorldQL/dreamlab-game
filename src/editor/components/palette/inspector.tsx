@@ -3,7 +3,7 @@ import type { EventHandler } from '@dreamlab.gg/core/dist/events'
 import type { Transform } from '@dreamlab.gg/core/math'
 import { clone, getProperty, setProperty } from '@dreamlab.gg/core/utils'
 import { useCommonEventListener, useForceUpdate, useTransform } from '@dreamlab.gg/ui/dist/react'
-import { useCallback, useEffect, useRef, useState } from 'https://esm.sh/react@18.2.0'
+import { useCallback, useRef, useState } from 'https://esm.sh/react@18.2.0'
 import type { FC } from 'https://esm.sh/react@18.2.0'
 import { styled } from 'https://esm.sh/styled-components@6.1.8?pin=v135'
 import { useDebounceCallback } from 'https://esm.sh/usehooks-ts@2.12.1?pin=v135'
@@ -158,7 +158,7 @@ const roundValue = (
   return [rounded, true, numValue]
 }
 
-export const Inspector: FC<InspectorProps> = ({ selector, entity, history }) => {
+export const Inspector: FC<InspectorProps> = ({ entity, history }) => {
   const forceUpdate = useForceUpdate()
   const entityRef = useRef<HTMLDivElement>(null)
 
