@@ -74,7 +74,7 @@ const esmLink = async (pkg, linkRoot, { pin = 'v132', exports = '' } = {}) => {
 // #endregion
 
 /** @returns {import('vite').Plugin} */
-const importMapPlugin = () => ({
+const importMapPlugin = (useLocalCoreURL, localCoreURL) => ({
   name: 'import-map',
   transformIndexHtml: async () => {
     const core = '@dreamlab.gg/core'
@@ -104,8 +104,8 @@ const importMapPlugin = () => ({
 
     const coreModules = JSON.parse(coreModulesJson)
     for (const module of coreModules) {
-      map.imports[`${core}/${module}`] = corePkg
-      map.imports[`${core}/dist/${module}`] = corePkg
+      map.imports[`${core}/${module}`] = useLocalCoreURL ? localCoreURL : corePkg
+      map.imports[`${core}/dist/${module}`] = useLocalCoreURL ? localCoreURL : corePkg
     }
     //#endregion
 
@@ -135,21 +135,43 @@ const importMapPlugin = () => ({
   },
 })
 
-export default defineConfig(async () => ({
-  plugins: [importMapPlugin()],
-  preview: {
-    port: 5173,
-  },
+export default defineConfig(async ({ mode }) => {
+  const port = 5173
+  const corePath = await resolve('@dreamlab.gg/core', import.meta.url)
+  let useLocalCoreURL = false
+  let localCoreURL = undefined
 
-  build: {
-    rollupOptions: {
-      external: (source, importer, isResolved) => {
-        if (source.includes('matter-js')) return true
-        if (source.includes('pixi.js')) return true
-        if (source.includes('@pixi/')) return true
-        if (source.includes('@dreamlab.gg/core')) return true
-        if (source.includes('@dreamlab.gg/ui')) return true
+  // only put the dreamlab-core URL in the sourcemap if it's linked and we're in dev mode
+  if (mode === 'development' && !corePath.includes('node_modules')) {
+    const bundledCorePath =
+      corePath.split('file://')[1].split('index.js').slice(0, -1)[0] + 'bundled.js'
+    localCoreURL = `http://localhost:${port}/@fs` + bundledCorePath
+    useLocalCoreURL = true
+  }
+
+  return {
+    plugins: [importMapPlugin(useLocalCoreURL, localCoreURL)],
+    preview: {
+      port: port,
+    },
+    server: {
+      port: port,
+      strictPort: true,
+      fs: {
+        strict: false,
       },
     },
-  },
-}))
+
+    build: {
+      rollupOptions: {
+        external: (source, importer, isResolved) => {
+          if (source.includes('matter-js')) return true
+          if (source.includes('pixi.js')) return true
+          if (source.includes('@pixi/')) return true
+          if (source.includes('@dreamlab.gg/core')) return true
+          if (source.includes('@dreamlab.gg/ui')) return true
+        },
+      },
+    },
+  }
+})
