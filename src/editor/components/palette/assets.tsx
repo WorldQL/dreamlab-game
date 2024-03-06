@@ -5,12 +5,12 @@ import {
   useEffect,
   useRef,
   useState,
-} from 'https://esm.sh/v136/react@18.2.0'
+} from 'https://esm.sh/v135/react@18.2.0'
 import type {
   ChangeEventHandler,
   DragEventHandler,
-} from 'https://esm.sh/v136/react@18.2.0'
-import { styled } from 'https://esm.sh/v136/styled-components@6.1.8'
+} from 'https://esm.sh/v135/react@18.2.0'
+import { styled } from 'https://esm.sh/v135/styled-components@6.1.8'
 import { DeleteButton, LinkButton } from '../ui/buttons'
 
 const AssetUploader = styled.div`

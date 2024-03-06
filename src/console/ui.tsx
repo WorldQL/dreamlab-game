@@ -1,7 +1,7 @@
 import type { Game } from '@dreamlab.gg/core'
 import { renderUI as renderReact } from '@dreamlab.gg/ui/react'
-import type { FC, ReactNode } from 'https://esm.sh/v136/react@18.2.0'
-import { useEffect, useState } from 'https://esm.sh/v136/react@18.2.0'
+import type { FC, ReactNode } from 'https://esm.sh/v135/react@18.2.0'
+import { useEffect, useState } from 'https://esm.sh/v135/react@18.2.0'
 import type { LogStreamingClient } from './log-stream'
 
 // react is probably a bad fit for this because we are just appending to a long list,

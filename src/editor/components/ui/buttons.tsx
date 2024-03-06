@@ -1,4 +1,4 @@
-import { styled } from 'https://esm.sh/v136/styled-components@6.1.8'
+import { styled } from 'https://esm.sh/v135/styled-components@6.1.8'
 
 export const Button = styled.button`
   display: inline-block;

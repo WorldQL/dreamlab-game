@@ -1,4 +1,4 @@
-import type { FC } from 'https://esm.sh/v136/react@18.2.0'
+import type { FC } from 'https://esm.sh/v135/react@18.2.0'
 
 interface NotificationProps {
   message: string
