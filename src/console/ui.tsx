@@ -8,8 +8,8 @@ import type { LogStreamingClient } from './log-stream'
 // and don't need to rerender the whole thing, but whatever for now
 
 const DraggableWindow: FC<{ children: ReactNode }> = ({ children }) => {
-  const [x, setX] = useState(150)
-  const [y, setY] = useState(150)
+  const [x, _] = useState(150)
+  const [y, __] = useState(150)
 
   // TODO: dragging behavior (setX, setY on mousemove when mouse down on header)
 
