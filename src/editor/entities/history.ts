@@ -102,6 +102,7 @@ export class History extends Entity {
   }
 
   private applyUpdate(entity: SpawnableEntity, action: UpdateAction): UpdateAction {
+    // TODO: Network
     switch (action.action) {
       case 'transform-update': {
         const previous = cloneTransform(entity.transform)
@@ -150,6 +151,11 @@ export class History extends Entity {
         entry.definition.uid = entry.uid
         this.#redoEntries.push(entry)
 
+        window.sendPacket?.({
+          t: 'DestroyEntity',
+          entity_id: entry.uid,
+        })
+
         break
       }
 
@@ -160,6 +166,11 @@ export class History extends Entity {
         entry.uid = entity.uid
         entry.definition.uid = entity.uid
         this.#redoEntries.push(entry)
+
+        window.sendPacket?.({
+          t: 'SpawnEntity',
+          definition: entry.definition,
+        })
 
         break
       }
@@ -195,6 +206,10 @@ export class History extends Entity {
         if (!entity) return false
 
         this.recordCreated(entity)
+        window.sendPacket?.({
+          t: 'SpawnEntity',
+          definition: entry.definition,
+        })
 
         break
       }
@@ -205,6 +220,11 @@ export class History extends Entity {
 
         $game.destroy(entity)
         this.recordDeleted(entity)
+
+        window.sendPacket?.({
+          t: 'DestroyEntity',
+          entity_id: entry.uid,
+        })
 
         break
       }
@@ -253,7 +273,13 @@ export class History extends Entity {
         if (cursor) definition.transform.position = cursor
 
         const entity = game().spawn(definition)
-        if (entity) this.recordCreated(entity)
+        if (entity) {
+          this.recordCreated(entity)
+          window.sendPacket?.({
+            t: 'SpawnEntity',
+            definition,
+          })
+        }
 
         return true
       } catch {
