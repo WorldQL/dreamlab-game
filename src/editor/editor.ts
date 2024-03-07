@@ -79,8 +79,10 @@ export class Editor extends Entity {
     super()
     const $game = game('client', true)
 
-    this.#history = new History()
-    this.#selector = new Selector(this.#enabled, this.#history, sendPacket)
+    const selected = ref<SpawnableEntity | undefined>(undefined)
+
+    this.#history = new History({ selected })
+    this.#selector = new Selector(selected, this.#enabled, this.#history, sendPacket)
     this.#navigator = new Navigator(this.#enabled, this.#selector)
 
     $game.instantiate(this.#history)

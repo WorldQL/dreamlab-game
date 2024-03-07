@@ -83,13 +83,17 @@ const onDragOver = (ev: DragEvent) => {
 }
 
 export class Selector extends Entity {
+  readonly #selected: Ref<SpawnableEntity | undefined>
+
   public constructor(
+    selected: Ref<SpawnableEntity | undefined>,
     public editorEnabled: Ref<boolean>,
     public history: History,
     public sendPacket?: (packet: ToServerPacket) => void,
   ) {
     super()
 
+    this.#selected = selected
     inputs()?.addListener('Space', this.onSpace)
 
     const $canvas = canvas()
@@ -132,8 +136,15 @@ export class Selector extends Entity {
 
   // public game: Game<false>
   public events = new EventEmitter<EntityEvents>()
-  public selected: SpawnableEntity | undefined
   public action: ActionData | undefined
+
+  public get selected(): SpawnableEntity | undefined {
+    return this.#selected.value
+  }
+
+  public set selected(value: SpawnableEntity | undefined) {
+    this.#selected.value = value
+  }
 
   public prevEntityData: SpawnableEntity | undefined
   public actionOccurred = false

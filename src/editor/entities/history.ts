@@ -1,10 +1,12 @@
 import type { SpawnableDefinition, SpawnableEntity } from '@dreamlab.gg/core'
-import { Entity } from '@dreamlab.gg/core'
+import { Entity, SpawnableDefinitionSchema } from '@dreamlab.gg/core'
 import { EventEmitter } from '@dreamlab.gg/core/events'
-import { game } from '@dreamlab.gg/core/labs'
+import { game, inputs } from '@dreamlab.gg/core/labs'
 import { cloneTransform } from '@dreamlab.gg/core/math'
 import type { Transform } from '@dreamlab.gg/core/math'
+import type { Ref } from '@dreamlab.gg/core/utils'
 import { clone, getProperty, onChange, setProperty } from '@dreamlab.gg/core/utils'
+import copy from 'copy-to-clipboard'
 
 type UpdateAction =
   | { action: 'arg-update'; path: string; value: unknown }
@@ -29,12 +31,14 @@ interface HistoryEvents {
 export class History extends Entity {
   public readonly events = new EventEmitter<HistoryEvents>()
 
+  readonly #selected: Ref<SpawnableEntity | undefined>
   #undoEntries: HistoryEntry[] = []
   #redoEntries: HistoryEntry[] = []
 
-  public constructor() {
+  public constructor({ selected }: { readonly selected: Ref<SpawnableEntity | undefined> }) {
     super()
 
+    this.#selected = selected
     window.addEventListener('keydown', this.#keyDown)
   }
 
@@ -44,8 +48,8 @@ export class History extends Entity {
 
   readonly #keyDown = (ev: KeyboardEvent) => {
     if (!ev.ctrlKey) return
-    // if (ev.key === 'c') this.copyEntity()
-    // if (ev.key === 'v') this.pasteEntity()
+    if (ev.key === 'c') this.copy()
+    if (ev.key === 'v') void this.paste()
     if (ev.key === 'z') this.undo()
     if (ev.key === 'y') this.redo()
   }
@@ -223,6 +227,41 @@ export class History extends Entity {
 
     this.events.emit('onRedo')
     return true
+  }
+
+  public copy(): boolean {
+    const entity = this.#selected.value
+    if (!entity) return false
+
+    const definition = this.#cloneDefinition(entity.definition)
+    delete definition.uid
+
+    copy(JSON.stringify(definition))
+    return true
+  }
+
+  public async paste(): Promise<boolean> {
+    const items = await navigator.clipboard.read()
+    for (const item of items) {
+      if (!item.types.includes('text/plain')) continue
+      const blob = await item.getType('text/plain')
+      const text = await blob.text()
+
+      try {
+        const definition = SpawnableDefinitionSchema.parse(JSON.parse(text))
+        const cursor = inputs()!.getCursor()
+        if (cursor) definition.transform.position = cursor
+
+        const entity = game().spawn(definition)
+        if (entity) this.recordCreated(entity)
+
+        return true
+      } catch {
+        continue
+      }
+    }
+
+    return false
   }
 }
 
