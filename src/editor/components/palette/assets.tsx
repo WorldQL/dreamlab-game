@@ -1,4 +1,6 @@
 /* eslint-disable unicorn/prefer-string-replace-all */
+import type { SpawnableEntity } from '@dreamlab.gg/core'
+import { useSpawnableEntities } from '@dreamlab.gg/ui/dist/react'
 import axios from 'axios'
 import { useCallback, useEffect, useRef, useState } from 'https://esm.sh/react@18.2.0'
 import type { ChangeEventHandler, DragEventHandler } from 'https://esm.sh/react@18.2.0'
@@ -89,6 +91,8 @@ export const Assets: React.FC<AssetsProps> = ({ nextAPIBaseURL, jwt }) => {
   const [newName, setNewName] = useState<string>('')
   const [copiedAssetId, setCopiedAssetId] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const entities = useSpawnableEntities()
+  const [entitiesCopy] = useState<SpawnableEntity[]>([...entities])
 
   const handleCopyUrl = (assetId: string, imageURL: string) => {
     const tempInput = document.createElement('input')
@@ -128,11 +132,24 @@ export const Assets: React.FC<AssetsProps> = ({ nextAPIBaseURL, jwt }) => {
 
     imageAssets.reverse()
 
+    for (const entity of entitiesCopy) {
+      if (entity.definition.args.spriteSource) {
+        const imageURL = entity.definition.args.spriteSource.url
+        if (imageURL && !imageAssets.some(asset => asset.imageURL === imageURL)) {
+          imageAssets.push({
+            name: imageURL.split('/').pop() || '',
+            imageURL,
+            id: entity.uid,
+          })
+        }
+      }
+    }
+
     setAssets(imageAssets)
 
     // after we get the list of URLs from the user's library, we also load the images of everything that's currently in the game
     // then we remove duplicates by matching on URL
-  }, [jwt, nextAPIBaseURL])
+  }, [entitiesCopy, jwt, nextAPIBaseURL])
 
   useEffect(() => {
     void refreshImages()
