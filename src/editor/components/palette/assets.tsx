@@ -33,6 +33,7 @@ const AssetItem = styled.div`
   align-items: center;
   justify-content: space-between;
   gap: 10px;
+  font-size: 13px;
   padding: 5px;
   border-radius: 5px;
   background-color: #f8f9fa;
@@ -52,6 +53,24 @@ const ImagePreview = styled.img`
   border-radius: 5px;
 `
 
+const CopyButton = styled.button`
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #4b5563;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+
+  &:hover {
+    color: #1f2937;
+    background-color: #e5e7eb;
+  }
+`
+
 interface ImageData {
   name: string
   imageURL: string
@@ -68,7 +87,27 @@ export const Assets: React.FC<AssetsProps> = ({ nextAPIBaseURL, jwt }) => {
   const [dragOver, setDragOver] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [newName, setNewName] = useState<string>('')
+  const [copiedAssetId, setCopiedAssetId] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const handleCopyUrl = (assetId: string, imageURL: string) => {
+    const tempInput = document.createElement('input')
+    tempInput.value = imageURL
+    document.body.append(tempInput)
+    tempInput.select()
+
+    try {
+      document.execCommand('copy')
+      setCopiedAssetId(assetId)
+      setTimeout(() => {
+        setCopiedAssetId(null)
+      }, 2_000)
+    } catch (error) {
+      console.error('Failed to copy URL:', error)
+    }
+
+    tempInput.remove()
+  }
 
   const refreshImages = useCallback(async () => {
     // send an authenticated API request to get the user's image library
@@ -283,20 +322,54 @@ export const Assets: React.FC<AssetsProps> = ({ nextAPIBaseURL, jwt }) => {
                 </div>
               )}
             </div>
-            <DeleteButton onClick={async () => confirmDeleteImage(asset.name, asset.id)}>
-              <svg
-                className='w-6 h-6'
-                fill='currentColor'
-                viewBox='0 0 24 24'
-                xmlns='http://www.w3.org/2000/svg'
-              >
-                <path
-                  clipRule='evenodd'
-                  d='M16.5 4.478v.227a48.816 48.816 0 013.878.512.75.75 0 11-.256 1.478l-.209-.035-1.005 13.07a3 3 0 01-2.991 2.77H8.084a3 3 0 01-2.991-2.77L4.087 6.66l-.209.035a.75.75 0 01-.256-1.478A48.567 48.567 0 017.5 4.705v-.227c0-1.564 1.213-2.9 2.816-2.951a52.662 52.662 0 013.369 0c1.603.051 2.815 1.387 2.815 2.951zm-6.136-1.452a51.196 51.196 0 013.273 0C14.39 3.05 15 3.684 15 4.478v.113a49.488 49.488 0 00-6 0v-.113c0-.794.609-1.428 1.364-1.452zm-.355 5.945a.75.75 0 10-1.5.058l.347 9a.75.75 0 101.499-.058l-.346-9zm5.48.058a.75.75 0 10-1.498-.058l-.347 9a.75.75 0 001.5.058l.345-9z'
-                  fillRule='evenodd'
-                />
-              </svg>
-            </DeleteButton>
+            <div style={{ display: 'flex', gap: '5px' }}>
+              <CopyButton onClick={() => handleCopyUrl(asset.id, asset.imageURL)}>
+                {copiedAssetId === asset.id ? (
+                  <svg
+                    fill='none'
+                    height='16'
+                    stroke='currentColor'
+                    strokeLinecap='round'
+                    strokeLinejoin='round'
+                    strokeWidth='2'
+                    viewBox='0 0 24 24'
+                    width='16'
+                    xmlns='http://www.w3.org/2000/svg'
+                  >
+                    <path d='M20 6L9 17l-5-5' />
+                  </svg>
+                ) : (
+                  <svg
+                    fill='none'
+                    height='16'
+                    stroke='currentColor'
+                    strokeLinecap='round'
+                    strokeLinejoin='round'
+                    strokeWidth='2'
+                    viewBox='0 0 24 24'
+                    width='16'
+                    xmlns='http://www.w3.org/2000/svg'
+                  >
+                    <rect height='13' rx='2' ry='2' width='13' x='9' y='9' />
+                    <path d='M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1' />
+                  </svg>
+                )}
+              </CopyButton>
+              <DeleteButton onClick={async () => confirmDeleteImage(asset.name, asset.id)}>
+                <svg
+                  className='w-6 h-6'
+                  fill='currentColor'
+                  viewBox='0 0 24 24'
+                  xmlns='http://www.w3.org/2000/svg'
+                >
+                  <path
+                    clipRule='evenodd'
+                    d='M16.5 4.478v.227a48.816 48.816 0 013.878.512.75.75 0 11-.256 1.478l-.209-.035-1.005 13.07a3 3 0 01-2.991 2.77H8.084a3 3 0 01-2.991-2.77L4.087 6.66l-.209.035a.75.75 0 01-.256-1.478A48.567 48.567 0 017.5 4.705v-.227c0-1.564 1.213-2.9 2.816-2.951a52.662 52.662 0 013.369 0c1.603.051 2.815 1.387 2.815 2.951zm-6.136-1.452a51.196 51.196 0 013.273 0C14.39 3.05 15 3.684 15 4.478v.113a49.488 49.488 0 00-6 0v-.113c0-.794.609-1.428 1.364-1.452zm-.355 5.945a.75.75 0 10-1.5.058l.347 9a.75.75 0 101.499-.058l-.346-9zm5.48.058a.75.75 0 10-1.498-.058l-.347 9a.75.75 0 001.5.058l.345-9z'
+                    fillRule='evenodd'
+                  />
+                </svg>
+              </DeleteButton>
+            </div>
           </AssetItem>
         ))}
       </AssetList>
