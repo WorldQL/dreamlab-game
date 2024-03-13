@@ -40,18 +40,43 @@ export class History extends Entity {
 
     this.#selected = selected
     window.addEventListener('keydown', this.#keyDown)
+    window.addEventListener('paste', this.#paste)
   }
 
   public teardown(): void {
     window.removeEventListener('keydown', this.#keyDown)
+    window.removeEventListener('paste', this.#paste)
   }
 
   readonly #keyDown = (ev: KeyboardEvent) => {
     if (!ev.ctrlKey) return
     if (ev.key === 'c') this.copy()
-    if (ev.key === 'v') void this.paste()
     if (ev.key === 'z') this.undo()
     if (ev.key === 'y') this.redo()
+  }
+
+  readonly #paste = (ev: ClipboardEvent) => {
+    const data = ev.clipboardData?.getData('text/plain')
+    if (!data) return
+
+    try {
+      const definition = SpawnableDefinitionSchema.parse(JSON.parse(data))
+      const cursor = inputs()!.getCursor()
+      if (cursor) definition.transform.position = cursor
+
+      const entity = game().spawn(definition)
+      if (entity) {
+        this.recordCreated(entity)
+        window.sendPacket?.({
+          t: 'SpawnEntity',
+          definition,
+        })
+      }
+
+      ev.preventDefault()
+    } catch {
+      // No-op
+    }
   }
 
   readonly #cloneDefinition = (definition: SpawnableDefinition): SpawnableDefinition => ({
@@ -258,36 +283,6 @@ export class History extends Entity {
 
     copy(JSON.stringify(definition))
     return true
-  }
-
-  public async paste(): Promise<boolean> {
-    const items = await navigator.clipboard.read()
-    for (const item of items) {
-      if (!item.types.includes('text/plain')) continue
-      const blob = await item.getType('text/plain')
-      const text = await blob.text()
-
-      try {
-        const definition = SpawnableDefinitionSchema.parse(JSON.parse(text))
-        const cursor = inputs()!.getCursor()
-        if (cursor) definition.transform.position = cursor
-
-        const entity = game().spawn(definition)
-        if (entity) {
-          this.recordCreated(entity)
-          window.sendPacket?.({
-            t: 'SpawnEntity',
-            definition,
-          })
-        }
-
-        return true
-      } catch {
-        continue
-      }
-    }
-
-    return false
   }
 }
 
