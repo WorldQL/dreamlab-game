@@ -4,7 +4,7 @@ export const Button = styled.button`
   display: inline-block;
   appearance: button;
   border: 0;
-  background-color: rgb(99 102 241);
+  background-color: #2b59ff;
   color: white;
   font-family: 'Inter';
   cursor: pointer;
@@ -16,7 +16,7 @@ export const Button = styled.button`
   transition: all 0.3s ease;
 
   &:hover {
-    background-color: rgb(129 140 248);
+    background-color: #1e44d6;
   }
 `
 
@@ -25,7 +25,7 @@ export const LinkButton = styled.a`
   appearance: button;
   border: 0;
   text-decoration: none;
-  background-color: rgb(99 102 241);
+  background-color: #2b59ff;
   color: white;
   font-family: 'Inter';
   cursor: pointer;
@@ -37,7 +37,7 @@ export const LinkButton = styled.a`
   transition: all 0.3s ease;
 
   &:hover {
-    background-color: rgb(129 140 248);
+    background-color: #1e44d6;
   }
 `
 

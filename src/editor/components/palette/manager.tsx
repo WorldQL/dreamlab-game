@@ -19,6 +19,7 @@ const PaletteContainer = styled(Container)<{ isCollapsed: boolean }>`
   transition:
     transform 0.3s ease,
     opacity 0.3s ease;
+  overflow-y: auto;
 
   &:hover {
     opacity: 1;
@@ -78,25 +79,42 @@ export const PaletteManager: React.FC<PaletteManagerProps> = ({ selector, naviga
         <>
           <div
             style={{
-              display: 'flex',
-              justifyContent: 'space-around',
-              marginBottom: '12px',
+              position: 'sticky',
+              top: 0,
+              zIndex: 1,
+              marginTop: '10px',
+              border: 'none',
+              padding: '8px',
             }}
           >
-            {Object.values(CATEGORIES).map(category => (
-              <Button
-                key={category}
-                onClick={() => setCurrentCategory(category)}
-                style={{
-                  backgroundColor: currentCategory === category ? 'lightgrey' : 'transparent',
-                  border: 'none',
-                  color: 'black',
-                  marginTop: '20px',
-                }}
-              >
-                {category}
-              </Button>
-            ))}
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-around',
+              }}
+            >
+              {Object.values(CATEGORIES).map(category => (
+                <Button
+                  key={category}
+                  onClick={() => setCurrentCategory(category)}
+                  style={{
+                    backgroundColor: currentCategory === category ? '#2B59FF' : '#f2f2f2',
+                    border: 'none',
+                    color: currentCategory === category ? 'white' : '#333',
+                    padding: '6px 12px',
+                    borderRadius: '16px',
+                    fontSize: '12px',
+                    fontWeight: 'bold',
+                    textTransform: 'uppercase',
+                    transition: 'background-color 0.3s ease, color 0.3s ease',
+                    cursor: 'pointer',
+                    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                  }}
+                >
+                  {category}
+                </Button>
+              ))}
+            </div>
           </div>
 
           {currentCategory === CATEGORIES.SPAWNABLES && (
