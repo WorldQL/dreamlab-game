@@ -358,8 +358,11 @@ export class Selector extends Entity {
           },
         ],
       })
-
-      this.selected.args.spriteSource = { url }
+      if (Array.isArray(this.selected.args.spriteSource)) {
+        this.selected.args.spriteSource.push({ url })
+      } else {
+        this.selected.args.spriteSource = { url }
+      }
     } else if (this.selected.definition.entity === '@dreamlab/BackgroundTrigger') {
       this.history.record({
         uid: this.selected.uid,
