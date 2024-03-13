@@ -64,14 +64,17 @@ export class History extends Entity {
       const cursor = inputs()!.getCursor()
       if (cursor) definition.transform.position = cursor
 
-      const entity = game().spawn(definition)
-      if (entity) {
-        this.recordCreated(entity)
-        window.sendPacket?.({
-          t: 'SpawnEntity',
-          definition,
-        })
-      }
+      // TODO: Dont broadcast to self and we can spawn on client safely
+      window.sendPacket?.({
+        t: 'SpawnEntity',
+        definition,
+      })
+
+      // const entity = game().spawn(definition)
+      // if (entity) {
+      //   this.recordCreated(entity)
+
+      // }
 
       ev.preventDefault()
     } catch {
