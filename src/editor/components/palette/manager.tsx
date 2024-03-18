@@ -20,10 +20,31 @@ const PaletteContainer = styled(Container)<{ isCollapsed: boolean }>`
     transform 0.3s ease,
     opacity 0.3s ease;
   overflow-y: auto;
+  padding-top: 0;
 
   &:hover {
     opacity: 1;
   }
+`
+
+const Header = styled.div`
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  background-color: rgba(230, 230, 230, 0.8);
+  backdrop-filter: blur(5px);
+`
+
+const StickyCollapseButton = styled(CollapseButton)`
+  align-self: flex-start;
+  margin-left: 10px;
+  margin-bottom: 20px;
+`
+
+const ContentWrapper = styled.div`
+  padding: 0.5rem;
 `
 
 const CATEGORIES = {
@@ -64,67 +85,60 @@ export const PaletteManager: React.FC<PaletteManagerProps> = ({ selector, naviga
 
   return (
     <PaletteContainer isCollapsed={isCollapsed}>
-      <CollapseButton onClick={() => setIsCollapsed(prev => !prev)} style={{ left: '0.3rem' }}>
-        {isCollapsed ? (
-          <svg height='16' viewBox='0 0 256 512' width='8' xmlns='http://www.w3.org/2000/svg'>
-            <path d='M9.4 278.6c-12.5-12.5-12.5-32.8 0-45.3l128-128c9.2-9.2 22.9-11.9 34.9-6.9s19.8 16.6 19.8 29.6l0 256c0 12.9-7.8 24.6-19.8 29.6s-25.7 2.2-34.9-6.9l-128-128z' />
-          </svg>
-        ) : (
-          <svg height='16' viewBox='0 0 256 512' width='8' xmlns='http://www.w3.org/2000/svg'>
-            <path d='M246.6 278.6c12.5-12.5 12.5-32.8 0-45.3l-128-128c-9.2-9.2-22.9-11.9-34.9-6.9s-19.8 16.6-19.8 29.6l0 256c0 12.9 7.8 24.6 19.8 29.6s25.7 2.2 34.9-6.9l128-128z' />
-          </svg>
-        )}
-      </CollapseButton>
-      {!isCollapsed && (
-        <>
+      <Header>
+        <StickyCollapseButton onClick={() => setIsCollapsed(prev => !prev)}>
+          {isCollapsed ? (
+            <svg height='16' viewBox='0 0 256 512' width='8' xmlns='http://www.w3.org/2000/svg'>
+              <path d='M9.4 278.6c-12.5-12.5-12.5-32.8 0-45.3l128-128c9.2-9.2 22.9-11.9 34.9-6.9s19.8 16.6 19.8 29.6l0 256c0 12.9-7.8 24.6-19.8 29.6s-25.7 2.2-34.9-6.9l-128-128z' />
+            </svg>
+          ) : (
+            <svg height='16' viewBox='0 0 256 512' width='8' xmlns='http://www.w3.org/2000/svg'>
+              <path d='M246.6 278.6c12.5-12.5 12.5-32.8 0-45.3l-128-128c-9.2-9.2-22.9-11.9-34.9-6.9s-19.8 16.6-19.8 29.6l0 256c0 12.9 7.8 24.6 19.8 29.6s25.7 2.2 34.9-6.9l128-128z' />
+            </svg>
+          )}
+        </StickyCollapseButton>
+        {!isCollapsed && (
           <div
             style={{
-              position: 'sticky',
-              top: 0,
-              zIndex: 1,
-              marginTop: '10px',
-              border: 'none',
-              padding: '8px',
+              display: 'flex',
+              justifyContent: 'space-around',
+              width: '100%',
             }}
           >
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'space-around',
-              }}
-            >
-              {Object.values(CATEGORIES).map(category => (
-                <Button
-                  key={category}
-                  onClick={() => setCurrentCategory(category)}
-                  style={{
-                    backgroundColor: currentCategory === category ? '#2B59FF' : '#f2f2f2',
-                    border: 'none',
-                    color: currentCategory === category ? 'white' : '#333',
-                    padding: '6px 12px',
-                    borderRadius: '16px',
-                    fontSize: '12px',
-                    fontWeight: 'bold',
-                    textTransform: 'uppercase',
-                    transition: 'background-color 0.3s ease, color 0.3s ease',
-                    cursor: 'pointer',
-                    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                  }}
-                >
-                  {category}
-                </Button>
-              ))}
-            </div>
+            {Object.values(CATEGORIES).map(category => (
+              <Button
+                key={category}
+                onClick={() => setCurrentCategory(category)}
+                style={{
+                  backgroundColor: currentCategory === category ? '#2B59FF' : '#f2f2f2',
+                  border: 'none',
+                  color: currentCategory === category ? 'white' : '#333',
+                  padding: '6px 12px',
+                  borderRadius: '16px',
+                  fontSize: '12px',
+                  marginTop: '40px',
+                  marginBottom: '10px',
+                  fontWeight: 'bold',
+                  textTransform: 'uppercase',
+                  transition: 'background-color 0.3s ease, color 0.3s ease',
+                  cursor: 'pointer',
+                  boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                }}
+              >
+                {category}
+              </Button>
+            ))}
           </div>
-
+        )}
+      </Header>
+      {!isCollapsed && (
+        <ContentWrapper>
           {currentCategory === CATEGORIES.SPAWNABLES && (
             <Spawnables history={history} navigator={navigator} selector={selector} />
           )}
-
           {currentCategory === CATEGORIES.ASSETS && (
             <Assets jwt={jwt} nextAPIBaseURL={nextAPIBaseURL} />
           )}
-
           {currentCategory === CATEGORIES.INSPECTOR &&
             (selectedEntity ? (
               <Inspector
@@ -155,7 +169,7 @@ export const PaletteManager: React.FC<PaletteManagerProps> = ({ selector, naviga
                 Select an entity to inspect its properties.
               </div>
             ))}
-        </>
+        </ContentWrapper>
       )}
     </PaletteContainer>
   )
