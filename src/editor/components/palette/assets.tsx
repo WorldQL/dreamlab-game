@@ -23,6 +23,14 @@ const AssetUploader = styled.div`
   }
 `
 
+const SearchBar = styled.input`
+  width: 94%;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  margin-bottom: 16px;
+`
+
 const AssetList = styled.div`
   display: flex;
   flex-direction: column;
@@ -93,6 +101,11 @@ export const Assets: React.FC<AssetsProps> = ({ nextAPIBaseURL, jwt }) => {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const entities = useSpawnableEntities()
   const [entitiesCopy] = useState<SpawnableEntity[]>([...entities])
+  const [searchTerm, setSearchTerm] = useState('')
+
+  const filteredAssets = assets.filter(asset =>
+    asset.name.toLowerCase().includes(searchTerm.toLowerCase()),
+  )
 
   const handleCopyUrl = (assetId: string, imageURL: string) => {
     const tempInput = document.createElement('input')
@@ -303,8 +316,14 @@ export const Assets: React.FC<AssetsProps> = ({ nextAPIBaseURL, jwt }) => {
           Generate New Asset
         </LinkButton>
       </div>
+      <SearchBar
+        onChange={ev => setSearchTerm(ev.target.value)}
+        placeholder='Search assets...'
+        type='text'
+        value={searchTerm}
+      />
       <AssetList>
-        {assets.map(asset => (
+        {filteredAssets.map(asset => (
           <AssetItem
             draggable
             key={asset.id}
