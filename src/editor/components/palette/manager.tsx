@@ -39,7 +39,6 @@ const Header = styled.div`
 
 const StickyCollapseButton = styled(CollapseButton)`
   align-self: flex-start;
-  margin-left: 10px;
   margin-bottom: 20px;
 `
 
