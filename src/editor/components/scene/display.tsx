@@ -207,13 +207,15 @@ export const EntityDisplay: FC<DisplayProps> = ({ selector, entity, isSelected, 
           />
         ) : (
           <span onDoubleClick={handleDoubleClick}>
-            {entity.label
-              ? entity.label.length > 30
-                ? entity.label.slice(0, 30) + '...'
-                : entity.label
-              : entity.definition.entity.length > 30
-                ? entity.definition.entity.slice(0, 30) + '...'
-                : entity.definition.entity}
+            {editedLabel
+              ? editedLabel
+              : entity.label
+                ? entity.label.length > 30
+                  ? entity.label.slice(0, 30) + '...'
+                  : entity.label
+                : entity.definition.entity.length > 30
+                  ? entity.definition.entity.slice(0, 30) + '...'
+                  : entity.definition.entity}
           </span>
         )}
       </SelectButton>
