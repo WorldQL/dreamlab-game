@@ -80,34 +80,12 @@ export const decodeParams = (): Params | undefined => {
   }
 }
 
-// Function to get the current reload count from local storage
-function getReloadCount(): number {
-  const count = localStorage.getItem('reloadCount')
-  return count !== null ? Number.parseInt(count, 10) : 0
-}
-
-// Function to set the reload count in local storage
-export function setReloadCount(count: number) {
-  localStorage.setItem('reloadCount', count.toString())
-}
-
-// Function to increment the reload count
-function incrementReloadCount() {
-  const count = getReloadCount() + 1
-  setReloadCount(count)
-  return count
-}
-
-incrementReloadCount()
-
 export const connect = async (params: Params | undefined): Promise<WebSocket | undefined> => {
   if (!params) return undefined
-
   const serverURL = new URL(params.server)
   serverURL.pathname = `/api/v1/connect/${params.instance}`
   serverURL.searchParams.set('instance', params.instance)
   serverURL.searchParams.set('token', params.token)
-
   const characterId = getCharacterId()
   if (characterId) serverURL.searchParams.set('character_id', characterId)
 
@@ -115,22 +93,15 @@ export const connect = async (params: Params | undefined): Promise<WebSocket | u
     const ws = new WebSocket(serverURL.toString())
     resolve(ws)
 
-    // ws.addEventListener('open', () => resolve(ws))
+    ws.addEventListener('open', () => {
+      console.log('WebSocket connection opened')
+      window.parent.postMessage('connected', '*')
+    })
+
     ws.addEventListener('error', () => {
       console.log('Got error in websocket event listener')
-      if (getReloadCount() > 20) {
-        const worldDetails = localStorage.getItem('@dreamlab/worlds/fallbackUrl')
-        if (worldDetails) window.location.href = worldDetails
-        return
-      }
-
-      if (getReloadCount() > 3) {
-        document.querySelector('#retrycount')!.innerHTML = `Retries: ${getReloadCount()}/20`
-      }
-
       setTimeout(() => {
-        // @ts-expect-error: https://developer.mozilla.org/en-US/docs/Web/API/Location/reload#forceget
-        window.location.reload(true)
+        window.parent.postMessage('reload', '*')
       }, 1_000)
     })
   })

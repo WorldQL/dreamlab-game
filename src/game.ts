@@ -5,7 +5,7 @@ import { isDebug } from './debug.js'
 import { Editor } from './editor/editor.js'
 // import { createKeybinds } from './keybinds/entity.js'
 import { bindInput, loadBindings } from './keybinds/persist.js'
-import { connect, createNetwork, decodeParams, setReloadCount } from './network.js'
+import { connect, createNetwork, decodeParams } from './network.js'
 import type { ToServerPacket } from './packets.js'
 import { loadLevel, loadScript, spawnPlayer } from './scripting.js'
 
@@ -29,7 +29,7 @@ export const init = async () => {
     setTimeout(() => {
       window.location.reload()
     }, 1_000)
-    // window.location.href = worldDetails
+    window.location.href = worldDetails
     return
   }
 
@@ -84,9 +84,6 @@ export const init = async () => {
 
     await connected
     console.log('connected successfully!')
-    setReloadCount(0)
-    const connectionMessage = document.querySelector('#connectingmessage') as HTMLElement
-    connectionMessage.style.display = 'none'
 
     game.events.common.on('onTickSkipped', () => {
       sendPacket({ t: 'RequestFullSnapshot' })
@@ -108,7 +105,6 @@ export const init = async () => {
           instance: 'instance',
         })
 
-        document.querySelector('#connectingmessage')?.remove()
         game.instantiate(editor)
 
         await loadScript(undefined, world, game)
