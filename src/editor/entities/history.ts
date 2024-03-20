@@ -1,11 +1,17 @@
-import type { SpawnableDefinition, SpawnableEntity } from '@dreamlab.gg/core'
 import { Entity, SpawnableDefinitionSchema } from '@dreamlab.gg/core'
+import type {
+  LooseSpawnableDefinition,
+  SpawnableDefinition,
+  SpawnableEntity,
+} from '@dreamlab.gg/core'
+import type { EventHandler } from '@dreamlab.gg/core/events'
 import { EventEmitter } from '@dreamlab.gg/core/events'
-import { game, inputs } from '@dreamlab.gg/core/labs'
+import { events, game, inputs } from '@dreamlab.gg/core/labs'
 import { cloneTransform } from '@dreamlab.gg/core/math'
 import type { Transform } from '@dreamlab.gg/core/math'
 import type { Ref } from '@dreamlab.gg/core/utils'
 import { clone, getProperty, onChange, setProperty } from '@dreamlab.gg/core/utils'
+import { createId } from '@paralleldrive/cuid2'
 import copy from 'copy-to-clipboard'
 
 type UpdateAction =
@@ -55,7 +61,47 @@ export class History extends Entity {
     if (ev.key === 'y') this.redo()
   }
 
-  readonly #paste = (ev: ClipboardEvent) => {
+  readonly #spawn = async (
+    definition: LooseSpawnableDefinition,
+  ): Promise<SpawnableEntity | undefined> => {
+    const sendPacket = window.sendPacket
+    if (sendPacket) {
+      const uid = definition.uid ?? createId()
+      return new Promise<SpawnableEntity | undefined>(resolve => {
+        const onSpawn: EventHandler<'onSpawn'> = entity => {
+          if (entity.uid !== uid) return
+          events('common').removeListener('onSpawn', onSpawn)
+
+          resolve(entity)
+        }
+
+        events('common').addListener('onSpawn', onSpawn)
+        sendPacket({ t: 'SpawnEntity', definition: { ...definition, uid } })
+      })
+    }
+
+    return game().spawn(definition)
+  }
+
+  //   const spawn = useCallback(
+  //     (definition: LooseSpawnableDefinition): SpawnableEntity | undefined => {
+  //       if (network) {
+  //         void network.sendEntityCreate(definition)
+  //         spawnedAwaitingSelectionRef.current.push(definition.uid!)
+  //       } else {
+  //         const spawned = game.spawn(definition)
+  //         if (spawned) {
+  //           selector.select(spawned)
+  //           return spawned
+  //         }
+  //       }
+
+  //       return undefined
+  //     },
+  //     [game, network, selector],
+  //   )
+
+  readonly #paste = async (ev: ClipboardEvent) => {
     const data = ev.clipboardData?.getData('text/plain')
     if (!data) return
 
@@ -64,21 +110,13 @@ export class History extends Entity {
       const cursor = inputs()!.getCursor()
       if (cursor) definition.transform.position = cursor
 
-      // TODO: Dont broadcast to self and we can spawn on client safely
-      window.sendPacket?.({
-        t: 'SpawnEntity',
-        definition,
-      })
-
-      // const entity = game().spawn(definition)
-      // if (entity) {
-      //   this.recordCreated(entity)
-
-      // }
-
       ev.preventDefault()
-    } catch {
+
+      const entity = await this.#spawn(definition)
+      if (entity) this.recordCreated(entity)
+    } catch (error) {
       // No-op
+      console.error(error)
     }
   }
 

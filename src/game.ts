@@ -12,7 +12,7 @@ import { loadLevel, loadScript, spawnPlayer } from './scripting.js'
 declare global {
   interface Window {
     // TODO: Make this slightly more hidden lol
-    sendPacket?(packet: ToServerPacket): void
+    sendPacket?(this: void, packet: ToServerPacket): void
   }
 }
 
