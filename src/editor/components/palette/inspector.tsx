@@ -321,7 +321,13 @@ export const Inspector: FC<InspectorProps> = ({ entity, history }) => {
               <span>X: </span>
               <input
                 onChange={ev => handlePositionChange('x', ev.target.value)}
-                onKeyDown={ev => ev.stopPropagation()}
+                onKeyDown={ev => {
+                  if (ev.key === 'Enter') {
+                    ;(ev.target as HTMLInputElement).blur()
+                  }
+
+                  ev.stopPropagation()
+                }}
                 type='number'
                 value={tempX}
               />
@@ -330,7 +336,13 @@ export const Inspector: FC<InspectorProps> = ({ entity, history }) => {
               <span>Y:</span>
               <input
                 onChange={ev => handlePositionChange('y', ev.target.value)}
-                onKeyDown={ev => ev.stopPropagation()}
+                onKeyDown={ev => {
+                  if (ev.key === 'Enter') {
+                    ;(ev.target as HTMLInputElement).blur()
+                  }
+
+                  ev.stopPropagation()
+                }}
                 type='number'
                 value={tempY}
               />
@@ -343,7 +355,13 @@ export const Inspector: FC<InspectorProps> = ({ entity, history }) => {
               <span>Rotation: </span>
               <input
                 onChange={ev => handleTransformChange('rotation', ev.target.value)}
-                onKeyDown={ev => ev.stopPropagation()}
+                onKeyDown={ev => {
+                  if (ev.key === 'Enter') {
+                    ;(ev.target as HTMLInputElement).blur()
+                  }
+
+                  ev.stopPropagation()
+                }}
                 type='number'
                 value={tempRotation}
               />
@@ -352,7 +370,13 @@ export const Inspector: FC<InspectorProps> = ({ entity, history }) => {
               <span>Z-Index:</span>
               <input
                 onChange={ev => handleTransformChange('zIndex', ev.target.value)}
-                onKeyDown={ev => ev.stopPropagation()}
+                onKeyDown={ev => {
+                  if (ev.key === 'Enter') {
+                    ;(ev.target as HTMLInputElement).blur()
+                  }
+
+                  ev.stopPropagation()
+                }}
                 type='number'
                 value={tempZIndex}
               />
