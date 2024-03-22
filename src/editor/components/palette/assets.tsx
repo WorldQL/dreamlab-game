@@ -81,6 +81,50 @@ const CopyButton = styled.button`
   }
 `
 
+const FilterOptions = styled.div`
+  display: flex;
+  gap: 16px;
+  margin-bottom: 16px;
+`
+
+const FilterOption = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+`
+
+const FilterLabel = styled.label`
+  font-size: 14px;
+  color: #4b5563;
+`
+
+const FilterRadio = styled.div<{ checked: boolean }>`
+  width: 16px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid #4b5563;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: border-color 0.2s ease;
+
+  &::after {
+    content: '';
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: #2563eb;
+    opacity: ${props => (props.checked ? 1 : 0)};
+    transition: opacity 0.2s ease;
+  }
+
+  &:hover {
+    border-color: #2563eb;
+  }
+`
 interface ImageData {
   name: string
   imageURL: string
@@ -93,7 +137,8 @@ interface AssetsProps {
 }
 
 export const Assets: React.FC<AssetsProps> = ({ nextAPIBaseURL, jwt }) => {
-  const [assets, setAssets] = useState<ImageData[]>([])
+  const [userAssets, setUserAssets] = useState<ImageData[]>([])
+  const [worldAssets, setWorldAssets] = useState<ImageData[]>([])
   const [dragOver, setDragOver] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [newName, setNewName] = useState<string>('')
@@ -103,9 +148,34 @@ export const Assets: React.FC<AssetsProps> = ({ nextAPIBaseURL, jwt }) => {
   const [entitiesCopy] = useState<SpawnableEntity[]>([...entities])
   const [searchTerm, setSearchTerm] = useState('')
 
-  const filteredAssets = assets.filter(asset =>
-    asset.name.toLowerCase().includes(searchTerm.toLowerCase()),
-  )
+  const [filterOption, setFilterOption] = useState<'all' | 'from user' | 'from world'>('all')
+
+  const filteredAssets = (() => {
+    let assets: ImageData[] = []
+
+    switch (filterOption) {
+      case 'all': {
+        assets = [...userAssets, ...worldAssets]
+
+        break
+      }
+
+      case 'from user': {
+        assets = userAssets
+
+        break
+      }
+
+      case 'from world': {
+        assets = worldAssets
+
+        break
+      }
+      // No default
+    }
+
+    return assets.filter(asset => asset.name.toLowerCase().includes(searchTerm.toLowerCase()))
+  })()
 
   const handleCopyUrl = (assetId: string, imageURL: string) => {
     const tempInput = document.createElement('input')
@@ -133,23 +203,26 @@ export const Assets: React.FC<AssetsProps> = ({ nextAPIBaseURL, jwt }) => {
       headers: { Authorization: jwt },
     })
     console.log(response)
-    const imageAssets: ImageData[] = []
+    const userImageAssets: ImageData[] = []
+    const worldImageAssets: ImageData[] = []
 
+    // these assets are from the user
     for (const image of response.data as ImageData[]) {
-      imageAssets.push({
+      userImageAssets.push({
         name: image.name ?? image.imageURL.split('/').at(-1),
         imageURL: image.imageURL,
         id: image.id,
       })
     }
 
-    imageAssets.reverse()
+    userImageAssets.reverse()
 
+    // these assets are from the level
     for (const entity of entitiesCopy) {
       if (entity.definition.args.spriteSource) {
         const imageURL = entity.definition.args.spriteSource.url
-        if (imageURL && !imageAssets.some(asset => asset.imageURL === imageURL)) {
-          imageAssets.push({
+        if (imageURL && !worldImageAssets.some(asset => asset.imageURL === imageURL)) {
+          worldImageAssets.push({
             name: imageURL.split('/').pop() || '',
             imageURL,
             id: entity.uid,
@@ -158,10 +231,8 @@ export const Assets: React.FC<AssetsProps> = ({ nextAPIBaseURL, jwt }) => {
       }
     }
 
-    setAssets(imageAssets)
-
-    // after we get the list of URLs from the user's library, we also load the images of everything that's currently in the game
-    // then we remove duplicates by matching on URL
+    setUserAssets(userImageAssets)
+    setWorldAssets(worldImageAssets)
   }, [entitiesCopy, jwt, nextAPIBaseURL])
 
   useEffect(() => {
@@ -200,7 +271,7 @@ export const Assets: React.FC<AssetsProps> = ({ nextAPIBaseURL, jwt }) => {
           { imageBase64: ev.target?.result, name: file.name },
           { headers: { Authorization: jwt } },
         )
-        setAssets(prev => [
+        setUserAssets(prev => [
           {
             name: file.name,
             imageURL: response.data.imageURL,
@@ -322,6 +393,20 @@ export const Assets: React.FC<AssetsProps> = ({ nextAPIBaseURL, jwt }) => {
         type='text'
         value={searchTerm}
       />
+      <FilterOptions>
+        <FilterOption onClick={() => setFilterOption('all')}>
+          <FilterRadio checked={filterOption === 'all'} />
+          <FilterLabel>All Assets</FilterLabel>
+        </FilterOption>
+        <FilterOption onClick={() => setFilterOption('from world')}>
+          <FilterRadio checked={filterOption === 'from world'} />
+          <FilterLabel>From World</FilterLabel>
+        </FilterOption>
+        <FilterOption onClick={() => setFilterOption('from user')}>
+          <FilterRadio checked={filterOption === 'from user'} />
+          <FilterLabel>From User</FilterLabel>
+        </FilterOption>
+      </FilterOptions>
       <AssetList>
         {filteredAssets.map(asset => (
           <AssetItem
