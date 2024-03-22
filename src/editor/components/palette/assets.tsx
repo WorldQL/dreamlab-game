@@ -8,27 +8,40 @@ import { styled } from 'https://esm.sh/styled-components@6.1.8?pin=v135'
 import { DeleteButton, LinkButton } from '../ui/buttons'
 
 const AssetUploader = styled.div`
-  border: 2px dashed rgb(99 102 241);
+  border: 2px dashed #6b7280;
   padding: 36px;
   text-align: center;
   cursor: pointer;
   margin-top: 10px;
   margin-bottom: 10px;
-  border-radius: 5px;
-  background-color: #f8f9fa;
+  border-radius: 8px;
+  background-color: #f9fafb;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease;
+
   &:hover,
   &.drag-over {
-    background-color: #e2e6ea;
-    border-color: #007bff;
+    background-color: #f3f4f6;
+    border-color: #3b82f6;
   }
 `
 
 const SearchBar = styled.input`
-  width: 94%;
-  padding: 8px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
+  width: 91%;
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  background-color: #f3f4f6;
+  font-size: 16px;
+  color: #1f2937;
   margin-bottom: 16px;
+  transition: box-shadow 0.2s ease;
+
+  &:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+  }
 `
 
 const AssetList = styled.div`
@@ -49,10 +62,15 @@ const AssetItem = styled.div`
   background-color: #f8f9fa;
   border: 1px solid #ddd;
   cursor: grab;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 
   &:hover {
-    background-color: rgb(199 210 254);
-    transition: background-color 0.1s ease;
+    transform: translateY(-2px);
+    box-shadow:
+      0 4px 6px -1px rgba(0, 0, 0, 0.1),
+      0 2px 4px -1px rgba(0, 0, 0, 0.06);
   }
 `
 
@@ -389,6 +407,9 @@ export const Assets: React.FC<AssetsProps> = ({ nextAPIBaseURL, jwt }) => {
       </div>
       <SearchBar
         onChange={ev => setSearchTerm(ev.target.value)}
+        onKeyDown={ev => {
+          ev.stopPropagation()
+        }}
         placeholder='Search assets...'
         type='text'
         value={searchTerm}
@@ -428,6 +449,8 @@ export const Assets: React.FC<AssetsProps> = ({ nextAPIBaseURL, jwt }) => {
                     if (ev.key === 'Enter') {
                       void handleEditName()
                     }
+
+                    ev.stopPropagation()
                   }}
                   type='text'
                   value={newName}
