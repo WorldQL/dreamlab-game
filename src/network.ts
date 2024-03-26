@@ -271,6 +271,7 @@ export const createNetwork = (
           } else {
             const netplayer = new NetPlayer(
               packet.connection_id,
+              packet.player_id,
               packet.entity_id,
               packet.character_id,
               packet.nickname,
