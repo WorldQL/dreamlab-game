@@ -2,7 +2,7 @@ import { SpawnableDefinitionSchema } from '@dreamlab.gg/core'
 import { BaseGearSchema } from '@dreamlab.gg/core/managers'
 import { z } from 'zod'
 
-export const PROTOCOL_VERSION = 7
+export const PROTOCOL_VERSION = 8
 
 const TupleVectorSchema = z.tuple([z.number(), z.number()])
 const ObjectVectorSchema = z.object({ x: z.number(), y: z.number() })
@@ -12,7 +12,7 @@ export const HandshakeSchema = z.object({
   t: z.literal('Handshake'),
 
   protocol_version: z.number(),
-  peer_id: z.string(),
+  connection_id: z.string(),
   world_id: z.string(),
   edit_mode: z.boolean(),
   world_script_url_base: z.string().optional().nullable(),
@@ -34,7 +34,8 @@ export type SpawnPlayerPacket = z.infer<typeof SpawnPlayerSchema>
 export const SpawnPlayerSchema = z.object({
   t: z.literal('SpawnPlayer'),
 
-  peer_id: z.string(),
+  connection_id: z.string(),
+  player_id: z.string(),
   character_id: z.string().optional(),
   nickname: z.string().optional(),
   entity_id: z.string(),
@@ -46,7 +47,7 @@ export type DespawnPlayerPacket = z.infer<typeof DespawnPlayerSchema>
 export const DespawnPlayerSchema = z.object({
   t: z.literal('DespawnPlayer'),
 
-  peer_id: z.string(),
+  connection_id: z.string(),
   entity_id: z.string(),
 })
 
@@ -282,37 +283,37 @@ export const IncomingPhysicsSuspendResumeSchema = z.object({
 
 export type OutgoingSpawnEntityPacket = z.infer<typeof OutgoingSpawnEntitySchema>
 export const OutgoingSpawnEntitySchema = IncomingSpawnEntitySchema.extend({
-  peer_id: z.string(),
+  connection_id: z.string(),
 })
 
 export type OutgoingDestroyEntityPacket = z.infer<typeof OutgoingDestroyEntitySchema>
 export const OutgoingDestroyEntitySchema = IncomingDestroyEntitySchema.extend({
-  peer_id: z.string(),
+  connection_id: z.string(),
 })
 
 export type OutgoingTransformChangedPacket = z.infer<typeof OutgoingTransformChangedSchema>
 export const OutgoingTransformChangedSchema = IncomingTransformChangedSchema.extend({
-  peer_id: z.string(),
+  connection_id: z.string(),
 })
 
 export type OutgoingArgsChangedPacket = z.infer<typeof OutgoingArgsChangedSchema>
 export const OutgoingArgsChangedSchema = IncomingArgsChangedSchema.extend({
-  peer_id: z.string(),
+  connection_id: z.string(),
 })
 
 export type OutgoingLabelChangedPacket = z.infer<typeof OutgoingLabelChangedSchema>
 export const OutgoingLabelChangedSchema = IncomingLabelChangedSchema.extend({
-  peer_id: z.string(),
+  connection_id: z.string(),
 })
 
 export type OutgoingTagsChangedPacket = z.infer<typeof OutgoingTagsChangedSchema>
 export const OutgoingTagsChangedSchema = IncomingTagsChangedSchema.extend({
-  peer_id: z.string(),
+  connection_id: z.string(),
 })
 
 export type OutgoingPhysicsSuspendResumePacket = z.infer<typeof OutgoingPhysicsSuspendResumeSchema>
 export const OutgoingPhysicsSuspendResumeSchema = IncomingPhysicsSuspendResumeSchema.extend({
-  peer_id: z.string(),
+  connection_id: z.string(),
 })
 
 export type PhysicsRequestObjectControlPacket = z.infer<typeof OutgoingPhysicsSuspendResumeSchema>

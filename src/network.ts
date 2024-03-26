@@ -261,7 +261,7 @@ export const createNetwork = (
         }
 
         case 'SpawnPlayer': {
-          if (packet.peer_id === selfID) {
+          if (packet.connection_id === selfID) {
             const resp = LevelSchema.safeParse(packet.level)
             if (resp.success) {
               game.spawnMany(...resp.data)
@@ -270,7 +270,7 @@ export const createNetwork = (
             localPlayer = await spawnPlayer(game)
           } else {
             const netplayer = new NetPlayer(
-              packet.peer_id,
+              packet.connection_id,
               packet.entity_id,
               packet.character_id,
               packet.nickname,
@@ -284,7 +284,7 @@ export const createNetwork = (
         }
 
         case 'DespawnPlayer': {
-          if (packet.peer_id === selfID) break
+          if (packet.connection_id === selfID) break
           const netplayer = players.get(packet.entity_id)
 
           if (netplayer) {
@@ -443,7 +443,7 @@ export const createNetwork = (
         }
 
         case 'DestroyEntity': {
-          if (packet.peer_id === selfID) return
+          if (packet.connection_id === selfID) return
 
           const entity = game.lookup(packet.entity_id)
           if (entity) game.destroy(entity)
@@ -452,7 +452,7 @@ export const createNetwork = (
         }
 
         case 'TransformChanged': {
-          if (packet.peer_id === selfID) return
+          if (packet.connection_id === selfID) return
 
           const entity = game.lookup(packet.entity_id)
           if (!entity) return
@@ -480,7 +480,7 @@ export const createNetwork = (
         }
 
         case 'ArgsChanged': {
-          if (packet.peer_id === selfID) return
+          if (packet.connection_id === selfID) return
 
           const entity = game.lookup(packet.entity_id)
           if (!entity) return
@@ -496,7 +496,7 @@ export const createNetwork = (
         }
 
         case 'LabelChanged': {
-          if (packet.peer_id === selfID) return
+          if (packet.connection_id === selfID) return
 
           const entity = game.lookup(packet.entity_id)
           if (!entity) return
@@ -509,7 +509,7 @@ export const createNetwork = (
         }
 
         case 'TagsChanged': {
-          if (packet.peer_id === selfID) return
+          if (packet.connection_id === selfID) return
 
           const entity = game.lookup(packet.entity_id)
           if (!entity) return
@@ -521,15 +521,15 @@ export const createNetwork = (
         }
 
         case 'PhysicsSuspendResume': {
-          if (packet.peer_id === selfID) return
+          if (packet.connection_id === selfID) return
 
           const entity = game.lookup(packet.entity_id)
           if (!entity) return
 
           if (packet.action === 'suspend') {
-            game.physics.suspend(packet.peer_id, [entity])
+            game.physics.suspend(packet.connection_id, [entity])
           } else {
-            game.physics.resume(packet.peer_id, [entity])
+            game.physics.resume(packet.connection_id, [entity])
           }
 
           break
@@ -599,7 +599,7 @@ export const createNetwork = (
           const payload: HandshakeReadyPacket = { t: 'HandshakeReady' }
           sendPacket(payload)
 
-          selfID = packet.peer_id
+          selfID = packet.connection_id
           sendReady()
 
           return
