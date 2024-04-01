@@ -8,6 +8,7 @@ import type { Selector } from '../entities/select'
 import { CLICommand } from './command'
 import { PaletteManager } from './palette/manager'
 import { SceneList } from './scene/list'
+import { Card } from './ui/card'
 
 export const renderUI = (
   selector: Selector,
@@ -20,13 +21,59 @@ export const renderUI = (
     game(),
     <StyleSheetManager target={styles}>
       {editDetails && <CLICommand details={editDetails} />}
-
       <SceneList editDetails={editDetails} history={history} selector={selector} />
       <PaletteManager history={history} navigator={navigator} selector={selector} />
     </StyleSheetManager>,
     { interactable: false },
   )
 
+  const debug_ui = render(
+    game(),
+    <Card
+      style={{
+        position: 'absolute',
+        bottom: '24px',
+        left: '24px',
+        padding: '10px',
+        backgroundColor: 'rgba(255, 255, 255, 0.9)',
+        color: '#1a1a1a',
+        fontSize: '14px',
+        borderRadius: '8px',
+        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+        maxWidth: '300px',
+      }}
+    >
+      <h3 style={{ fontSize: '16px', marginBottom: '2px', fontWeight: '500' }}>
+        Welcome to the Editor!
+      </h3>
+      <p style={{ marginBottom: '0', fontSize: '16px', fontWeight: '600' }}>
+        Click{' '}
+        <span
+          style={{
+            backgroundColor: '#f0f0f0',
+            padding: '4px',
+            borderRadius: '4px',
+          }}
+        >
+          `
+        </span>{' '}
+        to open the editor.
+        <br />
+        Click{' '}
+        <span
+          style={{
+            backgroundColor: '#f0f0f0',
+            padding: '4px',
+            borderRadius: '4px',
+          }}
+        >
+          P
+        </span>{' '}
+        to toggle debug mode.
+      </p>
+    </Card>,
+  )
+
   ui.root.append(styles)
-  return ui
+  return { ui, debug_ui }
 }

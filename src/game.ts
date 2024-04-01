@@ -110,13 +110,6 @@ export const init = async () => {
         await loadScript(undefined, world, game)
         await loadLevel(undefined, world, game)
         await spawnPlayer(game, undefined)
-        game.spawn({
-          entity: '@dreamlab/BouncyBall',
-          args: { width: 1_290, height: 50 },
-          transform: {
-            position: [0, -616],
-          },
-        })
       }
     }
 

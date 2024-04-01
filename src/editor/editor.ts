@@ -1,6 +1,6 @@
 import type { SpawnableEntity } from '@dreamlab.gg/core'
 import { Entity, isSpawnableEntity } from '@dreamlab.gg/core'
-import { camera, game, inputs } from '@dreamlab.gg/core/labs'
+import { camera, debug, events, game, inputs } from '@dreamlab.gg/core/labs'
 import { deferUntilPlayer, ref } from '@dreamlab.gg/core/utils'
 import type { ToServerPacket } from '../packets'
 import { renderUI } from './components/ui'
@@ -117,13 +117,19 @@ export class Editor extends Entity {
       })
     })
 
-    const { container } = renderUI(this.#selector, this.#navigator, this.#history, editDetails)
-    container.style.display = 'none'
+    const { ui, debug_ui } = renderUI(this.#selector, this.#navigator, this.#history, editDetails)
+    ui.container.style.display = 'none'
+    debug_ui.container.style.display = debug() ? '' : 'none'
 
     deferUntilPlayer(player => {
       player.events.addListener('onToggleNoclip', noclip => {
-        container.style.display = noclip ? '' : 'none'
+        ui.container.style.display = noclip ? '' : 'none'
+        debug_ui.container.style.display = noclip ? 'none' : ''
       })
+    })
+
+    game().client?.inputs.addListener('debug', () => {
+      debug_ui.container.style.display = debug() ? '' : 'none'
     })
   }
 
