@@ -142,6 +142,7 @@ export const PlayerInputsPacketSchema = z.object({
   left: z.boolean(),
   right: z.boolean(),
   attack: z.boolean(),
+  jog: z.boolean(),
 })
 
 export type PlayerCharacterIdChangePacket = z.infer<typeof PlayerCharacterIdChangeSchema>
