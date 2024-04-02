@@ -107,11 +107,11 @@ export const EntityDisplay: FC<DisplayProps> = ({ selector, entity, isSelected, 
   const onDelete = useCallback(async () => {
     if (!entity) return
 
-    // eslint-disable-next-line no-alert
-    const isConfirmed = window.confirm(
-      `Are you sure you want to delete "${entity.definition.entity}"?`,
-    )
-    if (!isConfirmed) return
+    // // eslint-disable-next-line no-alert
+    // const isConfirmed = window.confirm(
+    //   `Are you sure you want to delete "${entity.definition.entity}"?`,
+    // )
+    // if (!isConfirmed) return
 
     selector.deselect()
     history.recordDeleted(entity)

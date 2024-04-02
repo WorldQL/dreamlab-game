@@ -185,9 +185,10 @@ export const SceneList: FC<{
     const id = selector.selected.uid
     history.recordDeleted(selector.selected)
     game.destroy(selector.selected)
+    selector.deselect()
 
     window.sendPacket?.({ t: 'DestroyEntity', entity_id: id })
-  }, [game, history, selector.selected])
+  }, [game, history, selector])
 
   const [ctrlHeldDown, setCtrlHeldDown] = useState(false)
 
