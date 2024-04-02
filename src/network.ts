@@ -437,6 +437,8 @@ export const createNetwork = (
         }
 
         case 'SpawnEntity': {
+          if (packet.connection_id === selfID) return
+
           const resp = SpawnableDefinitionSchema.safeParse(packet.definition)
           if (resp.success) game.spawn(resp.data)
 
