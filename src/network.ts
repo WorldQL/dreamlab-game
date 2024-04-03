@@ -437,9 +437,8 @@ export const createNetwork = (
           break
         }
 
+        // TODO: fix entity already spawned bug when using history undo/redo
         case 'SpawnEntity': {
-          if (packet.connection_id === selfID) return
-
           const resp = SpawnableDefinitionSchema.safeParse(packet.definition)
           if (resp.success) game.spawn(resp.data)
 
