@@ -1,7 +1,9 @@
 import type { SpawnableEntity } from '@dreamlab.gg/core'
 import { Entity, isSpawnableEntity } from '@dreamlab.gg/core'
+import type { CameraTarget } from '@dreamlab.gg/core/dist/entities'
 import { camera, debug, events, game, inputs } from '@dreamlab.gg/core/labs'
-import { deferUntilPlayer, ref } from '@dreamlab.gg/core/utils'
+import { ref } from '@dreamlab.gg/core/utils'
+import type { Vector } from 'matter-js'
 import type { ToServerPacket } from '../packets'
 import { renderUI } from './components/ui'
 import { History } from './entities/history'
@@ -30,6 +32,8 @@ export class Editor extends Entity {
   readonly #history: History
   readonly #selector: Selector
   readonly #navigator: Navigator
+
+  private cameraTarget: CameraTarget | undefined
 
   readonly #onTransformChanged = (entity: Entity, noBroadcast?: boolean) => {
     if (noBroadcast) return
@@ -99,33 +103,41 @@ export class Editor extends Entity {
     inputs().registerInput(EditorInputs.MoveBackwards, 'Move Into Background', 'BracketLeft')
     inputs().registerInput(EditorInputs.ToggleTiling, 'Toggle Sprite Tiling', 'Backslash')
 
-    deferUntilPlayer(player => {
-      player.events.addListener('onToggleNoclip', noclip => {
-        this.#enabled.value = noclip
-        if (noclip) {
-          camera().smoothing = 0.02
-          this.#navigator.setPosition(player.position)
-        } else {
-          player.teleport(this.#navigator.position)
-          camera().target = player
-          camera().smoothing = 0.125
+    events().client?.addListener('onToggleNoclip', noclip => {
+      this.#enabled.value = noclip
+      const currentTarget = camera().target
+      let targetPos: Vector | undefined
 
-          inputs().enable('mouse', 'editor')
-          this.#selector.deselect()
-          inputs().setKey('MouseLeft', false)
+      if (currentTarget) {
+        if ('position' in currentTarget) {
+          targetPos = currentTarget.position
+        } else if ('transform' in currentTarget) {
+          targetPos = currentTarget.transform.position
         }
-      })
+      }
+
+      if (noclip) {
+        this.cameraTarget = currentTarget
+        camera().smoothing = 0.02
+        if (targetPos) {
+          this.#navigator.setPosition(targetPos)
+        }
+      } else {
+        camera().target = this.cameraTarget
+        camera().smoothing = 0.125
+        inputs().enable('mouse', 'editor')
+        this.#selector.deselect()
+        inputs().setKey('MouseLeft', false)
+      }
     })
 
     const { ui, debug_ui } = renderUI(this.#selector, this.#navigator, this.#history, editDetails)
     ui.container.style.display = 'none'
     debug_ui.container.style.display = debug() ? '' : 'none'
 
-    deferUntilPlayer(player => {
-      player.events.addListener('onToggleNoclip', noclip => {
-        ui.container.style.display = noclip ? '' : 'none'
-        debug_ui.container.style.display = noclip ? 'none' : ''
-      })
+    events().client?.addListener('onToggleNoclip', noclip => {
+      ui.container.style.display = noclip ? '' : 'none'
+      debug_ui.container.style.display = noclip ? 'none' : ''
     })
 
     game().client?.inputs.addListener('debug', () => {
