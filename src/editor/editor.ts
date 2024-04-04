@@ -1,7 +1,7 @@
 import type { SpawnableEntity } from '@dreamlab.gg/core'
 import { Entity, isSpawnableEntity } from '@dreamlab.gg/core'
 import type { CameraTarget } from '@dreamlab.gg/core/dist/entities'
-import { camera, debug, events, game, inputs } from '@dreamlab.gg/core/labs'
+import { camera, debug, game, inputs } from '@dreamlab.gg/core/labs'
 import { ref } from '@dreamlab.gg/core/utils'
 import type { Vector } from 'matter-js'
 import type { ToServerPacket } from '../packets'
@@ -16,6 +16,7 @@ export enum EditorInputs {
   DeleteEntity = '@editor/DeleteEntity',
   MoveBackwards = '@editor/MoveBackwards',
   MoveForewards = '@editor/MoveForewards',
+  ToggleEditor = '@editor/ToggleEditor',
   TogglePalette = '@editor/TogglePalette',
   ToggleTiling = '@editor/ToggleTiling',
 }
@@ -102,9 +103,18 @@ export class Editor extends Entity {
     inputs().registerInput(EditorInputs.MoveForewards, 'Move Into Foreground', 'BracketRight')
     inputs().registerInput(EditorInputs.MoveBackwards, 'Move Into Background', 'BracketLeft')
     inputs().registerInput(EditorInputs.ToggleTiling, 'Toggle Sprite Tiling', 'Backslash')
+    inputs().registerInput(EditorInputs.ToggleEditor, 'Toggle Editor Mode', 'Backquote')
 
-    events().client?.addListener('onToggleNoclip', noclip => {
-      this.#enabled.value = noclip
+    const { ui, debug_ui } = renderUI(this.#selector, this.#navigator, this.#history, editDetails)
+    ui.container.style.display = 'none'
+    debug_ui.container.style.display = debug() ? '' : 'none'
+
+    inputs().addListener(EditorInputs.ToggleEditor, (keyDown: boolean) => {
+      if (!keyDown) {
+        return
+      }
+
+      this.#enabled.value = !this.#enabled.value
       const currentTarget = camera().target
       let targetPos: Vector | undefined
 
@@ -116,28 +126,21 @@ export class Editor extends Entity {
         }
       }
 
-      if (noclip) {
+      if (this.#enabled.value) {
         this.cameraTarget = currentTarget
         camera().smoothing = 0.02
+        camera().disableNonEditorInputs()
         if (targetPos) {
           this.#navigator.setPosition(targetPos)
         }
       } else {
+        camera().enableNonEditorInputs()
         camera().target = this.cameraTarget
         camera().smoothing = 0.125
         inputs().enable('mouse', 'editor')
         this.#selector.deselect()
         inputs().setKey('MouseLeft', false)
       }
-    })
-
-    const { ui, debug_ui } = renderUI(this.#selector, this.#navigator, this.#history, editDetails)
-    ui.container.style.display = 'none'
-    debug_ui.container.style.display = debug() ? '' : 'none'
-
-    events().client?.addListener('onToggleNoclip', noclip => {
-      ui.container.style.display = noclip ? '' : 'none'
-      debug_ui.container.style.display = noclip ? 'none' : ''
     })
 
     game().client?.inputs.addListener('debug', () => {
