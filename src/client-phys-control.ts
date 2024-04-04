@@ -54,6 +54,7 @@ export function createClientControlManager(game: Game<false>): ClientControlMana
             bodyIndex,
             position: { x: body.position.x, y: body.position.y },
             velocity: { x: body.velocity.x, y: body.velocity.y },
+            angle: body.angle,
             angularVelocity: body.angularVelocity,
           })
         }

@@ -172,6 +172,7 @@ export const BodyInfoSchema = z.object({
   bodyIndex: z.number(),
   position: ObjectVectorSchema,
   velocity: ObjectVectorSchema,
+  angle: z.number(),
   angularVelocity: z.number(),
 })
 
