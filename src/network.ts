@@ -108,6 +108,8 @@ export const connect = async (params: Params | undefined): Promise<WebSocket | u
 }
 
 const updateBodies = (bodies: Body[], bodyInfo: BodyInfo[]) => {
+  return
+
   for (const [idx, body] of bodies.entries()) {
     const info = bodyInfo[idx]
 
@@ -249,6 +251,7 @@ export const createNetwork = (
 
   const [sendReady, ready] = createSignal()
   const handlePacket = async (packet: QueuePacket) => {
+    console.log(packet.t)
     try {
       switch (packet.t) {
         case 'CustomMessage': {
@@ -349,7 +352,7 @@ export const createNetwork = (
           const { entities } = packet.snapshot
           const affectedEntities: string[] = []
 
-          const jobs = entities.map(async entityInfo => {
+          for (const entityInfo of entities) {
             const definition = {
               ...entityInfo.definition,
               uid: entityInfo.entityId,
@@ -362,19 +365,17 @@ export const createNetwork = (
             // we can skip any incoming physics snapshot for an entity we are currently controlling
             if (
               existingEntity &&
-              clientControl.isControllingEntity(entityInfo.entityId, tickNumber)
+              clientControl.isControllingEntity(entityInfo.entityId!, tickNumber)
             )
-              return
+              return undefined
 
             const entity = existingEntity ? existingEntity : game.spawn(definition)
-            if (entity === undefined) return
-            affectedEntities.push(entity.uid)
+            if (entity === undefined) affectedEntities.push(entity.uid)
 
             const bodies = game.physics.getBodies(entity)
-            updateBodies(bodies, entityInfo.bodyInfo)
-          })
+            updateBodies(bodies, entityInfo.bodyInfo!)
+          }
 
-          await Promise.all(jobs)
           runPhysicsCatchUp(tickNumber, affectedEntities)
           break
         }
@@ -396,7 +397,7 @@ export const createNetwork = (
             affectedEntities.push(entity.uid)
 
             const bodies = game.physics.getBodies(entity)
-            updateBodies(bodies, entityInfo.bodyInfo)
+            updateBodies(bodies, entityInfo.bodyInfo!)
           })
 
           const updateJobs = bodyUpdates.map(async entityInfo => {
