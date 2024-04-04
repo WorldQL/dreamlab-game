@@ -5,6 +5,7 @@ import { isDebug } from './debug.js'
 import { Editor } from './editor/editor.js'
 // import { createKeybinds } from './keybinds/entity.js'
 import { bindInput, loadBindings } from './keybinds/persist.js'
+import { renderKeybindUI } from './keybinds/ui.js'
 import { connect, createNetwork, decodeParams } from './network.js'
 import type { ToServerPacket } from './packets.js'
 import { loadLevel, loadScript, spawnPlayer } from './scripting.js'
@@ -50,6 +51,8 @@ export const init = async () => {
       antialias: true,
     },
   })
+
+  renderKeybindUI(game)
 
   // @ts-expect-error global assign in dev
   if (import.meta.env.DEV) window.game = game

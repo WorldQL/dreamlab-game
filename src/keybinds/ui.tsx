@@ -60,7 +60,7 @@ const KeybindUI: FC = () => {
   )
 }
 
-export const renderUI = (game: Game<false>) => {
+export const renderKeybindUI = (game: Game<false>) => {
   const styles = document.createElement('style')
   const ui = render(
     game,
