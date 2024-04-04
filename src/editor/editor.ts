@@ -129,12 +129,12 @@ export class Editor extends Entity {
       if (this.#enabled.value) {
         this.cameraTarget = currentTarget
         camera().smoothing = 0.02
-        camera().disableNonEditorInputs()
+        inputs().disableNonEditorInputs()
         if (targetPos) {
           this.#navigator.setPosition(targetPos)
         }
       } else {
-        camera().enableNonEditorInputs()
+        inputs().enableNonEditorInputs()
         camera().target = this.cameraTarget
         camera().smoothing = 0.125
         inputs().enable('mouse', 'editor')
