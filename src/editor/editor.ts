@@ -138,6 +138,9 @@ export class Editor extends Entity {
         inputs().enableNonEditorInputs()
         if (camera().defaultPlayerEntity instanceof Player) {
           ;(camera().defaultPlayerEntity as Player).teleport(this.#navigator.position)
+        } else if (isSpawnableEntity(camera().defaultPlayerEntity)) {
+          ;(camera().defaultPlayerEntity as SpawnableEntity).transform.position =
+            this.#navigator.position
         }
 
         camera().target = camera().defaultPlayerEntity
