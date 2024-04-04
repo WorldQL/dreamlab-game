@@ -149,6 +149,9 @@ export default defineConfig(async ({ mode }) => {
     useLocalCoreURL = true
   }
 
+  // temporarily disable this because it causes the pixi error https://worldql.slack.com/archives/C03MFTRB9BJ/p1711580004918849
+  useLocalCoreURL = false
+
   return {
     plugins: [importMapPlugin(useLocalCoreURL, localCoreURL)],
     preview: {
