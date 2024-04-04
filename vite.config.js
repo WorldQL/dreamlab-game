@@ -81,6 +81,7 @@ const importMapPlugin = (useLocalCoreURL, localCoreURL) => ({
     const ui = '@dreamlab.gg/ui'
     const matter = 'matter-js'
     const pixi = 'pixi.js'
+    const react = 'react'
 
     const [corePkg, uiPkg, matterPkg, pixiPkg] = await Promise.all([
       esmLink(core, undefined, { exports: '/dist/bundled' }),
@@ -95,6 +96,8 @@ const importMapPlugin = (useLocalCoreURL, localCoreURL) => ({
         [pixi]: pixiPkg,
         [core]: corePkg,
         [ui]: uiPkg,
+        [react]: `https://esm.sh/react@18.2.0?pin=v132`,
+        [`${react}/`]: `https://esm.sh/react@18.2.0/`,
       },
     }
 
