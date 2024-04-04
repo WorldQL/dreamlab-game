@@ -47,7 +47,6 @@ export class Navigator extends Entity {
     const cursorDelta = Vec.sub(this.#previousCursorPosition, mousePosition)
     const amplifiedMovement = Vec.div(cursorDelta, camera().scale)
     const newPosition = Vec.add(this.#position, amplifiedMovement)
-    camera().target = { position: newPosition }
 
     this.#previousCursorPosition = mousePosition
     this.setPosition(newPosition)
@@ -66,7 +65,6 @@ export class Navigator extends Entity {
     }
 
     const newPosition = Vec.add(this.#position, amplifiedMovement)
-    camera().target = { position: newPosition }
     this.setPosition(newPosition)
   }
 

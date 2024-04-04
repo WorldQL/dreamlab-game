@@ -1,6 +1,6 @@
 import type { SpawnableEntity } from '@dreamlab.gg/core'
 import { Entity, isSpawnableEntity } from '@dreamlab.gg/core'
-import type { CameraTarget } from '@dreamlab.gg/core/dist/entities'
+import { Player } from '@dreamlab.gg/core/dist/entities'
 import { camera, debug, game, inputs } from '@dreamlab.gg/core/labs'
 import { ref } from '@dreamlab.gg/core/utils'
 import type { Vector } from 'matter-js'
@@ -33,8 +33,6 @@ export class Editor extends Entity {
   readonly #history: History
   readonly #selector: Selector
   readonly #navigator: Navigator
-
-  private cameraTarget: CameraTarget | undefined
 
   readonly #onTransformChanged = (entity: Entity, noBroadcast?: boolean) => {
     if (noBroadcast) return
@@ -130,7 +128,7 @@ export class Editor extends Entity {
       }
 
       if (this.#enabled.value) {
-        this.cameraTarget = currentTarget
+        camera().target = this.#navigator
         camera().smoothing = 0.02
         inputs().disableNonEditorInputs()
         if (targetPos) {
@@ -138,7 +136,11 @@ export class Editor extends Entity {
         }
       } else {
         inputs().enableNonEditorInputs()
-        camera().target = this.cameraTarget
+        if (camera().defaultPlayerEntity instanceof Player) {
+          ;(camera().defaultPlayerEntity as Player).teleport(this.#navigator.position)
+        }
+
+        camera().target = camera().defaultPlayerEntity
         camera().smoothing = 0.125
         inputs().enable('mouse', 'editor')
         this.#selector.deselect()
