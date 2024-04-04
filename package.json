@@ -6,6 +6,7 @@
     "dev": "vite",
     "check": "tsc",
     "build": "npm run check && vite build",
+    "bump-core": "npm i -D -E \"@dreamlab.gg/core@dev\"",
     "preview": "vite preview",
     "lint": "prettier --check . && eslint src --ext mjs,js,ts,tsx",
     "format": "prettier --write . && eslint src --ext mjs,js,ts,tsx --fix",
@@ -13,7 +14,7 @@
     "test": "npm run check && npm run lint"
   },
   "devDependencies": {
-    "@dreamlab.gg/core": "0.0.83-dev-d06d69d",
+    "@dreamlab.gg/core": "0.0.84-dev-56693ba",
     "@dreamlab.gg/ui": "0.0.6-dev-07c8472",
     "@luludev/eslint-config": "^0.5.1",
     "@types/matter-js": "^0.19.5",
