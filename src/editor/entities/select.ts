@@ -489,9 +489,8 @@ export class Selector extends Entity {
   }
 
   public onMouseDown = (ev: MouseEvent) => {
-    if (!this.editorEnabled.value || ev.button === 2) return
-    if (ev.button === 1 || (ev.button === 0 && this.isSpacePressed)) {
-      this.deselect()
+    if (!this.editorEnabled.value || ev.button !== 0) return
+    if (ev.button === 0 && this.isSpacePressed) {
       return
     }
 

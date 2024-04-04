@@ -31,9 +31,8 @@ export class Navigator extends Entity {
   }
 
   readonly #onMouseDown = (ev: MouseEvent) => {
-    if (!this.editorEnabled.value) return
-    if (ev.button === 2 || ev.button === 1 || (ev.button === 0 && this.#isSpacePressed)) {
-      this.selector.deselect()
+    if (!this.editorEnabled.value || ev.button === 2) return
+    if (ev.button === 1 || (ev.button === 0 && this.#isSpacePressed)) {
       this.#isDragging = true
       this.#previousCursorPosition = game()?.client?.inputs.getCursor('screen')
     }
