@@ -118,6 +118,9 @@ export class Editor extends Entity {
       const currentTarget = camera().target
       let targetPos: Vector | undefined
 
+      ui.container.style.display = this.#enabled.value ? '' : 'none'
+      debug_ui.container.style.display = this.#enabled.value ? 'none' : ''
+
       if (currentTarget) {
         if ('position' in currentTarget) {
           targetPos = currentTarget.position
