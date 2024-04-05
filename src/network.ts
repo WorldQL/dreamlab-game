@@ -1,6 +1,7 @@
 /* eslint-disable id-length */
 import { SpawnableDefinitionSchema } from '@dreamlab.gg/core'
 import type { Game } from '@dreamlab.gg/core'
+import { createGear } from '@dreamlab.gg/core/dist/managers'
 import { NetPlayer } from '@dreamlab.gg/core/entities'
 import type { KnownAnimation, Player } from '@dreamlab.gg/core/entities'
 import { isTrackedTransform, trackedSymbol } from '@dreamlab.gg/core/math'
@@ -209,15 +210,18 @@ export const createNetwork = (
 
     player.events.addListener('onGearChanged', gear => {
       // Serialize the gear object to exclude the texture property
-      const serializedGear = {
-        displayName: gear?.displayName,
-        animationName: gear?.animationName,
-        anchor: gear?.anchor,
-        rotation: gear?.rotation,
-        bone: gear?.bone,
-        speedMultiplier: gear?.speedMultiplier,
+      if (gear) {
+        const serializedGear = {
+          displayName: gear.displayName,
+          animationName: gear.animationName,
+          textureURL: gear.textureURL,
+          anchor: gear.anchor,
+          rotation: gear.rotation,
+          bone: gear.bone,
+          speedMultiplier: gear.speedMultiplier,
+        }
+        window.sendPacket?.({ t: 'PlayerGearChange', gear: serializedGear })
       }
-      window.sendPacket?.({ t: 'PlayerGearChange', gear: serializedGear })
     })
   })
 
@@ -338,7 +342,7 @@ export const createNetwork = (
             const netplayer = players.get(info.entity_id)
             if (!netplayer) continue
 
-            // netplayer.setGear(info.gear === null ? undefined : createGear(info.gear))
+            netplayer.gear = info.gear === null ? undefined : createGear(info.gear)
           }
 
           break

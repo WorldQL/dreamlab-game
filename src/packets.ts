@@ -163,8 +163,7 @@ export type PlayerGearChangePacket = z.infer<typeof PlayerGearChangeSchema>
 export const PlayerGearChangeSchema = z.object({
   t: z.literal('PlayerGearChange'),
 
-  // gear: BaseGearSchema.nullable(),
-  gear: z.unknown(),
+  gear: BaseGearSchema.nullable(),
 })
 
 export type BodyInfo = z.infer<typeof BodyInfoSchema>
