@@ -98,7 +98,9 @@ export const SceneList: FC<{
   editDetails?: EditDetails
   readonly selector: Selector
   history: History
-}> = ({ editDetails, selector, history }) => {
+  hideUIElements: boolean
+  onToggleHideUIElements(checked: boolean): void
+}> = ({ editDetails, selector, history, hideUIElements, onToggleHideUIElements }) => {
   const game = useGame()
   const forceUpdate = useForceUpdate()
 
@@ -146,6 +148,20 @@ export const SceneList: FC<{
 
     return grouped
   }, [entities])
+
+  const [isHidingUIElements, setIsHidingUIElements] = useState(hideUIElements)
+
+  useEffect(() => {
+    setIsHidingUIElements(hideUIElements)
+  }, [hideUIElements])
+
+  const handleToggleHideUIElements = useCallback(
+    (checked: boolean) => {
+      setIsHidingUIElements(checked)
+      onToggleHideUIElements(checked)
+    },
+    [onToggleHideUIElements],
+  )
 
   const [isCollapsed, setIsCollapsed] = useState(false)
   const toggleCollapse = useCallback(() => setIsCollapsed(prev => !prev), [])
@@ -312,6 +328,15 @@ export const SceneList: FC<{
           {editDetails && <SaveButton editDetails={editDetails} entities={entities} />}
         </>
       )}
+      <label style={{ display: 'flex', alignItems: 'center', marginBottom: '5px' }}>
+        <input
+          checked={isHidingUIElements}
+          onChange={ev => handleToggleHideUIElements(ev.target.checked)}
+          style={{ marginRight: '5px' }}
+          type='checkbox'
+        />
+        Hide UI Elements
+      </label>
     </ListContainer>
   )
 }

@@ -29,6 +29,7 @@ export interface EditDetails {
 
 export class Editor extends Entity {
   #enabled = ref<boolean>(false)
+  #hideUIElements = ref<boolean>(true)
 
   readonly #history: History
   readonly #selector: Selector
@@ -103,7 +104,17 @@ export class Editor extends Entity {
     inputs().registerInput(EditorInputs.ToggleTiling, 'Toggle Sprite Tiling', 'Backslash')
     inputs().registerInput(EditorInputs.ToggleEditor, 'Toggle Editor Mode', 'Backquote')
 
-    const { ui, debug_ui } = renderUI(this.#selector, this.#navigator, this.#history, editDetails)
+    const { ui, debug_ui } = renderUI(
+      this.#selector,
+      this.#navigator,
+      this.#history,
+      this.#hideUIElements.value,
+      (checked: boolean) => {
+        this.#hideUIElements.value = checked
+        this.toggleUIElements(ui.root, this.#hideUIElements.value)
+      },
+      editDetails,
+    )
     ui.container.style.display = 'none'
     debug_ui.container.style.display = debug() ? '' : 'none'
 
@@ -127,23 +138,8 @@ export class Editor extends Entity {
         }
       }
 
-      // TODO: checkbox to do this optionally ???
-      for (const shadowRoot of $game.client.ui.roots) {
-        if (shadowRoot === ui.root) continue
-
-        const existingStyle = shadowRoot.querySelector('style[data-dreamlab-editor]')
-        existingStyle?.remove()
-
-        if (this.#enabled.value) {
-          const style = Object.assign(document.createElement('style'), {
-            textContent: `* { display: none }`,
-          })
-          style.dataset.dreamlabEditor = ''
-          shadowRoot.append(style)
-        }
-      }
-
       if (this.#enabled.value) {
+        this.toggleUIElements(ui.root, this.#hideUIElements.value)
         camera().target = this.#navigator
         camera().smoothing = 0.02
         inputs().disableNonEditorInputs()
@@ -151,6 +147,8 @@ export class Editor extends Entity {
           this.#navigator.setPosition(targetPos)
         }
       } else {
+        this.toggleUIElements(ui.root, false)
+
         inputs().enableNonEditorInputs()
         if (camera().defaultPlayerEntity instanceof Player) {
           ;(camera().defaultPlayerEntity as Player).teleport(this.#navigator.position)
@@ -170,6 +168,30 @@ export class Editor extends Entity {
     game().client?.inputs.addListener('debug', () => {
       debug_ui.container.style.display = debug() ? '' : 'none'
     })
+  }
+
+  private toggleUIElements(editorRoot: ShadowRoot, hideUI: boolean) {
+    if (this.#enabled.value && hideUI) {
+      for (const shadowRoot of game('client', true).client.ui.roots) {
+        if (shadowRoot === editorRoot) continue
+
+        const existingStyle = shadowRoot.querySelector('style[data-dreamlab-editor]')
+        existingStyle?.remove()
+
+        const style = Object.assign(document.createElement('style'), {
+          textContent: `* { display: none }`,
+        })
+        style.dataset.dreamlabEditor = ''
+        shadowRoot.append(style)
+      }
+    } else {
+      for (const shadowRoot of game('client', true).client.ui.roots) {
+        if (shadowRoot === editorRoot) continue
+
+        const existingStyle = shadowRoot.querySelector('style[data-dreamlab-editor]')
+        existingStyle?.remove()
+      }
+    }
   }
 
   public teardown(): void {

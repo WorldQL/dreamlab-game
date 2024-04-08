@@ -14,6 +14,8 @@ export const renderUI = (
   selector: Selector,
   navigator: Navigator,
   history: History,
+  hideUIElements: boolean,
+  onToggleHideUIElements: (checked: boolean) => void,
   editDetails?: EditDetails,
 ) => {
   const styles = document.createElement('style')
@@ -21,7 +23,13 @@ export const renderUI = (
     game(),
     <StyleSheetManager target={styles}>
       {editDetails && <CLICommand details={editDetails} />}
-      <SceneList editDetails={editDetails} history={history} selector={selector} />
+      <SceneList
+        editDetails={editDetails}
+        hideUIElements={hideUIElements}
+        history={history}
+        onToggleHideUIElements={onToggleHideUIElements}
+        selector={selector}
+      />
       <PaletteManager history={history} navigator={navigator} selector={selector} />
     </StyleSheetManager>,
     { interactable: false },
