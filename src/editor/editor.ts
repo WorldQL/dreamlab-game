@@ -127,6 +127,22 @@ export class Editor extends Entity {
         }
       }
 
+      // TODO: checkbox to do this optionally ???
+      for (const shadowRoot of $game.client.ui.roots) {
+        if (shadowRoot === ui.root) continue
+
+        const existingStyle = shadowRoot.querySelector('style[data-dreamlab-editor]')
+        existingStyle?.remove()
+
+        if (this.#enabled.value) {
+          const style = Object.assign(document.createElement('style'), {
+            textContent: `* { display: none }`,
+          })
+          style.dataset.dreamlabEditor = ''
+          shadowRoot.append(style)
+        }
+      }
+
       if (this.#enabled.value) {
         camera().target = this.#navigator
         camera().smoothing = 0.02
