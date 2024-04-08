@@ -326,17 +326,24 @@ export const SceneList: FC<{
           {groupBy === GroupByOptions.Tag &&
             GroupedEntitySet(entitiesGroupedByTag, history, selector, selected)}
           {editDetails && <SaveButton editDetails={editDetails} entities={entities} />}
+          <label
+            style={{
+              display: 'flex',
+              marginTop: '15px',
+              alignItems: 'center',
+              marginBottom: '5px',
+            }}
+          >
+            <input
+              checked={isHidingUIElements}
+              onChange={ev => handleToggleHideUIElements(ev.target.checked)}
+              style={{ marginRight: '5px' }}
+              type='checkbox'
+            />
+            Hide UI Elements
+          </label>
         </>
       )}
-      <label style={{ display: 'flex', alignItems: 'center', marginBottom: '5px' }}>
-        <input
-          checked={isHidingUIElements}
-          onChange={ev => handleToggleHideUIElements(ev.target.checked)}
-          style={{ marginRight: '5px' }}
-          type='checkbox'
-        />
-        Hide UI Elements
-      </label>
     </ListContainer>
   )
 }
