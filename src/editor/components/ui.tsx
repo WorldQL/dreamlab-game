@@ -5,7 +5,6 @@ import type { EditDetails } from '../editor'
 import type { History } from '../entities/history'
 import type { Navigator } from '../entities/navigator'
 import type { Selector } from '../entities/select'
-import { CLICommand } from './command'
 import { PaletteManager } from './palette/manager'
 import { SceneList } from './scene/list'
 import { Card } from './ui/card'
@@ -22,7 +21,7 @@ export const renderUI = (
   const ui = render(
     game(),
     <StyleSheetManager target={styles}>
-      {editDetails && <CLICommand details={editDetails} />}
+      {/* {editDetails && <CLICommand details={editDetails} />} */}
       <SceneList
         editDetails={editDetails}
         hideUIElements={hideUIElements}
