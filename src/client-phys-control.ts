@@ -1,4 +1,5 @@
 import type { Game } from '@dreamlab.gg/core'
+import Matter from 'matter-js'
 import type { BodyInfo } from './packets'
 
 export interface ClientControlManager {
@@ -53,8 +54,9 @@ export function createClientControlManager(game: Game<false>): ClientControlMana
           bodyInfo.push({
             bodyIndex,
             position: { x: body.position.x, y: body.position.y },
-            velocity: { x: body.velocity.x, y: body.velocity.y },
-            angularVelocity: body.angularVelocity,
+            velocity: Matter.Body.getVelocity(body),
+            angularVelocity: Matter.Body.getAngularVelocity(body),
+            angle: body.angle,
           })
         }
 

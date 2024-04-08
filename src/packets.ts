@@ -2,7 +2,7 @@ import { SpawnableDefinitionSchema } from '@dreamlab.gg/core'
 import { BaseGearSchema } from '@dreamlab.gg/core/managers'
 import { z } from 'zod'
 
-export const PROTOCOL_VERSION = 8
+export const PROTOCOL_VERSION = 9
 
 const TupleVectorSchema = z.tuple([z.number(), z.number()])
 const ObjectVectorSchema = z.object({ x: z.number(), y: z.number() })
@@ -172,6 +172,7 @@ export const BodyInfoSchema = z.object({
   position: ObjectVectorSchema,
   velocity: ObjectVectorSchema,
   angularVelocity: z.number(),
+  angle: z.number(),
 })
 
 export type EntitySnapshot = z.infer<typeof EntitySnapshotSchema>

@@ -115,6 +115,8 @@ const updateBodies = (bodies: Body[], bodyInfo: BodyInfo[]) => {
     Matter.Body.setPosition(body, info.position)
     Matter.Body.setVelocity(body, info.velocity)
     Matter.Body.setAngularVelocity(body, info.angularVelocity)
+    Matter.Body.setAngle(body, info.angle)
+    Matter.Body.scale(body, 1, 1)
   }
 }
 
