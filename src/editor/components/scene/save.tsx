@@ -1,8 +1,7 @@
 import type { SpawnableEntity } from '@dreamlab.gg/core'
 import axios from 'axios'
-import type { FC, ReactNode } from 'https://esm.sh/react@18.2.0'
+import type { FC } from 'https://esm.sh/react@18.2.0'
 import { useCallback, useState } from 'https://esm.sh/react@18.2.0'
-import { styled } from 'https://esm.sh/styled-components@6.1.8?pin=v135'
 import type { EditDetails } from '../../editor'
 import { Button } from '../ui/buttons'
 
@@ -70,73 +69,31 @@ const commitChanges = async (editDetails?: EditDetails) => {
   )
 }
 
-const Popup: FC<{ children?: ReactNode }> = ({ children }) => {
-  const PopupContainer = styled.div`
-    position: fixed;
-    top: 0;
-    left: 0;
-    bottom: 0;
-    right: 0;
-    z-index: 1000;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 2rem;
-  `
-
-  const PopupBody = styled.div`
-    width: 100%;
-    max-height: 100%;
-    max-width: 30rem;
-    padding: 1rem;
-    border-radius: 1rem;
-
-    display: flex;
-    flex-direction: column;
-    gap: 0.25em;
-
-    background-color: rgba(230 230 230 / 1);
-    box-shadow:
-      0 4px 6px -1px rgb(0 0 0 / 0.3),
-      0 2px 4px -2px rgb(0 0 0 / 0.3);
-  `
-
-  return (
-    <PopupContainer>
-      <PopupBody>{children}</PopupBody>
-    </PopupContainer>
-  )
-}
-
-export const SaveButton: FC<{
-  editDetails?: EditDetails
-  entities: SpawnableEntity[]
-}> = ({ editDetails, entities }) => {
-  const [popupVisible, setPopupVisible] = useState(false)
+export const SaveButton: FC<{ editDetails?: EditDetails; entities: SpawnableEntity[] }> = ({
+  editDetails,
+  entities,
+}) => {
+  const [isSaving, setIsSaving] = useState(false)
 
   const onSave = useCallback(async () => {
+    setIsSaving(true)
     const levelScript = getLevelScript(entities)
     await writeLevelScript(levelScript, editDetails)
     await commitChanges(editDetails)
-    setPopupVisible(false)
+    setTimeout(() => {
+      setIsSaving(false)
+    }, 2_000)
   }, [editDetails, entities])
 
   return (
-    <>
-      {popupVisible && (
-        <Popup>
-          <p>Are you sure you want to save and commit all changes?</p>
-
-          {/* TODO: display the level script to be writeen in a scrollable <pre> at this stage */}
-
-          <Button onClick={onSave}>Ok</Button>
-          <Button onClick={() => setPopupVisible(false)}>Cancel</Button>
-        </Popup>
-      )}
-      <Button onClick={() => setPopupVisible(true)} type='button'>
-        Save
-      </Button>
-    </>
+    <Button
+      onClick={onSave}
+      style={{
+        backgroundColor: isSaving ? 'green' : undefined,
+      }}
+      type='button'
+    >
+      {isSaving ? 'Level Saved!' : 'Save Level'}
+    </Button>
   )
 }
