@@ -15,8 +15,8 @@
     "test": "npm run check && npm run lint"
   },
   "devDependencies": {
-    "@dreamlab.gg/core": "0.0.84-dev-4e29dc4",
-    "@dreamlab.gg/ui": "0.0.6-dev-3538e0b",
+    "@dreamlab.gg/core": "0.0.84-dev-daf106d",
+    "@dreamlab.gg/ui": "0.0.6-dev-879572b",
     "@luludev/eslint-config": "^0.5.1",
     "@types/matter-js": "^0.19.5",
     "@types/react": "^18.2.46",
@@ -29,6 +29,7 @@
     "vite": "^4.5.1"
   },
   "dependencies": {
+    "@discord/embedded-app-sdk": "^1.1.0",
     "@fontsource/fira-code": "^5.0.17",
     "@fontsource/inter": "^5.0.17",
     "@paralleldrive/cuid2": "^2.2.2",
