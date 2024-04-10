@@ -12,5 +12,13 @@ void Promise.allSettled([
   document.fonts.load('1rem Inter'),
   document.fonts.load('1rem Fira Code'),
 ]).then(() => {
-  init()
+  if (import.meta.env.MODE === 'development') {
+    // frame_id is set by Discord
+    const params = new URLSearchParams(window.location.search)
+    void (params.has('frame_id') ? import('./init-discord.js') : import('./init.js'))
+  } else if (import.meta.env.MODE === 'discord') {
+    void import('./init-discord.js')
+  } else {
+    void import('./init.js')
+  }
 })
