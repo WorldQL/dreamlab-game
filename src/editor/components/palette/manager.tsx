@@ -144,7 +144,7 @@ export const PaletteManager: React.FC<PaletteManagerProps> = ({ selector, naviga
                 entity={selectedEntity}
                 history={history}
                 key={selectedEntity.uid}
-                selector={selector}
+                // selector={selector}
               />
             ) : (
               <div
