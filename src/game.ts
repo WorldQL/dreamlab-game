@@ -1,12 +1,13 @@
 import { createGame } from '@dreamlab.gg/core'
 import { Cursor, PlayerInput } from '@dreamlab.gg/core/entities'
 // import { createConsole } from './console/console.js'
+import { jwtDecode as decodeJWT } from 'jwt-decode'
 import { isDebug } from './debug.js'
 import { Editor } from './editor/editor.js'
 // import { createKeybinds } from './keybinds/entity.js'
 import { bindInput, loadBindings } from './keybinds/persist.js'
 import { renderKeybindUI } from './keybinds/ui.js'
-import { connect, createNetwork, decodeParams } from './network.js'
+import { connect, createNetwork } from './network.js'
 import type { ToServerPacket } from './packets.js'
 import { loadLevel, loadScript, spawnPlayer } from './scripting.js'
 
@@ -17,15 +18,44 @@ declare global {
   }
 }
 
-export const init = async () => {
+const decodeToken = (token: string | undefined) => {
+  if (!token) return undefined
+
+  const jwt = decodeJWT(token)
+  if (jwt === null || jwt === undefined) return undefined
+  if (typeof jwt !== 'object') return undefined
+
+  if (!('player_id' in jwt)) return undefined
+  if (typeof jwt.player_id !== 'string') return undefined
+
+  if (!('nickname' in jwt)) return undefined
+  if (typeof jwt.nickname !== 'string') return undefined
+
+  return {
+    token,
+    playerId: jwt.player_id,
+    nickname: jwt.nickname,
+  }
+}
+
+export const setup = async ({
+  server,
+  instance,
+  token,
+}: {
+  readonly server: string
+  readonly instance: string
+  readonly token: string | undefined
+}) => {
   // #region Setup
   const container = document.querySelector<HTMLDivElement>('#app')
   if (!container) throw new Error('missing container')
 
-  const params = decodeParams()
-  const ws = await connect(params)
+  const details = decodeToken(token)
+  const ws = details ? await connect({ server, instance, token: details.token }) : undefined
+
   const worldDetails = localStorage.getItem('@dreamlab/worlds/fallbackUrl')
-  if (params && !ws && worldDetails) {
+  if (details && !ws && worldDetails) {
     console.log('Failed to connect in init()')
     setTimeout(() => {
       window.location.reload()
@@ -43,8 +73,8 @@ export const init = async () => {
     container,
     dimensions: { width, height },
     data: {
-      playerID: params?.playerID ?? 'unknown',
-      nickname: params?.nickname ?? 'Player',
+      playerID: details?.playerId ?? 'unknown',
+      nickname: details?.nickname ?? 'Player',
     },
     graphicsOptions: {
       backgroundAlpha: 0,
@@ -82,7 +112,7 @@ export const init = async () => {
   // #endregion
 
   if (ws) {
-    const [network, sendPacket, connected] = createNetwork(params!, ws, game)
+    const [network, sendPacket, connected] = createNetwork({ server, instance, ws, game })
     game.initNetwork(network)
 
     await connected

@@ -15,7 +15,6 @@ import {
   onChange,
   setProperty,
 } from '@dreamlab.gg/core/utils'
-import { jwtDecode as decodeJWT } from 'jwt-decode'
 import Matter from 'matter-js'
 import type { Body } from 'matter-js'
 import { createClientControlManager } from './client-phys-control.js'
@@ -52,46 +51,27 @@ window.addEventListener('message', ev => {
   }
 })
 
-export const decodeParams = (): Params | undefined => {
-  const url = new URL(window.location.href)
-
-  const server = url.searchParams.get('server')
-  const instance = url.searchParams.get('instance')
-  const token = url.searchParams.get('token')
-  if (!server || !instance || !token) return undefined
-
-  const jwt = decodeJWT(token)
-  if (jwt === null || jwt === undefined) return undefined
-  if (typeof jwt !== 'object') return undefined
-
-  if (!('player_id' in jwt)) return undefined
-  if (typeof jwt.player_id !== 'string') return undefined
-
-  if (!('nickname' in jwt)) return undefined
-  if (typeof jwt.nickname !== 'string') return undefined
-
-  return {
+export const connect = async ({
     server,
     instance,
-
     token,
+}: {
+  readonly server: string
+  readonly instance: string
+  readonly token: string
+}): Promise<WebSocket> => {
+  const serverUrl = new URL(server)
+  serverUrl.pathname +=
+    serverUrl.pathname === '/' ? `api/v1/connect/${instance}` : `/api/v1/connect/${instance}`
 
-    playerID: jwt.player_id,
-    nickname: jwt.nickname,
-  }
-}
+  serverUrl.searchParams.set('instance', instance)
+  serverUrl.searchParams.set('token', token)
 
-export const connect = async (params: Params | undefined): Promise<WebSocket | undefined> => {
-  if (!params) return undefined
-  const serverURL = new URL(params.server)
-  serverURL.pathname = `/api/v1/connect/${params.instance}`
-  serverURL.searchParams.set('instance', params.instance)
-  serverURL.searchParams.set('token', params.token)
   const characterId = getCharacterId()
-  if (characterId) serverURL.searchParams.set('character_id', characterId)
+  if (characterId) serverUrl.searchParams.set('character_id', characterId)
 
-  return new Promise<WebSocket | undefined>(resolve => {
-    const ws = new WebSocket(serverURL.toString())
+  return new Promise<WebSocket>(resolve => {
+    const ws = new WebSocket(serverUrl.toString())
     resolve(ws)
 
     ws.addEventListener('open', () => {
@@ -120,11 +100,21 @@ const updateBodies = (bodies: Body[], bodyInfo: BodyInfo[]) => {
   }
 }
 
-export const createNetwork = (
-  params: Params,
-  ws: WebSocket,
-  game: Game<false>,
-): [network: BareNetClient, sendPacket: (packet: ToServerPacket) => void, ready: Promise<void>] => {
+export const createNetwork = ({
+  server,
+  instance,
+  ws,
+  game,
+}: {
+  readonly server: string
+  readonly instance: string
+  readonly ws: WebSocket
+  readonly game: Game<false>
+}): [
+  network: BareNetClient,
+  sendPacket: (packet: ToServerPacket) => void,
+  ready: Promise<void>,
+] => {
   let didSetReloadTimeout = false
 
   const sendPacket = (_packet: ToServerPacket) => {
@@ -596,8 +586,8 @@ export const createNetwork = (
             const details: EditDetails | undefined = packet.edit_secret
               ? {
                   secret: packet.edit_secret,
-                  instance: params.instance,
-                  server: params.server,
+                  instance,
+                  server,
                 }
               : undefined
 
