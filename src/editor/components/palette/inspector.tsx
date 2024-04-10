@@ -8,7 +8,7 @@ import { useDebounceCallback } from 'https://esm.sh/usehooks-ts@2.12.1?pin=v135'
 import { useCallback, useRef, useState } from 'react'
 import type { FC } from 'react'
 import type { History } from '../../entities/history'
-import type { Selector } from '../../entities/select'
+// import type { Selector } from '../../entities/select'
 import { renderInputForZodSchema } from '../scene/types'
 
 const EntityButtons = styled.div`
@@ -139,8 +139,7 @@ const InspectorStyle = styled.div`
 `
 
 interface InspectorProps {
-  // eslint-disable-next-line react/no-unused-prop-types
-  readonly selector: Selector
+  // readonly selector: Selector
   readonly entity: SpawnableEntity
   readonly history: History
 }
