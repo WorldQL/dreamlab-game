@@ -31,3 +31,41 @@ body {
 
   background-color: transparent;
 }
+
+#loading {
+  position: absolute;
+  z-index: 1000;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: #111;
+  padding: 1rem;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  color: white;
+}
+
+#loading > svg {
+  width: 5rem;
+  height: 5rem;
+  animation: spin 1s linear infinite;
+}
+
+#loading > span {
+  font-size: 1.8rem;
+  font-weight: 600;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
