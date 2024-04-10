@@ -62,22 +62,28 @@ const packageJson = async (pkg, linkRoot) => {
 }
 
 /**
- * @param {string} pkg - Package Name
+ * @param {string} pkg - Package name
+ * @param {string} mode - Build mode
  * @param {string} [linkRoot] - npm link root
  */
-const esmLink = async (pkg, linkRoot, { pin = 'v135', exports = '' } = {}) => {
+const esmLink = async (pkg, mode, linkRoot, { pin = 'v135', exports = '' } = {}) => {
   const { version } = await packageJson(pkg, linkRoot)
   if (!version) throw new Error(`unknown version for package: ${pkg}`)
+
+  if (mode === 'discord') {
+    return `/esm/${pkg}@${version}${exports}${pin ? `?pin=${pin}` : ''}`
+  }
 
   return `https://esm.sh/${pkg}@${version}${exports}?pin=${pin}`
 }
 // #endregion
 
 /**
+ * @param {string} mode
  * @param {string|undefined} localCoreUrl
  * @returns {import('vite').Plugin}
  */
-const importMapPlugin = localCoreUrl => ({
+const importMapPlugin = (mode, localCoreUrl) => ({
   name: 'import-map',
   transformIndexHtml: async () => {
     const core = '@dreamlab.gg/core'
@@ -97,14 +103,14 @@ const importMapPlugin = localCoreUrl => ({
       matterPkg,
       pixiPkg,
     ] = await Promise.all([
-      esmLink(core, undefined, { exports: '/dist/bundled' }),
-      esmLink(react),
-      esmLink(react, undefined, { exports: '/jsx-runtime' }),
-      esmLink(react, undefined, { exports: '/jsx-dev-runtime' }),
-      esmLink(reactDom),
-      esmLink(reactDom, undefined, { exports: '/client' }),
-      esmLink(matter, core),
-      esmLink(pixi, core),
+      esmLink(core, mode, undefined, { exports: '/dist/bundled' }),
+      esmLink(react, mode),
+      esmLink(react, mode, undefined, { exports: '/jsx-runtime' }),
+      esmLink(react, mode, undefined, { exports: '/jsx-dev-runtime' }),
+      esmLink(reactDom, mode),
+      esmLink(reactDom, mode, undefined, { exports: '/client' }),
+      esmLink(matter, mode, core),
+      esmLink(pixi, mode, core),
     ])
 
     const map = {
@@ -142,9 +148,16 @@ const importMapPlugin = localCoreUrl => ({
 
     const uiModules = JSON.parse(uiModulesJson)
     const { version: uiVersion } = await packageJson(ui)
-    map.imports[ui] = `https://cdn.jsdelivr.net/npm/@dreamlab.gg/ui@${uiVersion}/dist/index.js`
     for (const module of uiModules) {
-      const url = `https://cdn.jsdelivr.net/npm/@dreamlab.gg/ui@${uiVersion}/dist/${module}.js`
+      const getUrl = () => {
+        if (mode === 'discord') {
+          return `/jsdelivr/npm/@dreamlab.gg/ui@${uiVersion}/dist/${module}.js`
+        }
+
+        return `https://cdn.jsdelivr.net/npm/@dreamlab.gg/ui@${uiVersion}/dist/${module}.js`
+      }
+
+      const url = getUrl()
       map.imports[`${ui}/${module}`] = url
       map.imports[`${ui}/dist/${module}`] = url
     }
@@ -185,9 +198,10 @@ export default defineConfig(async ({ mode }) => {
         { find: /^react\/(.+)$/, replacement: 'https://external/react/$1' },
         { find: /^react-dom$/, replacement: 'https://external/react-dom' },
         { find: /^react-dom\/(.+)$/, replacement: 'https://external/react-dom/$1' },
+        ...(mode === 'discord' ? [{ find: 'https://esm.sh', replacement: '/esm' }] : []),
       ],
     },
-    plugins: [importMapPlugin(localCoreUrl)],
+    plugins: [importMapPlugin(mode, localCoreUrl)],
     preview: {
       port: port,
     },
@@ -202,6 +216,8 @@ export default defineConfig(async ({ mode }) => {
     build: {
       rollupOptions: {
         external: (source, importer, isResolved) => {
+          if (source.startsWith('/esm/')) return true
+          if (source.startsWith('/unpkg/')) return true
           if (source.startsWith('react')) return true
           if (source.startsWith('react-dom')) return true
           if (source.includes('matter-js')) return true
