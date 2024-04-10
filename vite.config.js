@@ -73,8 +73,11 @@ const esmLink = async (pkg, linkRoot, { pin = 'v135', exports = '' } = {}) => {
 }
 // #endregion
 
-/** @returns {import('vite').Plugin} */
-const importMapPlugin = (useLocalCoreURL, localCoreURL) => ({
+/**
+ * @param {string|undefined} localCoreUrl
+ * @returns {import('vite').Plugin}
+ */
+const importMapPlugin = localCoreUrl => ({
   name: 'import-map',
   transformIndexHtml: async () => {
     const core = '@dreamlab.gg/core'
@@ -128,8 +131,8 @@ const importMapPlugin = (useLocalCoreURL, localCoreURL) => ({
 
     const coreModules = JSON.parse(coreModulesJson)
     for (const module of coreModules) {
-      map.imports[`${core}/${module}`] = useLocalCoreURL ? localCoreURL : corePkg
-      map.imports[`${core}/dist/${module}`] = useLocalCoreURL ? localCoreURL : corePkg
+      map.imports[`${core}/${module}`] = localCoreUrl ? localCoreUrl : corePkg
+      map.imports[`${core}/dist/${module}`] = localCoreUrl ? localCoreUrl : corePkg
     }
     //#endregion
 
@@ -159,20 +162,21 @@ const importMapPlugin = (useLocalCoreURL, localCoreURL) => ({
 
 export default defineConfig(async ({ mode }) => {
   const port = 5173
-  const corePath = await resolve('@dreamlab.gg/core', import.meta.url)
-  let useLocalCoreURL = false
-  let localCoreURL = undefined
+  const corePath = resolve('@dreamlab.gg/core', import.meta.url)
 
-  // only put the dreamlab-core URL in the sourcemap if it's linked and we're in dev mode
-  if (mode === 'development' && !corePath.includes('node_modules')) {
-    const bundledCorePath =
-      corePath.split('file://')[1].split('index.js').slice(0, -1)[0] + 'bundled.js'
-    localCoreURL = `http://localhost:${port}/@fs` + bundledCorePath
-    useLocalCoreURL = true
+  const getLocalCoreUrl = () => {
+    // only put the dreamlab-core URL in the sourcemap if it's linked and we're in dev mode
+    if (mode !== 'development') return undefined
+    if (corePath.includes('node_modules')) return undefined
+
+    // TODO: unhack this
+    const bundled = corePath.split('file://')[1].split('index.js').slice(0, -1)[0] + 'bundled.js'
+    return `http://localhost:${port}/@fs${bundled}`
   }
 
+  // const localCoreUrl = getLocalCoreUrl()
   // temporarily disable this because it causes the pixi error https://worldql.slack.com/archives/C03MFTRB9BJ/p1711580004918849
-  useLocalCoreURL = false
+  const localCoreUrl = undefined
 
   return {
     resolve: {
@@ -183,7 +187,7 @@ export default defineConfig(async ({ mode }) => {
         { find: /^react-dom\/(.+)$/, replacement: 'https://external/react-dom/$1' },
       ],
     },
-    plugins: [importMapPlugin(useLocalCoreURL, localCoreURL)],
+    plugins: [importMapPlugin(localCoreUrl)],
     preview: {
       port: port,
     },
