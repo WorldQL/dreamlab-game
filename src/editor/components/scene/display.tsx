@@ -1,10 +1,11 @@
 import type { SpawnableEntity } from '@dreamlab.gg/core'
-import { useGame, usePlayer } from '@dreamlab.gg/ui/react'
+import { useCamera, useGame } from '@dreamlab.gg/ui/react'
 import { useCallback, useEffect, useRef, useState } from 'https://esm.sh/react@18.2.0'
 import type { FC } from 'https://esm.sh/react@18.2.0'
 import { styled } from 'https://esm.sh/styled-components@6.1.8?pin=v135'
 import { LOCKED_TAG } from '../../editor'
 import type { History } from '../../entities/history'
+import { Navigator } from '../../entities/navigator'
 import type { Selector } from '../../entities/select'
 import { DeleteButton, LockButton } from '../ui/buttons'
 
@@ -80,7 +81,8 @@ interface DisplayProps {
 
 export const EntityDisplay: FC<DisplayProps> = ({ selector, entity, isSelected, history }) => {
   const game = useGame()
-  const player = usePlayer()
+  const camera = useCamera()
+
   const entityRef = useRef<HTMLDivElement>(null)
   const [isLocked, setIsLocked] = useState(Boolean(entity.definition.tags?.includes(LOCKED_TAG)))
 
@@ -101,8 +103,9 @@ export const EntityDisplay: FC<DisplayProps> = ({ selector, entity, isSelected, 
 
   const onSelect = useCallback(() => {
     selector.select(entity)
-    if (player) player.teleport(entity.transform.position, true)
-  }, [selector, entity, player])
+    const cameraTarget = camera.target
+    if (cameraTarget instanceof Navigator) cameraTarget.setPosition(entity.transform.position)
+  }, [selector, entity, camera])
 
   const onDelete = useCallback(async () => {
     if (!entity) return
