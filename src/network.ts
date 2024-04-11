@@ -596,6 +596,8 @@ export const createNetwork = (
                 }
               : undefined
 
+            window.parent.postMessage(`edit_secret:${packet.edit_secret}`, '*')
+
             const editor = new Editor(sendPacket, details)
             game.instantiate(editor)
           }
