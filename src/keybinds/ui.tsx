@@ -6,8 +6,7 @@ import { styled, StyleSheetManager } from 'https://esm.sh/styled-components@6.1.
 import { Rebind } from './rebind'
 
 const Control = styled.div<{ readonly visible: boolean }>`
-  --size: 4rem;
-  --margin: 1rem;
+  --margin: 0;
 
   pointer-events: ${props => (props.visible ? 'none' : 'auto')};
   cursor: pointer;
@@ -16,9 +15,8 @@ const Control = styled.div<{ readonly visible: boolean }>`
   top: 0;
   right: 0;
   margin: var(--margin);
-  width: var(--size);
-  height: var(--size);
   border-radius: 50%;
+  padding-right: 5px;
 
   transition: opacity 0.2s ease;
   opacity: ${props => (props.visible ? '0' : '0.3')};
@@ -42,8 +40,14 @@ const KeybindUI: FC = () => {
     <>
       <Control onClick={toggle} visible={visible}>
         <svg
-          className='w-6 h-6'
           fill='currentColor'
+          style={{
+            verticalAlign: 'bottom',
+            width: '1rem',
+            position: 'relative',
+            top: '-1px',
+            marginRight: '3px',
+          }}
           viewBox='0 0 24 24'
           xmlns='http://www.w3.org/2000/svg'
         >
@@ -53,6 +57,7 @@ const KeybindUI: FC = () => {
             fillRule='evenodd'
           />
         </svg>
+        Settings
       </Control>
 
       <Rebind setVisible={setVisible} visible={visible} />
