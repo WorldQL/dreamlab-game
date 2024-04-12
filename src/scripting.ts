@@ -13,12 +13,13 @@ export const getCharacterId = () => {
 export const loadScript = async (
   baseURL: string | undefined,
   world: string,
+  variant: string,
   game: Game<false>,
 ): Promise<void> => {
   const module: unknown =
     baseURL === undefined
-      ? await import(/* @vite-ignore */ `/worlds/${world}/client.bundled.js`)
-      : await import(/* @vite-ignore */ `${baseURL}/client.bundled.js`)
+      ? await import(/* @vite-ignore */ `/worlds/${world}/client.${variant}.bundled.js`)
+      : await import(/* @vite-ignore */ `${baseURL}/client.${variant}.bundled.js`)
 
   if (module === undefined) return
   if (module === null) return

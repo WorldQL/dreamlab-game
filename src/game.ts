@@ -110,7 +110,7 @@ export const init = async () => {
 
         game.instantiate(editor)
 
-        await loadScript(undefined, world, game)
+        await loadScript(undefined, world, 'main', game)
         await loadLevel(undefined, world, game)
         await spawnPlayer(game, undefined)
       }

@@ -605,7 +605,12 @@ export const createNetwork = (
           // @ts-expect-error global variable
           globalThis.dreamlab_world_script_url_base = packet.world_script_url_base
 
-          await loadScript(packet.world_script_url_base ?? undefined, packet.world_id, game)
+          await loadScript(
+            packet.world_script_url_base ?? undefined,
+            packet.world_id,
+            packet.world_variant,
+            game,
+          )
 
           const payload: HandshakeReadyPacket = { t: 'HandshakeReady' }
           sendPacket(payload)
