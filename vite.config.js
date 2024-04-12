@@ -217,7 +217,7 @@ export default defineConfig(async ({ mode }) => {
       rollupOptions: {
         external: (source, importer, isResolved) => {
           if (source.startsWith('/esm/')) return true
-          if (source.startsWith('/unpkg/')) return true
+          if (source.startsWith('/jsdelivr/')) return true
           if (source.startsWith('react')) return true
           if (source.startsWith('react-dom')) return true
           if (source.includes('matter-js')) return true
