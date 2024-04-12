@@ -7,10 +7,16 @@ const sleep = async (ms: number) =>
     setTimeout(() => resolve(), ms)
   })
 
-const init = async () => {
+export const getClientId = () => {
   const idMatches = /^(?<id>\d+)\.discordsays\.com$/.exec(window.location.host)
   const clientId = idMatches?.groups?.id
   if (!clientId) throw new Error('failed to grab client id from url')
+
+  return clientId
+}
+
+const init = async () => {
+  const clientId = getClientId()
 
   const loading = document.querySelector('div#loading')! as HTMLDivElement
   const loadingText = document.querySelector('div#loading>span')! as HTMLSpanElement

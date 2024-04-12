@@ -16,10 +16,26 @@ export const loadScript = async (
   variant: string,
   game: Game<false>,
 ): Promise<void> => {
+  const getBaseUrl = async () => {
+    if (baseURL === undefined) return undefined
+    if (import.meta.env.MODE !== 'discord') return baseURL
+
+    const { getClientId } = await import('./init-discord')
+    const url = new URL(baseURL)
+    console.log(url)
+    url.protocol = 'https:'
+    url.host = `${getClientId()}.discordsays.com`
+    url.port = ''
+    url.pathname = `/mp${url.pathname}`
+
+    return url.toString()
+  }
+
+  const base = await getBaseUrl()
   const module: unknown =
-    baseURL === undefined
+    base === undefined
       ? await import(/* @vite-ignore */ `/worlds/${world}/client.${variant}.bundled.js`)
-      : await import(/* @vite-ignore */ `${baseURL}/client.${variant}.bundled.js`)
+      : await import(/* @vite-ignore */ `${base}/client.${variant}.bundled.js`)
 
   if (module === undefined) return
   if (module === null) return
