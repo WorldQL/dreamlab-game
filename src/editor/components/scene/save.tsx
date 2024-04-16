@@ -143,7 +143,7 @@ export const SaveButton: FC<{
         }}
         type='button'
       >
-        {isSaving ? 'Level Saved!' : 'Save Level'}
+        {isSaving ? 'Level Saved!' : 'Save Level + Commit Changes to Git'}
       </Button>
     </>
   )
