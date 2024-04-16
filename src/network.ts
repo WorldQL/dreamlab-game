@@ -392,6 +392,8 @@ export const createNetwork = (
           const affectedEntities: string[] = []
 
           const spawnJobs = newEntities.map(async entityInfo => {
+            if (game.lookup(entityInfo.entityId) !== undefined) return
+
             const definition = {
               ...entityInfo.definition,
               uid: entityInfo.entityId,
