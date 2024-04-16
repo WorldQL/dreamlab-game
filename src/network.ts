@@ -411,7 +411,7 @@ export const createNetwork = (
             const entity = game.lookup(entityInfo.entityId)
             if (entity === undefined) return
             if (clientControl.isControllingEntity(entityInfo.entityId, tickNumber)) return
-            if (entity.tags.includes('net/replicated-ignore')) return
+            if (entity.tags.includes('net/replicated/ignore')) return
 
             affectedEntities.push(entity.uid)
             const bodies = game.physics.getBodies(entity)
