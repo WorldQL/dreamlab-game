@@ -63,8 +63,8 @@ export const init = async () => {
   }
 
   container.append(game.client.render.canvas)
-  game.client.inputs.registerInput('debug', 'Toggle Debug', 'KeyP')
-  game.client.inputs.addListener('debug', onToggleDebug)
+  game.client.inputs.registerInput('@editor/debug', 'Toggle Debug', 'KeyP')
+  game.client.inputs.addListener('@editor/debug', onToggleDebug)
   // #endregion
 
   // #region Automatic Resizing
