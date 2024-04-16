@@ -38,6 +38,7 @@ export class Editor extends Entity {
   readonly #onTransformChanged = (entity: Entity, noBroadcast?: boolean) => {
     if (noBroadcast) return
     if (!isSpawnableEntity(entity)) return
+    if (entity !== this.#selector.selected) return
 
     window.sendPacket?.({
       t: 'TransformChanged',
@@ -55,6 +56,8 @@ export class Editor extends Entity {
     noBroadcast?: boolean,
   ) => {
     if (noBroadcast) return
+    if (entity !== this.#selector.selected) return
+
     window.sendPacket?.({
       t: 'ArgsChanged',
       entity_id: entity.uid,
@@ -64,6 +67,8 @@ export class Editor extends Entity {
   }
 
   readonly #onLabelChanged = (entity: SpawnableEntity, label: string | undefined) => {
+    if (entity !== this.#selector.selected) return
+
     window.sendPacket?.({
       t: 'LabelChanged',
       entity_id: entity.uid,
@@ -72,6 +77,8 @@ export class Editor extends Entity {
   }
 
   readonly #onTagsChanged = (entity: SpawnableEntity, tags: string[]) => {
+    if (entity !== this.#selector.selected) return
+
     window.sendPacket?.({
       t: 'TagsChanged',
       entity_id: entity.uid,
