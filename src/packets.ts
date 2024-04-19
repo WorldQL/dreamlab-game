@@ -2,7 +2,7 @@ import { SpawnableDefinitionSchema } from '@dreamlab.gg/core'
 import { BaseGearSchema } from '@dreamlab.gg/core/managers'
 import { z } from 'zod'
 
-export const PROTOCOL_VERSION = 10
+export const PROTOCOL_VERSION = 11
 
 const TupleVectorSchema = z.tuple([z.number(), z.number()])
 const ObjectVectorSchema = z.object({ x: z.number(), y: z.number() })
@@ -110,8 +110,12 @@ export type CustomMessagePacket = z.infer<typeof CustomMessageSchema>
 export const CustomMessageSchema = z.object({
   t: z.literal('CustomMessage'),
 
-  channel: z.string(),
-  data: z.record(z.string(), z.unknown()),
+  messages: z
+    .object({
+      channel: z.string(),
+      data: z.record(z.string(), z.unknown()),
+    })
+    .array(),
 })
 
 export type ChatMessagePacket = z.infer<typeof ChatMessageSchema>

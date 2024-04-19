@@ -258,12 +258,13 @@ export const createNetwork = (
     try {
       switch (packet.t) {
         case 'CustomMessage': {
-          const { channel, data } = packet
+          for (const { channel, data } of packet.messages) {
+            const set = listeners.get(channel)
+            if (!set) continue
 
-          const set = listeners.get(channel)
-          if (!set) return
+            for (const fn of set.values()) fn(channel, data)
+          }
 
-          for (const fn of set.values()) fn(channel, data)
           break
         }
 
@@ -681,15 +682,24 @@ export const createNetwork = (
     clientTickNumber += 1
   })
 
+  const customMessageQueue: CustomMessagePacket['messages'] = []
+  game.events.common.addListener('onPhysicsStep', () => {
+    if (ws.readyState !== WebSocket.OPEN) return
+
+    const messages = customMessageQueue.splice(0, customMessageQueue.length)
+    if (messages.length === 0) return
+
+    const payload: CustomMessagePacket = {
+      t: 'CustomMessage',
+      messages,
+    }
+
+    sendPacket(payload)
+  })
+
   const network: BareNetClient = {
     sendCustomMessage(channel, data) {
-      const payload: CustomMessagePacket = {
-        t: 'CustomMessage',
-        channel,
-        data,
-      }
-
-      sendPacket(payload)
+      customMessageQueue.push({ channel, data })
     },
 
     updateSyncedValue(entityID, key, value) {
