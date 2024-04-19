@@ -441,8 +441,9 @@ export const createNetwork = (
         }
 
         case 'UpdateSyncedValue': {
-          const { entity_id, key, value } = packet
-          updateSyncedValue(game, entity_id, key, value)
+          for (const { entity_id, key, value } of packet.values) {
+            updateSyncedValue(game, entity_id, key, value)
+          }
 
           break
         }
@@ -702,12 +703,11 @@ export const createNetwork = (
       customMessageQueue.push({ channel, data })
     },
 
-    updateSyncedValue(entityID, key, value) {
+    updateSyncedValue(entityId, key, value) {
+      // TODO: Batch this
       const payload: UpdateSyncedValuePacket = {
         t: 'UpdateSyncedValue',
-        entity_id: entityID,
-        key,
-        value,
+        values: [{ entity_id: entityId, key, value }],
       }
 
       sendPacket(payload)

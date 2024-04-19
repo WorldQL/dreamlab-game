@@ -227,9 +227,13 @@ export const PhysicsRevokeObjectControlSchema = z.object({
 export type UpdateSyncedValuePacket = z.infer<typeof UpdateSyncedValueSchema>
 export const UpdateSyncedValueSchema = z.object({
   t: z.literal('UpdateSyncedValue'),
-  entity_id: z.string(),
-  key: z.string(),
-  value: z.unknown(),
+  values: z
+    .object({
+      entity_id: z.string(),
+      key: z.string(),
+      value: z.unknown(),
+    })
+    .array(),
 })
 
 export type IncomingSpawnEntityPacket = z.infer<typeof IncomingSpawnEntitySchema>
