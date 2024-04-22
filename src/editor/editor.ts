@@ -149,6 +149,7 @@ export class Editor extends Entity {
         this.toggleUIElements(ui.root, this.#hideUIElements.value)
         camera().target = this.#navigator
         camera().smoothing = 0.02
+        inputs().disable('mouse', 'editor')
         inputs().disableNonEditorInputs()
         if (targetPos) {
           this.#navigator.setPosition(targetPos)
