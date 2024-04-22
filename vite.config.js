@@ -65,7 +65,7 @@ const packageJson = async (pkg, linkRoot) => {
  * @param {string} pkg - Package Name
  * @param {string} [linkRoot] - npm link root
  */
-const esmLink = async (pkg, linkRoot, { pin = 'v132', exports = '' } = {}) => {
+const esmLink = async (pkg, linkRoot, { pin = 'v135', exports = '' } = {}) => {
   const { version } = await packageJson(pkg, linkRoot)
   if (!version) throw new Error(`unknown version for package: ${pkg}`)
 
@@ -79,25 +79,46 @@ const importMapPlugin = (useLocalCoreURL, localCoreURL) => ({
   transformIndexHtml: async () => {
     const core = '@dreamlab.gg/core'
     const ui = '@dreamlab.gg/ui'
+    const react = 'react'
+    const reactDom = 'react-dom'
     const matter = 'matter-js'
     const pixi = 'pixi.js'
-    const react = 'react'
 
-    const [corePkg, uiPkg, matterPkg, pixiPkg] = await Promise.all([
+    const [
+      corePkg,
+      reactPkg,
+      jsxPkg,
+      jsxDevPkg,
+      reactDomPkg,
+      reactDomClientPkg,
+      matterPkg,
+      pixiPkg,
+    ] = await Promise.all([
       esmLink(core, undefined, { exports: '/dist/bundled' }),
-      esmLink(ui),
+      esmLink(react),
+      esmLink(react, undefined, { exports: '/jsx-runtime' }),
+      esmLink(react, undefined, { exports: '/jsx-dev-runtime' }),
+      esmLink(reactDom),
+      esmLink(reactDom, undefined, { exports: '/client' }),
       esmLink(matter, core),
       esmLink(pixi, core),
     ])
 
     const map = {
       imports: {
+        [react]: reactPkg,
+        [`${react}/jsx-runtime`]: jsxPkg,
+        [`${react}/jsx-dev-runtime`]: jsxDevPkg,
+        [reactDom]: reactDomPkg,
+        [`${reactDom}/client`]: reactDomClientPkg,
+        [`https://external/${react}`]: reactPkg,
+        [`https://external/${react}/jsx-runtime`]: jsxPkg,
+        [`https://external/${react}/jsx-dev-runtime`]: jsxDevPkg,
+        [`https://external/reactDom`]: reactDomPkg,
+        [`https://external/${reactDom}/client`]: reactDomClientPkg,
         [matter]: matterPkg,
         [pixi]: pixiPkg,
         [core]: corePkg,
-        [ui]: uiPkg,
-        [react]: `https://esm.sh/react@18.2.0?pin=v132`,
-        [`${react}/`]: `https://esm.sh/react@18.2.0/`,
       },
     }
 
@@ -117,12 +138,10 @@ const importMapPlugin = (useLocalCoreURL, localCoreURL) => ({
     const uiModulesJson = await readFile(fileURLToPath(uiModulesPath), 'utf8')
 
     const uiModules = JSON.parse(uiModulesJson)
+    const { version: uiVersion } = await packageJson(ui)
+    map.imports[ui] = `https://cdn.jsdelivr.net/npm/@dreamlab.gg/ui@${uiVersion}/dist/index.js`
     for (const module of uiModules) {
-      const moduleURL = new URL(uiPkg)
-      moduleURL.pathname += `/dist/${module}`
-      moduleURL.searchParams.append('external', core)
-      const url = moduleURL.toString()
-
+      const url = `https://cdn.jsdelivr.net/npm/@dreamlab.gg/ui@${uiVersion}/dist/${module}.js`
       map.imports[`${ui}/${module}`] = url
       map.imports[`${ui}/dist/${module}`] = url
     }
@@ -156,6 +175,14 @@ export default defineConfig(async ({ mode }) => {
   useLocalCoreURL = false
 
   return {
+    resolve: {
+      alias: [
+        { find: /^react$/, replacement: 'https://external/react' },
+        { find: /^react\/(.+)$/, replacement: 'https://external/react/$1' },
+        { find: /^react-dom$/, replacement: 'https://external/react-dom' },
+        { find: /^react-dom\/(.+)$/, replacement: 'https://external/react-dom/$1' },
+      ],
+    },
     plugins: [importMapPlugin(useLocalCoreURL, localCoreURL)],
     preview: {
       port: port,
@@ -171,11 +198,13 @@ export default defineConfig(async ({ mode }) => {
     build: {
       rollupOptions: {
         external: (source, importer, isResolved) => {
+          if (source.startsWith('react')) return true
+          if (source.startsWith('react-dom')) return true
           if (source.includes('matter-js')) return true
           if (source.includes('pixi.js')) return true
           if (source.includes('@pixi/')) return true
-          if (source.includes('@dreamlab.gg/core')) return true
-          if (source.includes('@dreamlab.gg/ui')) return true
+          if (source.startsWith('@dreamlab.gg/core')) return true
+          if (source.startsWith('@dreamlab.gg/ui')) return true
         },
       },
     },
