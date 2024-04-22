@@ -1,8 +1,8 @@
 import { base58 } from '@scure/base'
 import copy from 'copy-to-clipboard'
-import { useCallback, useMemo, useState } from 'https://esm.sh/react@18.2.0'
-import type { FC } from 'https://esm.sh/react@18.2.0'
 import { styled } from 'https://esm.sh/styled-components@6.1.8?pin=v135'
+import { useCallback, useMemo, useState } from 'react'
+import type { FC } from 'react'
 import type { EditDetails } from '../editor'
 import { Card } from './ui/card'
 

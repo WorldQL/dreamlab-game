@@ -332,8 +332,8 @@ export class History extends Entity {
 // import type { EventHandler } from '@dreamlab.gg/core/events'
 // import { useCommonEventListener, useGame, useNetwork } from '@dreamlab.gg/ui/react'
 // import cuid2 from '@paralleldrive/cuid2'
-// import type { FC, PropsWithChildren } from 'https://esm.sh/react@18.2.0'
-// import { useCallback, useEffect, useMemo, useRef, useState } from 'https://esm.sh/react@18.2.0'
+// import type { FC, PropsWithChildren } from 'react'
+// import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 // import type { Selector } from '../entities/select'
 // import { Notification } from './ui/notification'
 

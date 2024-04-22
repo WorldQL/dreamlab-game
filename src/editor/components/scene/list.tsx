@@ -9,9 +9,9 @@ import {
   useInputPressed,
   useSpawnableEntities,
 } from '@dreamlab.gg/ui/react'
-import { useCallback, useEffect, useMemo, useState } from 'https://esm.sh/react@18.2.0'
-import type { ChangeEvent, FC } from 'https://esm.sh/react@18.2.0'
 import { styled } from 'https://esm.sh/styled-components@6.1.8?pin=v135'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import type { ChangeEvent, FC } from 'react'
 import type { EditDetails } from '../../editor'
 import { EditorInputs } from '../../editor'
 import type { History } from '../../entities/history'
@@ -95,10 +95,10 @@ const GroupedEntitySet = (
 }
 
 export const SceneList: FC<{
-  editDetails?: EditDetails
+  readonly editDetails?: EditDetails
   readonly selector: Selector
-  history: History
-  hideUIElements: boolean
+  readonly history: History
+  readonly hideUIElements: boolean
   onToggleHideUIElements(checked: boolean): void
 }> = ({ editDetails, selector, history, hideUIElements, onToggleHideUIElements }) => {
   const game = useGame()

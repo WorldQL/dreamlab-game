@@ -2,9 +2,9 @@
 import type { SpawnableEntity } from '@dreamlab.gg/core'
 import { useSpawnableEntities } from '@dreamlab.gg/ui/dist/react'
 import axios from 'axios'
-import { useCallback, useEffect, useRef, useState } from 'https://esm.sh/react@18.2.0'
-import type { ChangeEventHandler, DragEventHandler } from 'https://esm.sh/react@18.2.0'
 import { styled } from 'https://esm.sh/styled-components@6.1.8?pin=v135'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import type { ChangeEventHandler, DragEventHandler } from 'react'
 import { DeleteButton, LinkButton } from '../ui/buttons'
 
 const AssetUploader = styled.div`

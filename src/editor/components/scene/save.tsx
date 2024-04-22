@@ -1,8 +1,8 @@
 import type { SpawnableEntity } from '@dreamlab.gg/core'
 import axios from 'axios'
-import type { FC, ReactNode } from 'https://esm.sh/react@18.2.0'
-import { useCallback, useState } from 'https://esm.sh/react@18.2.0'
 import { styled } from 'https://esm.sh/styled-components@6.1.8?pin=v135'
+import type { FC, ReactNode } from 'react'
+import { useCallback, useState } from 'react'
 import type { EditDetails } from '../../editor'
 import { Button } from '../ui/buttons'
 
@@ -70,7 +70,7 @@ const writeLevelScript = async (levelScript: string, editDetails?: EditDetails) 
 //   )
 // }
 
-const Popup: FC<{ children?: ReactNode }> = ({ children }) => {
+const Popup: FC<{ readonly children?: ReactNode }> = ({ children }) => {
   const PopupContainer = styled.div`
     position: fixed;
     top: 0;
@@ -110,8 +110,8 @@ const Popup: FC<{ children?: ReactNode }> = ({ children }) => {
 }
 
 export const SaveButton: FC<{
-  editDetails?: EditDetails
-  entities: SpawnableEntity[]
+  readonly editDetails?: EditDetails
+  readonly entities: SpawnableEntity[]
 }> = ({ editDetails, entities }) => {
   const [popupVisible, setPopupVisible] = useState(false)
   const [isSaving, setIsSaving] = useState(false)

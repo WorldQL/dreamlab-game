@@ -3,10 +3,10 @@ import type { EventHandler } from '@dreamlab.gg/core/dist/events'
 import type { Transform } from '@dreamlab.gg/core/math'
 import { clone, getProperty, setProperty } from '@dreamlab.gg/core/utils'
 import { useCommonEventListener, useForceUpdate, useTransform } from '@dreamlab.gg/ui/dist/react'
-import { useCallback, useRef, useState } from 'https://esm.sh/react@18.2.0'
-import type { FC } from 'https://esm.sh/react@18.2.0'
 import { styled } from 'https://esm.sh/styled-components@6.1.8?pin=v135'
 import { useDebounceCallback } from 'https://esm.sh/usehooks-ts@2.12.1?pin=v135'
+import { useCallback, useRef, useState } from 'react'
+import type { FC } from 'react'
 import type { History } from '../../entities/history'
 import type { Selector } from '../../entities/select'
 import { renderInputForZodSchema } from '../scene/types'
@@ -141,7 +141,7 @@ const InspectorStyle = styled.div`
 interface InspectorProps {
   readonly selector: Selector
   readonly entity: SpawnableEntity
-  history: History
+  readonly history: History
 }
 
 const roundValue = (

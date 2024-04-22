@@ -13,7 +13,8 @@
   "rules": {
     "id-length": ["error", { "exceptions": ["a", "b", "t", "x", "y", "_"] }],
     "jsdoc/no-bad-blocks": ["error", { "ignore": ["vite-ignore"] }],
-    "react/prop-types": 0
+    "react/prop-types": 0,
+    "import/no-extraneous-dependencies": 0
   },
   "ignorePatterns": ["**/dist/*", "vite-env.d.ts"]
 }

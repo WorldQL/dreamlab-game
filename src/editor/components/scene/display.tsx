@@ -1,8 +1,8 @@
 import type { SpawnableEntity } from '@dreamlab.gg/core'
 import { useCamera, useGame } from '@dreamlab.gg/ui/react'
-import { useCallback, useEffect, useRef, useState } from 'https://esm.sh/react@18.2.0'
-import type { FC } from 'https://esm.sh/react@18.2.0'
 import { styled } from 'https://esm.sh/styled-components@6.1.8?pin=v135'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import type { FC } from 'react'
 import { LOCKED_TAG } from '../../editor'
 import type { History } from '../../entities/history'
 import { Navigator } from '../../entities/navigator'
@@ -75,8 +75,8 @@ const SelectButton = styled.button<{ isSelected: boolean }>`
 interface DisplayProps {
   readonly selector: Selector
   readonly entity: SpawnableEntity
-  isSelected: boolean
-  history: History
+  readonly isSelected: boolean
+  readonly history: History
 }
 
 export const EntityDisplay: FC<DisplayProps> = ({ selector, entity, isSelected, history }) => {

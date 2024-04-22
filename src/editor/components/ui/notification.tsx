@@ -1,7 +1,7 @@
-import type { FC } from 'https://esm.sh/react@18.2.0'
+import type { FC } from 'react'
 
 interface NotificationProps {
-  message: string
+  readonly message: string
 }
 
 export const Notification: FC<NotificationProps> = ({ message }) => {

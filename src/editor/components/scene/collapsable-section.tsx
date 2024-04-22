@@ -1,6 +1,6 @@
-import type { ReactNode } from 'https://esm.sh/react@18.2.0'
-import { useEffect, useState } from 'https://esm.sh/react@18.2.0'
 import { styled } from 'https://esm.sh/styled-components@6.1.8?pin=v135'
+import type { ReactNode } from 'react'
+import { useEffect, useState } from 'react'
 
 const CollapsibleContainer = styled.div`
   margin: 0;

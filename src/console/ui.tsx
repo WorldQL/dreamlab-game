@@ -1,13 +1,13 @@
 import type { Game } from '@dreamlab.gg/core'
 import { renderUI as renderReact } from '@dreamlab.gg/ui/react'
-import type { FC, ReactNode } from 'https://esm.sh/react@18.2.0'
-import { useEffect, useState } from 'https://esm.sh/react@18.2.0'
+import type { FC, ReactNode } from 'react'
+import { useEffect, useState } from 'react'
 import type { LogStreamingClient } from './log-stream'
 
 // react is probably a bad fit for this because we are just appending to a long list,
 // and don't need to rerender the whole thing, but whatever for now
 
-const DraggableWindow: FC<{ children: ReactNode }> = ({ children }) => {
+const DraggableWindow: FC<{ readonly children: ReactNode }> = ({ children }) => {
   const [x, _] = useState(150)
   const [y, __] = useState(150)
 
@@ -26,7 +26,7 @@ const DraggableWindow: FC<{ children: ReactNode }> = ({ children }) => {
   )
 }
 
-const Console: FC<{ client: LogStreamingClient }> = ({ client }) => {
+const Console: FC<{ readonly client: LogStreamingClient }> = ({ client }) => {
   const [logHistory, setLogHistory] = useState<[Date, string][]>()
 
   useEffect(() => {
