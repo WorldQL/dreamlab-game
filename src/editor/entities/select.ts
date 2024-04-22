@@ -304,7 +304,7 @@ export class Selector extends Entity {
     }
 
     if (!this.selected) {
-      setTimeout(async () => {
+      setTimeout(async () => {``
         const dimensions = await getPngDimensions(url)
 
         const cursorPosition = inputs()?.getCursor('world')
@@ -507,7 +507,7 @@ export class Selector extends Entity {
     let queryEntity = query[currentQueryIndex]
 
     const timeDiff = currentTime - this.lastClickTime
-    const shouldUpdateIndex = timeDiff < 500 && query.length > 1
+    const shouldUpdateIndex = timeDiff < 300 && query.length > 1
 
     if (shouldUpdateIndex) {
       currentQueryIndex = (currentQueryIndex + 1) % query.length
