@@ -304,7 +304,7 @@ export class Selector extends Entity {
     }
 
     if (!this.selected) {
-      setTimeout(async () => {``
+      setTimeout(async () => {
         const dimensions = await getPngDimensions(url)
 
         const cursorPosition = inputs()?.getCursor('world')
