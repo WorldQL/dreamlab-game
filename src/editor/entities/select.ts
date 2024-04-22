@@ -656,12 +656,12 @@ export class Selector extends Entity {
   public onRenderFrame(_: RenderTime): void {
     const bounds = this.selected?.bounds()
     if (!this.selected || !bounds) {
-      inputs()?.enable('mouse', 'editor')
+      // inputs()?.enable('mouse', 'editor')
       this.container.alpha = 0
       return
     }
 
-    inputs()?.disable('mouse', 'editor')
+    // inputs()?.disable('mouse', 'editor')
     const entity = this.selected
     const inverse = 1 / camera().scale
     const scaledWidth = this.strokeWidth * inverse
