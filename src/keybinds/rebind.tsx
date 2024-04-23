@@ -1,9 +1,9 @@
 import type { InputCode } from '@dreamlab.gg/core/input'
 import { inputCodes, InputCodeSchema } from '@dreamlab.gg/core/input'
 import { useForceUpdate, useGame, useRegisteredInputs } from '@dreamlab.gg/ui/react'
+import { styled } from 'https://esm.sh/styled-components@6.1.8?pin=v135'
 import { useCallback, useEffect, useState } from 'react'
 import type { FC } from 'react'
-import { styled } from 'https://esm.sh/styled-components@6.1.8?pin=v135'
 import { Input } from './input'
 import { bindInput } from './persist'
 
@@ -93,7 +93,7 @@ const ResetButton = styled.button`
 
 interface Props {
   readonly visible: boolean
-  setVisible: React.Dispatch<React.SetStateAction<boolean>>
+  readonly setVisible: React.Dispatch<React.SetStateAction<boolean>>
 }
 
 export const Rebind: FC<Props> = ({ visible, setVisible }) => {

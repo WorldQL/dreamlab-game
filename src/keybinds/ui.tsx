@@ -1,8 +1,8 @@
 import type { Game } from '@dreamlab.gg/core'
 import { renderUI as render, useGame } from '@dreamlab.gg/ui/react'
+import { styled, StyleSheetManager } from 'https://esm.sh/styled-components@6.1.8?pin=v135'
 import { useCallback, useEffect, useState } from 'react'
 import type { FC } from 'react'
-import { styled, StyleSheetManager } from 'https://esm.sh/styled-components@6.1.8?pin=v135'
 import { Rebind } from './rebind'
 
 const Control = styled.div<{ readonly visible: boolean }>`
