@@ -8,7 +8,9 @@ import type { LogStreamingClient } from './log-stream'
 // and don't need to rerender the whole thing, but whatever for now
 
 const DraggableWindow: FC<{ readonly children: ReactNode }> = ({ children }) => {
+  // eslint-disable-next-line react/hook-use-state
   const [x, _] = useState(150)
+  // eslint-disable-next-line react/hook-use-state
   const [y, __] = useState(150)
 
   // TODO: dragging behavior (setX, setY on mousemove when mouse down on header)
@@ -109,9 +111,7 @@ export const renderUI = (game: Game<false>, client: LogStreamingClient) => {
     }
   `
 
-  const ui = renderReact(game, <Console client={client} />, {
-    interactable: false,
-  })
+  const ui = renderReact(game, <Console client={client} />)
   ui.root.append(styles)
 
   return ui

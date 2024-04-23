@@ -31,7 +31,6 @@ export const renderUI = (
       />
       <PaletteManager history={history} navigator={navigator} selector={selector} />
     </StyleSheetManager>,
-    { interactable: false },
   )
 
   const debug_ui = render(
