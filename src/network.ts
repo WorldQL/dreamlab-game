@@ -174,7 +174,7 @@ export const createNetwork = (
   let selfID: string | undefined
   const players = new Map<string, NetPlayer>()
   let localPlayer: Player | undefined
-  let clientTickNumber = 0
+  const clientTickNumber = 0
 
   deferUntilPlayer(player => {
     player.events.addListener('onMove', (position, velocity, flipped) => {
@@ -641,47 +641,6 @@ export const createNetwork = (
       console.warn(`malformed packet: ${ev.data}`)
       console.error(error)
     }
-  })
-
-  game.events.common.addListener('onPhysicsStep', () => {
-    const snapshot = clientControl.calculateSnapshot(clientTickNumber)
-    if (snapshot !== undefined) {
-      sendPacket({
-        t: 'PhysicsControlledObjectsSnapshot',
-        tick_number: clientTickNumber,
-        snapshot,
-      })
-    }
-
-    // for now, we just request control over every replicated entity close to us:
-    if (localPlayer !== undefined) {
-      const entities = game.queryTags(
-        'fn',
-        tags => tags.includes('net/replicated') && !tags.includes('net/server-authoritative'),
-      )
-      for (const entity of entities) {
-        if (clientControl.isControllingEntity(entity.uid, clientTickNumber + 30)) continue
-
-        const bodies = game.physics.getBodies(entity)
-        for (const body of bodies) {
-          if (body.isStatic) continue
-
-          // TODO(Charlotte): better bounds distance check. this does not account for size rn
-          const distanceSq = Matter.Vector.magnitudeSquared(
-            Matter.Vector.sub(body.position, localPlayer.position),
-          )
-
-          if (distanceSq < 400 * 400) {
-            sendPacket({
-              t: 'PhysicsRequestObjectControl',
-              entity_id: entity.uid,
-            })
-          }
-        }
-      }
-    }
-
-    clientTickNumber += 1
   })
 
   const customMessageQueue: CustomMessagePacket['messages'] = []
