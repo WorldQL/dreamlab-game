@@ -46,6 +46,7 @@ const writeLevelScript = async (levelScript: string, editDetails?: EditDetails) 
       Authorization: `Bearer ${editDetails.secret}`,
     },
   })
+  window.parent.postMessage(`refresh_level`, '*')
 }
 
 // const commitChanges = async (editDetails?: EditDetails) => {
