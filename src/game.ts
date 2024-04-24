@@ -48,7 +48,7 @@ export const init = async () => {
     },
     graphicsOptions: {
       backgroundAlpha: 0,
-      antialias: false,
+      antialias: true,
     },
   })
 
