@@ -163,6 +163,7 @@ export const Assets: React.FC<AssetsProps> = ({ nextAPIBaseURL, jwt }) => {
   const [copiedAssetId, setCopiedAssetId] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const entities = useSpawnableEntities()
+  // eslint-disable-next-line react/hook-use-state
   const [entitiesCopy] = useState<SpawnableEntity[]>([...entities])
   const [searchTerm, setSearchTerm] = useState('')
 

@@ -139,6 +139,7 @@ const InspectorStyle = styled.div`
 `
 
 interface InspectorProps {
+  // eslint-disable-next-line react/no-unused-prop-types
   readonly selector: Selector
   readonly entity: SpawnableEntity
   readonly history: History
