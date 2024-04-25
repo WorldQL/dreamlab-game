@@ -5,6 +5,7 @@ import type { EditDetails } from '../editor'
 import type { History } from '../entities/history'
 import type { Navigator } from '../entities/navigator'
 import type { Selector } from '../entities/select'
+import { ConsoleLog } from './console/console-log'
 import { PaletteManager } from './palette/manager'
 import { SceneList } from './scene/list'
 import { Card } from './ui/card'
@@ -30,6 +31,7 @@ export const renderUI = (
         selector={selector}
       />
       <PaletteManager history={history} navigator={navigator} selector={selector} />
+      <ConsoleLog editDetails={editDetails} />
     </StyleSheetManager>,
   )
 
