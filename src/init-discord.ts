@@ -1,11 +1,10 @@
 import { DiscordSDK } from '@discord/embedded-app-sdk'
 import { z } from 'zod'
-import { env } from './env'
 
-const sleep = async (ms: number) =>
-  new Promise<void>(resolve => {
-    setTimeout(() => resolve(), ms)
-  })
+// const sleep = async (ms: number) =>
+//   new Promise<void>(resolve => {
+//     setTimeout(() => resolve(), ms)
+//   })
 
 export const getClientId = () => {
   const idMatches = /^(?<id>\d+)\.discordsays\.com$/.exec(window.location.host)
@@ -19,7 +18,7 @@ const init = async () => {
   const clientId = getClientId()
 
   const loading = document.querySelector('div#loading')! as HTMLDivElement
-  const loadingText = document.querySelector('div#loading>span')! as HTMLSpanElement
+  // const loadingText = document.querySelector('div#loading>span')! as HTMLSpanElement
 
   loading.style.display = 'flex'
 
@@ -30,9 +29,8 @@ const init = async () => {
   await sdk.ready()
   await sdk.commands.encourageHardwareAcceleration()
 
-  // TODO: Test App ID mismatch
   const { code } = await sdk.commands.authorize({
-    client_id: env.VITE_DISCORD_CLIENT_ID,
+    client_id: sdk.clientId,
     response_type: 'code',
     state: '',
     prompt: 'none',
@@ -41,6 +39,7 @@ const init = async () => {
 
   type AuthRequest = z.infer<typeof AuthRequestSchema>
   const AuthRequestSchema = z.object({
+    application_id: z.string().min(1),
     instance_id: z.string().min(1),
     code: z.string().min(1),
   })
@@ -55,22 +54,17 @@ const init = async () => {
   const resp = await fetch('/mp/api/v1/discord/auth', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ instance_id: sdk.instanceId, code } satisfies AuthRequest),
+    body: JSON.stringify({
+      application_id: sdk.clientId,
+      instance_id: sdk.instanceId,
+      code,
+    } satisfies AuthRequest),
   })
 
   const { discord_token, dreamlab_token, info } = AuthResponseSchema.parse(await resp.json())
   const auth = await sdk.commands.authenticate({ access_token: discord_token })
   if (auth === null) {
     throw new Error('authenticate command failed')
-  }
-
-  while (true) {
-    await sleep(500)
-    const resp = await fetch(`/mp/api/v1/instance/${info.id}`)
-    const json = InstanceInfoSchema.parse(await resp.json())
-
-    if (json.status === 'Started') break
-    if (typeof json.status === 'string') loadingText.textContent = `${json.status}...`
   }
 
   loading.style.display = 'none'
