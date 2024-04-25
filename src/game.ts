@@ -55,7 +55,7 @@ export const init = async () => {
   renderKeybindUI(game)
 
   // @ts-expect-error global assign in dev
-  if (import.meta.env.DEV) window.game = game
+  window.game = game
 
   const onToggleDebug = (pressed: boolean) => {
     if (!pressed) return
