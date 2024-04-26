@@ -74,13 +74,14 @@ const init = async () => {
     throw new Error('authenticate command failed')
   }
 
-  loading.style.display = 'none'
   const { setup } = await import('./game')
   await setup({
     server: `wss://${sdk.clientId}.discordsays.com/mp`,
     instance: info.id as string,
     token: dreamlab_token,
   })
+
+  loading.style.display = 'none'
 }
 
 void init().catch(console.error)
