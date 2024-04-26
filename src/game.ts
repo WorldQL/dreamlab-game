@@ -1,13 +1,13 @@
 import { createGame } from '@dreamlab.gg/core'
 import { Cursor, PlayerInput } from '@dreamlab.gg/core/entities'
 // import { createConsole } from './console/console.js'
-import { isDebug } from './debug.js'
 import { Editor } from './editor/editor.js'
 // import { createKeybinds } from './keybinds/entity.js'
 import { bindInput, loadBindings } from './keybinds/persist.js'
 import { renderKeybindUI } from './keybinds/ui.js'
-import { connect, createNetwork, decodeParams } from './network.js'
+import { connect, createNetwork } from './network.js'
 import type { ToServerPacket } from './packets.js'
+import { getParams } from './params.js'
 import { loadLevel, loadScript, spawnPlayer } from './scripting.js'
 
 declare global {
@@ -22,10 +22,11 @@ export const init = async () => {
   const container = document.querySelector<HTMLDivElement>('#app')
   if (!container) throw new Error('missing container')
 
-  const params = decodeParams()
-  const ws = await connect(params)
+  const params = getParams()
+
+  const ws = await connect()
   const worldDetails = localStorage.getItem('@dreamlab/worlds/fallbackUrl')
-  if (params && !ws && worldDetails) {
+  if (params.connection && !ws && worldDetails) {
     console.log('Failed to connect in init()')
     setTimeout(() => {
       window.location.reload()
@@ -38,13 +39,13 @@ export const init = async () => {
   const height = width / (16 / 9)
 
   const game = await createGame({
-    debug: isDebug(),
+    debug: params.debug,
     isServer: false,
     container,
     dimensions: { width, height },
     data: {
-      playerID: params?.playerID ?? 'unknown',
-      nickname: params?.nickname ?? 'Player',
+      playerID: params.playerInfo?.playerID ?? 'unknown',
+      nickname: params.playerInfo?.nickname ?? 'Player',
     },
     graphicsOptions: {
       backgroundAlpha: 0,
@@ -82,7 +83,7 @@ export const init = async () => {
   // #endregion
 
   if (ws) {
-    const [network, sendPacket, connected] = createNetwork(params!, ws, game)
+    const [network, sendPacket, connected] = createNetwork(ws, game)
     game.initNetwork(network)
 
     await connected

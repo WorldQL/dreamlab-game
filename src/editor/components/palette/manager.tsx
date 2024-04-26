@@ -9,6 +9,7 @@ import { Container } from '../ui/container'
 import { Assets } from './assets'
 import { Inspector } from './inspector'
 import { Spawnables } from './spawnables'
+import { getParams } from '../../../params'
 
 const PaletteContainer = styled(Container)<{ isCollapsed: boolean }>`
   top: 6rem;
@@ -64,8 +65,8 @@ export const PaletteManager: React.FC<PaletteManagerProps> = ({ selector, naviga
   const [selectedEntity, setSelectedEntity] = useState<SpawnableEntity | undefined>(undefined)
 
   const nextAPIBaseURL = window.localStorage.getItem('@dreamlab/NextAPIURL')
-  const url = new URL(window.location.href)
-  const jwt = url.searchParams.get('token')
+  const jwt = getParams().playerInfo?.token
+  if (jwt === undefined) throw new Error('no player token could be retrieved')
 
   useEffect(() => {
     const handleSelect = () => {

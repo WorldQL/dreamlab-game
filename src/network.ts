@@ -15,7 +15,6 @@ import {
   onChange,
   setProperty,
 } from '@dreamlab.gg/core/utils'
-import { jwtDecode as decodeJWT } from 'jwt-decode'
 import Matter from 'matter-js'
 import type { Body } from 'matter-js'
 import { createClientControlManager } from './client-phys-control.js'
@@ -31,16 +30,8 @@ import type {
   ToServerPacket,
   UpdateSyncedValuePacket,
 } from './packets.js'
+import { getParams } from './params.js'
 import { getCharacterId, loadScript, spawnPlayer } from './scripting.js'
-
-export interface Params {
-  readonly server: string
-  readonly instance: string
-
-  readonly token: string
-  readonly playerID: string
-  readonly nickname: string
-}
 
 window.addEventListener('message', ev => {
   const data = ev.data
@@ -52,41 +43,14 @@ window.addEventListener('message', ev => {
   }
 })
 
-export const decodeParams = (): Params | undefined => {
-  const url = new URL(window.location.href)
+export const connect = async (): Promise<WebSocket | undefined> => {
+  const params = getParams()
+  if (!params.connection || !params.playerInfo) return
 
-  const server = url.searchParams.get('server')
-  const instance = url.searchParams.get('instance')
-  const token = url.searchParams.get('token')
-  if (!server || !instance || !token) return undefined
-
-  const jwt = decodeJWT(token)
-  if (jwt === null || jwt === undefined) return undefined
-  if (typeof jwt !== 'object') return undefined
-
-  if (!('player_id' in jwt)) return undefined
-  if (typeof jwt.player_id !== 'string') return undefined
-
-  if (!('nickname' in jwt)) return undefined
-  if (typeof jwt.nickname !== 'string') return undefined
-
-  return {
-    server,
-    instance,
-
-    token,
-
-    playerID: jwt.player_id,
-    nickname: jwt.nickname,
-  }
-}
-
-export const connect = async (params: Params | undefined): Promise<WebSocket | undefined> => {
-  if (!params) return undefined
-  const serverURL = new URL(params.server)
-  serverURL.pathname = `/api/v1/connect/${params.instance}`
-  serverURL.searchParams.set('instance', params.instance)
-  serverURL.searchParams.set('token', params.token)
+  const serverURL = new URL(params.connection.server)
+  serverURL.pathname = `/api/v1/connect/${params.connection.instance}`
+  serverURL.searchParams.set('instance', params.connection.instance)
+  serverURL.searchParams.set('token', params.playerInfo.token)
   const characterId = getCharacterId()
   if (characterId) serverURL.searchParams.set('character_id', characterId)
 
@@ -121,7 +85,6 @@ const updateBodies = (bodies: Body[], bodyInfo: BodyInfo[]) => {
 }
 
 export const createNetwork = (
-  params: Params,
   ws: WebSocket,
   game: Game<false>,
 ): [network: BareNetClient, sendPacket: (packet: ToServerPacket) => void, ready: Promise<void>] => {
@@ -173,6 +136,7 @@ export const createNetwork = (
 
   let selfID: string | undefined
   const players = new Map<string, NetPlayer>()
+  // @ts-expect-error unused
   let localPlayer: Player | undefined
   const clientTickNumber = 0
 
@@ -593,11 +557,14 @@ export const createNetwork = (
           }
 
           if (packet.edit_mode) {
+            // we know we have connection details because we're handling packets (we're connected)
+            const connection = getParams().connection!
+
             const details: EditDetails | undefined = packet.edit_secret
               ? {
                   secret: packet.edit_secret,
-                  instance: params.instance,
-                  server: params.server,
+                  instance: connection!.instance,
+                  server: connection!.server,
                 }
               : undefined
 
