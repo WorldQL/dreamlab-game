@@ -18,7 +18,7 @@ const init = async () => {
   const clientId = getClientId()
 
   const loading = document.querySelector('div#loading')! as HTMLDivElement
-  // const loadingText = document.querySelector('div#loading>span')! as HTMLSpanElement
+  const loadingText = document.querySelector('div#loading>span')! as HTMLSpanElement
 
   loading.style.display = 'flex'
 
@@ -60,6 +60,13 @@ const init = async () => {
       code,
     } satisfies AuthRequest),
   })
+
+  if (!resp.ok) {
+    loadingText.textContent = 'Failed to start world.'
+
+    console.log(resp)
+    return
+  }
 
   const { discord_token, dreamlab_token, info } = AuthResponseSchema.parse(await resp.json())
   const auth = await sdk.commands.authenticate({ access_token: discord_token })
