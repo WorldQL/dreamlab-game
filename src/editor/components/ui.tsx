@@ -49,6 +49,7 @@ export const renderUI = (
         borderRadius: '8px',
         boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
         maxWidth: '300px',
+        display: 'none'
       }}
     >
       <h3 style={{ fontSize: '16px', marginBottom: '2px', fontWeight: '500' }}>
