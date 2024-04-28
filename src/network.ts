@@ -30,7 +30,7 @@ import type {
   ToServerPacket,
   UpdateSyncedValuePacket,
 } from './packets.js'
-import { getCharacterId, loadScript } from './scripting.js'
+import { getCharacterId, loadScript, spawnPlayer } from './scripting.js'
 
 export interface Params {
   readonly server: string
@@ -265,7 +265,7 @@ export const createNetwork = ({
               game.spawnMany(...resp.data)
             }
 
-            // localPlayer = await spawnPlayer(game)
+            await spawnPlayer(game)
           } else {
             const netplayer = new NetPlayer(
               packet.connection_id,
