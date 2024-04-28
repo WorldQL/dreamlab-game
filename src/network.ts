@@ -3,7 +3,7 @@ import { SpawnableDefinitionSchema } from '@dreamlab.gg/core'
 import type { Game } from '@dreamlab.gg/core'
 import { createGear } from '@dreamlab.gg/core/dist/managers'
 import { NetPlayer } from '@dreamlab.gg/core/entities'
-import type { KnownAnimation, Player } from '@dreamlab.gg/core/entities'
+import type { KnownAnimation } from '@dreamlab.gg/core/entities'
 import { isTrackedTransform, trackedSymbol } from '@dreamlab.gg/core/math'
 import { updateSyncedValue } from '@dreamlab.gg/core/network'
 import type { BareNetClient, MessageListenerClient } from '@dreamlab.gg/core/network'
@@ -30,7 +30,7 @@ import type {
   ToServerPacket,
   UpdateSyncedValuePacket,
 } from './packets.js'
-import { getCharacterId, loadScript, spawnPlayer } from './scripting.js'
+import { getCharacterId, loadScript } from './scripting.js'
 
 export interface Params {
   readonly server: string
@@ -52,9 +52,9 @@ window.addEventListener('message', ev => {
 })
 
 export const connect = async ({
-    server,
-    instance,
-    token,
+  server,
+  instance,
+  token,
 }: {
   readonly server: string
   readonly instance: string
@@ -163,7 +163,7 @@ export const createNetwork = ({
 
   let selfID: string | undefined
   const players = new Map<string, NetPlayer>()
-  let localPlayer: Player | undefined
+  // let localPlayer: Player | undefined
   const clientTickNumber = 0
 
   deferUntilPlayer(player => {
@@ -265,7 +265,7 @@ export const createNetwork = ({
               game.spawnMany(...resp.data)
             }
 
-            localPlayer = await spawnPlayer(game)
+            // localPlayer = await spawnPlayer(game)
           } else {
             const netplayer = new NetPlayer(
               packet.connection_id,
