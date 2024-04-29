@@ -1,5 +1,7 @@
 import { DiscordSDK } from '@discord/embedded-app-sdk'
 import { z } from 'zod'
+import { getParams } from './params'
+import { decodeToken } from './token'
 
 // const sleep = async (ms: number) =>
 //   new Promise<void>(resolve => {
@@ -74,12 +76,20 @@ const init = async () => {
     throw new Error('authenticate command failed')
   }
 
-  const { setup } = await import('./game')
-  await setup({
+  const params = getParams()
+  params.connection = {
     server: `wss://${sdk.clientId}.discordsays.com/mp`,
     instance: info.id as string,
-    token: dreamlab_token,
-  })
+  }
+  const playerDetails = decodeToken(dreamlab_token)
+  if (!playerDetails) throw new Error('invalid token param')
+  params.playerInfo = {
+    characterId: new URLSearchParams(window.location.search).get('characterId') ?? undefined,
+    ...playerDetails,
+  }
+
+  const { setup } = await import('./game')
+  await setup()
 
   loading.style.display = 'none'
 }

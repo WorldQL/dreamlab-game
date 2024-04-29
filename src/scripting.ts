@@ -2,13 +2,7 @@ import type { Game } from '@dreamlab.gg/core'
 import { Player } from '@dreamlab.gg/core/entities'
 import type { Vector } from '@dreamlab.gg/core/math'
 import { LevelSchema } from '@dreamlab.gg/core/sdk'
-
-export const getCharacterId = () => {
-  const params = new URLSearchParams(window.location.search)
-  const characterId = params.get('characterId')
-
-  return characterId ?? undefined
-}
+import { getParams } from './params'
 
 export const loadScript = async (
   baseURL: string | undefined,
@@ -51,7 +45,7 @@ export const loadLevel = async (
 }
 
 export const spawnPlayer = async (game: Game<false>, position?: Vector) => {
-  const characterId = getCharacterId()
+  const characterId = getParams()?.playerInfo?.characterId
   const player = new Player(characterId)
 
   game.client.render.camera.target = player

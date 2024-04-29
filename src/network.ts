@@ -30,16 +30,8 @@ import type {
   ToServerPacket,
   UpdateSyncedValuePacket,
 } from './packets.js'
-import { getCharacterId, loadScript, spawnPlayer } from './scripting.js'
-
-export interface Params {
-  readonly server: string
-  readonly instance: string
-
-  readonly token: string
-  readonly playerID: string
-  readonly nickname: string
-}
+import type { ConnectionDetails, PlayerInfo } from './params.js'
+import { loadScript, spawnPlayer } from './scripting.js'
 
 window.addEventListener('message', ev => {
   const data = ev.data
@@ -51,15 +43,10 @@ window.addEventListener('message', ev => {
   }
 })
 
-export const connect = async ({
-  server,
-  instance,
-  token,
-}: {
-  readonly server: string
-  readonly instance: string
-  readonly token: string
-}): Promise<WebSocket> => {
+export const connect = async (
+  { server, instance }: ConnectionDetails,
+  { token, characterId }: PlayerInfo,
+): Promise<WebSocket> => {
   const serverUrl = new URL(server)
   serverUrl.pathname +=
     serverUrl.pathname === '/' ? `api/v1/connect/${instance}` : `/api/v1/connect/${instance}`
@@ -67,7 +54,6 @@ export const connect = async ({
   serverUrl.searchParams.set('instance', instance)
   serverUrl.searchParams.set('token', token)
 
-  const characterId = getCharacterId()
   if (characterId) serverUrl.searchParams.set('character_id', characterId)
 
   return new Promise<WebSocket>(resolve => {
