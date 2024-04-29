@@ -1,6 +1,7 @@
 import type { SpawnableEntity } from '@dreamlab.gg/core'
 import { styled } from 'https://esm.sh/styled-components@6.1.8?pin=v135'
 import { useEffect, useState } from 'react'
+import { getParams } from '../../../params'
 import type { History } from '../../entities/history'
 import type { Navigator } from '../../entities/navigator'
 import type { Selector } from '../../entities/select'
@@ -9,7 +10,6 @@ import { Container } from '../ui/container'
 import { Assets } from './assets'
 import { Inspector } from './inspector'
 import { Spawnables } from './spawnables'
-import { getParams } from '../../../params'
 
 const PaletteContainer = styled(Container)<{ isCollapsed: boolean }>`
   top: 6rem;

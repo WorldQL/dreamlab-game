@@ -205,7 +205,7 @@ export const createNetwork = ({
 
   const clientControl = createClientControlManager(game)
 
-  const runPhysicsCatchUp = (tickNumber: number, entityIds: string[]) => {
+  const runPhysicsCatchUp = (tickNumber: number, entityIds: Set<string>) => {
     if (tickNumber === -1 || tickNumber >= clientTickNumber) return
 
     const now = performance.now() / 1_000
@@ -330,7 +330,7 @@ export const createNetwork = ({
         case 'PhysicsFullSnapshot': {
           const tickNumber = packet.lastClientTickNumber
           const { entities } = packet.snapshot
-          const affectedEntities: string[] = []
+          const affectedEntities = new Set<string>()
 
           const jobs = entities.map(async entityInfo => {
             const definition = {
@@ -351,11 +351,20 @@ export const createNetwork = ({
 
             const entity = existingEntity ? existingEntity : game.spawn(definition)
             if (entity === undefined) return
-            affectedEntities.push(entity.uid)
+            affectedEntities.add(entity.uid)
 
             const bodies = game.physics.getBodies(entity)
             updateBodies(bodies, entityInfo.bodyInfo)
           })
+
+          for (const e of game.queryTags(
+            'fn',
+            t => t.includes('net/replicated') && !t.includes('net/replicated/ignore'),
+          )) {
+            if (!affectedEntities.has(e.uid)) {
+              game.destroy(e)
+            }
+          }
 
           await Promise.all(jobs)
           runPhysicsCatchUp(tickNumber, affectedEntities)

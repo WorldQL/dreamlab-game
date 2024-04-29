@@ -29,4 +29,3 @@ const init = async () => {
 }
 
 void init().catch(console.error)
-export {}
