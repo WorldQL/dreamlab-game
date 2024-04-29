@@ -375,7 +375,7 @@ export const createNetwork = ({
           const tickNumber = packet.lastClientTickNumber
           const { bodyUpdates, destroyedEntities, newEntities } = packet.snapshot
 
-          const affectedEntities: string[] = []
+          const affectedEntities = new Set<string>()
 
           const spawnJobs = newEntities.map(async entityInfo => {
             if (game.lookup(entityInfo.entityId) !== undefined) return
@@ -387,7 +387,7 @@ export const createNetwork = ({
 
             const entity = game.spawn(definition)
             if (entity === undefined) return
-            affectedEntities.push(entity.uid)
+            affectedEntities.add(entity.uid)
 
             const bodies = game.physics.getBodies(entity)
             updateBodies(bodies, entityInfo.bodyInfo)
@@ -399,7 +399,7 @@ export const createNetwork = ({
             if (clientControl.isControllingEntity(entityInfo.entityId, tickNumber)) return
             if (entity.tags.includes('net/replicated/ignore')) return
 
-            affectedEntities.push(entity.uid)
+            affectedEntities.add(entity.uid)
             const bodies = game.physics.getBodies(entity)
             updateBodies(bodies, entityInfo.bodyInfo)
           })
