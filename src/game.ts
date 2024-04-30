@@ -51,6 +51,7 @@ export const setup = async () => {
     graphicsOptions: {
       backgroundAlpha: 0,
       antialias: true,
+      resolution: 2,
     },
   })
 
