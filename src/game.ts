@@ -1,6 +1,5 @@
 import { createGame } from '@dreamlab.gg/core'
 import { Cursor, PlayerInput } from '@dreamlab.gg/core/entities'
-// import { createConsole } from './console/console.js'
 import { Editor } from './editor/editor.js'
 // import { createKeybinds } from './keybinds/entity.js'
 import { bindInput, loadBindings } from './keybinds/persist.js'
@@ -101,9 +100,6 @@ export const setup = async () => {
     })
 
     window.sendPacket = sendPacket
-
-    // const serverLog = createConsole(params!.server, params!.instance)
-    // game.instantiate(serverLog)
   } else {
     if (import.meta.env.DEV) {
       const url = new URL(window.location.href)
