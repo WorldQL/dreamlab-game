@@ -16,13 +16,10 @@ declare global {
   }
 }
 
-export const setup = async () => {
+export const setup = async (container: HTMLDivElement) => {
   const { connection, playerInfo, debug } = getParams()
 
   // #region Setup
-  const container = document.querySelector<HTMLDivElement>('#app')
-  if (!container) throw new Error('missing container')
-
   const ws = connection && playerInfo ? await connect(connection, playerInfo) : undefined
 
   const worldDetails = localStorage.getItem('@dreamlab/worlds/fallbackUrl')

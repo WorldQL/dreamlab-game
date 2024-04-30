@@ -24,8 +24,11 @@ const init = async () => {
     ...playerDetails,
   }
 
+  const container = document.querySelector<HTMLDivElement>('#app')
+  if (!container) throw new Error('missing container')
+
   const { setup } = await import('./game')
-  await setup()
+  await setup(container)
 }
 
 void init().catch(console.error)
