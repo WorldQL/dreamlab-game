@@ -644,6 +644,12 @@ export const createNetwork = ({
   })
 
   const network: BareNetClient = {
+    get connectionId(): string {
+      if (!selfID) throw new Error('network not initialized yet')
+
+      return selfID
+    },
+
     sendCustomMessage(channel, data) {
       customMessageQueue.push({ channel, data })
     },
