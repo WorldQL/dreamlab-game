@@ -65,7 +65,7 @@ export const PaletteManager: React.FC<PaletteManagerProps> = ({ selector, naviga
   const [selectedEntity, setSelectedEntity] = useState<SpawnableEntity | undefined>(undefined)
 
   const nextAPIBaseURL = window.localStorage.getItem('@dreamlab/NextAPIURL')
-  const jwt = getParams()?.playerInfo?.token
+  const jwt = getParams()?.playerInfo?.token ?? null
 
   useEffect(() => {
     const handleSelect = () => {
