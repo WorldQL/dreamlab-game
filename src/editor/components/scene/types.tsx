@@ -48,6 +48,46 @@ type RenderInputForZodSchemaFunctionType = (
   depth: number,
 ) => JSX.Element
 
+const getDefaultValueForType = (propertySchema: z.ZodTypeAny) => {
+  const propertyTypeName = propertySchema._def.typeName
+
+  const defaultValueMap: Record<string, any> = {
+    ZodString: '',
+    ZodNumber: 0,
+    ZodBigInt: BigInt(0),
+    ZodBoolean: false,
+    ZodDate: new Date(),
+    ZodUndefined: undefined,
+    ZodNull: null,
+    ZodVoid: undefined,
+    ZodNever: undefined,
+    ZodUnknown: undefined,
+    ZodAny: undefined,
+  }
+
+  if (propertyTypeName in defaultValueMap) {
+    return defaultValueMap[propertyTypeName]
+  }
+
+  if (propertyTypeName === 'ZodArray') {
+    return []
+  }
+
+  if (propertyTypeName === 'ZodRecord') {
+    return {}
+  }
+
+  if (propertyTypeName === 'ZodMap') {
+    return new Map()
+  }
+
+  if (propertyTypeName === 'ZodSet') {
+    return new Set()
+  }
+
+  return propertySchema.safeParse(undefined).success ? propertySchema.parse(undefined) : undefined
+}
+
 const renderNumberInput: RenderInputFunctionType = (
   key,
   value,
@@ -264,10 +304,39 @@ export const renderInputForZodSchema: RenderInputForZodSchemaFunctionType = (
     case 'ZodArray': {
       const arraySchema = unwrappedSchema as z.ZodArray<z.ZodTypeAny>
 
-      const handleAddItem = () => {
-        const keys = Object.keys(arraySchema.element._def.shape)
-        const newItem = { keys }
+      const getDefaultObjectValue = (objectSchema: z.ZodObject<any>) => {
+        const objectShape = objectSchema._def.shape()
+        const defaultObject: z.infer<typeof objectSchema> = {} as any
 
+        for (const key in objectShape) {
+          // eslint-disable-next-line prefer-object-has-own
+          if (Object.prototype.hasOwnProperty.call(objectShape, key)) {
+            const propertySchema = objectShape[key]
+            defaultObject[key] = getDefaultValueForType(propertySchema)
+          }
+        }
+
+        return defaultObject
+      }
+
+      const getDefaultValue = () => {
+        const defaultValue = arraySchema.element.safeParse(undefined).success
+          ? arraySchema.element.parse(undefined)
+          : undefined
+
+        if (defaultValue === undefined) {
+          if (arraySchema.element._def.typeName === 'ZodObject') {
+            return getDefaultObjectValue(arraySchema.element as z.ZodObject<any>)
+          }
+
+          return getDefaultValueForType(arraySchema.element)
+        }
+
+        return defaultValue
+      }
+
+      const handleAddItem = () => {
+        const newItem = getDefaultValue()
         const newArray = [...value, newItem]
         handleArgChange(key, newArray)
         handleArgSave(key, { _v: newArray })
@@ -284,58 +353,64 @@ export const renderInputForZodSchema: RenderInputForZodSchemaFunctionType = (
         <div className='detail-col' key={key} style={{ marginBottom: '10px' }}>
           <span>{key}:</span>
           {Array.isArray(value) &&
-            value.map((item, index) => (
-              <div
-                key={`${key}[${item}]`}
-                style={{
-                  paddingLeft: '20px',
-                  paddingTop: '5px',
-                  borderLeft: '2px solid #ddd',
-                }}
-              >
+            value.map((item, index) => {
+              if (item === null || item === undefined) {
+                return null
+              }
+
+              return (
                 <div
+                  key={`${key}`}
                   style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    marginBottom: '5px',
+                    paddingLeft: '20px',
+                    paddingTop: '5px',
+                    borderLeft: '2px solid #ddd',
                   }}
                 >
-                  <span style={{ marginRight: '10px' }}>{`Item ${index + 1}`}</span>
-                  <button
-                    onClick={() => handleRemoveItem(index)}
+                  <div
                     style={{
-                      marginRight: '4px',
-                      border: 'none',
-                      padding: 0,
-                      cursor: 'pointer',
-                      backgroundColor: '#f9f9f9',
+                      display: 'flex',
+                      alignItems: 'center',
+                      marginBottom: '5px',
                     }}
-                    type='button'
                   >
-                    <svg
-                      style={{ width: '16px', height: '16px', fill: 'red' }}
-                      viewBox='0 0 24 24'
-                      xmlns='http://www.w3.org/2000/svg'
+                    <span style={{ marginRight: '10px' }}>{`Item ${index + 1}`}</span>
+                    <button
+                      onClick={() => handleRemoveItem(index)}
+                      style={{
+                        marginRight: '4px',
+                        border: 'none',
+                        padding: 0,
+                        cursor: 'pointer',
+                        backgroundColor: '#f9f9f9',
+                      }}
+                      type='button'
                     >
-                      <path
-                        clipRule='evenodd'
-                        d='M16.5 4.478v.227a48.816 48.816 0 013.878.512.75.75 0 11-.256 1.478l-.209-.035-1.005 13.07a3 3 0 01-2.991 2.77H8.084a3 3 0 01-2.991-2.77L4.087 6.66l-.209.035a.75.75 0 01-.256-1.478A48.567 48.567 0 017.5 4.705v-.227c0-1.564 1.213-2.9 2.816-2.951a52.662 52.662 0 013.369 0c1.603.051 2.815 1.387 2.815 2.951zm-6.136-1.452a51.196 51.196 0 013.273 0C14.39 3.05 15 3.684 15 4.478v.113a49.488 49.488 0 00-6 0v-.113c0-.794.609-1.428 1.364-1.452zm-.355 5.945a.75.75 0 10-1.5.058l.347 9a.75.75 0 101.499-.058l-.346-9zm5.48.058 a.75.75 0 10-1.498-.058l-.347 9 a.75.75 0 001.5.058l.345-9z'
-                        fillRule='evenodd'
-                      />
-                    </svg>
-                  </button>
+                      <svg
+                        style={{ width: '16px', height: '16px', fill: 'red' }}
+                        viewBox='0 0 24 24'
+                        xmlns='http://www.w3.org/2000/svg'
+                      >
+                        <path
+                          clipRule='evenodd'
+                          d='M16.5 4.478v.227a48.816 48.816 0 013.878.512.75.75 0 11-.256 1.478l-.209-.035-1.005 13.07a3 3 0 01-2.991 2.77H8.084a3 3 0 01-2.991-2.77L4.087 6.66l-.209.035a.75.75 0 01-.256-1.478A48.567 48.567 0 017.5 4.705v-.227c0-1.564 1.213-2.9 2.816-2.951a52.662 52.662 0 013.369 0c1.603.051 2.815 1.387 2.815 2.951zm-6.136-1.452a51.196 51.196 0 013.273 0C14.39 3.05 15 3.684 15 4.478v.113a49.488 49.488 0 00-6 0v-.113c0-.794.609-1.428 1.364-1.452zm-.355 5.945a.75.75 0 10-1.5.058l.347 9a.75.75 0 101.499-.058l-.346-9zm5.48.058 a.75.75 0 10-1.498-.058l-.347 9 a.75.75 0 001.5.058l.345-9z'
+                          fillRule='evenodd'
+                        />
+                      </svg>
+                    </button>
+                  </div>
+                  {renderInputForZodSchema(
+                    `${key}[${index}]`,
+                    item,
+                    arraySchema.element,
+                    handleArgChange,
+                    handleArgSave,
+                    argsInputRefs,
+                    depth + 1,
+                  )}
                 </div>
-                {renderInputForZodSchema(
-                  `${key}[${index}]`,
-                  item,
-                  arraySchema.element,
-                  handleArgChange,
-                  handleArgSave,
-                  argsInputRefs,
-                  depth + 1,
-                )}
-              </div>
-            ))}
+              )
+            })}
           <button onClick={handleAddItem} style={{ marginTop: '5px' }} type='button'>
             Add Item
           </button>
