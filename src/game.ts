@@ -1,6 +1,5 @@
 import { createGame } from '@dreamlab.gg/core'
 import { Cursor, PlayerInput } from '@dreamlab.gg/core/entities'
-import { BaseTexture, SCALE_MODES, settings } from 'pixi.js'
 import { Editor } from './editor/editor.js'
 // import { createKeybinds } from './keybinds/entity.js'
 import { bindInput, loadBindings } from './keybinds/persist.js'
@@ -40,9 +39,6 @@ export const setup = async (container: HTMLDivElement) => {
   const width = 1_600
   const height = width / (16 / 9)
 
-  console.log('setting linear scaling')
-  BaseTexture.defaultOptions.scaleMode = SCALE_MODES.LINEAR
-
   const game = await createGame({
     debug,
     isServer: false,
@@ -56,14 +52,11 @@ export const setup = async (container: HTMLDivElement) => {
       backgroundAlpha: 0,
       antialias: true,
       resolution: 2,
-      powerPreference: 'high-performance',
     },
   })
 
-  console.log("MULTISAMPLE: " + game.client.render.app.renderer.multisample)
-
   setTimeout(() => {
-    console.log('RESOLUTION IS 2 WITH HP, pixel ratio:', window.devicePixelRatio)
+    console.log('RESOLUTION IS two, pixel ratio:', window.devicePixelRatio)
     console.log('calling resize')
     window.dispatchEvent(new Event('resize'))
     console.log('called resize. Render type:', game.client.render.app.renderer.type)
@@ -88,7 +81,6 @@ export const setup = async (container: HTMLDivElement) => {
   // #region Automatic Resizing
   const ro = new ResizeObserver(() => {
     const renderScale = container.clientWidth / width
-    console.log("CHANGING RENDERSCALE!!", renderScale)
     game.client.render.camera.rescale({ renderScale })
   })
 
