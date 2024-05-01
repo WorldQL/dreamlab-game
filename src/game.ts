@@ -56,7 +56,7 @@ export const setup = async (container: HTMLDivElement) => {
       backgroundAlpha: 0,
       antialias: true,
       resolution: 2,
-      autoDensity: true,
+      autoDensity: false,
     },
   })
 
