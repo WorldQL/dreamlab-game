@@ -40,8 +40,8 @@ export const setup = async (container: HTMLDivElement) => {
   const width = 1_600
   const height = width / (16 / 9)
 
-  console.log('setting nearest scaling')
-  BaseTexture.defaultOptions.scaleMode = SCALE_MODES.NEAREST
+  console.log('setting linear scaling')
+  BaseTexture.defaultOptions.scaleMode = SCALE_MODES.LINEAR
 
   const game = await createGame({
     debug,
