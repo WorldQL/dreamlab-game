@@ -51,8 +51,7 @@ export const setup = async (container: HTMLDivElement) => {
     },
   })
 
-  console.log('RESOLUTION IS THREE')
-  console.log(window.devicePixelRatio)
+  console.log('RESOLUTION IS ONE, pixel ratio:', window.devicePixelRatio)
 
   renderKeybindUI(game)
 
