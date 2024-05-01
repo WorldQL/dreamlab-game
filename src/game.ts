@@ -47,11 +47,11 @@ export const setup = async (container: HTMLDivElement) => {
     graphicsOptions: {
       backgroundAlpha: 0,
       antialias: true,
-      resolution: 1,
+      resolution: 4,
     },
   })
 
-  console.log('RESOLUTION IS ONE, pixel ratio:', window.devicePixelRatio)
+  console.log('RESOLUTION IS four, pixel ratio:', window.devicePixelRatio)
 
   renderKeybindUI(game)
 
