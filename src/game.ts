@@ -8,6 +8,7 @@ import { connect, createNetwork } from './network.js'
 import type { ToServerPacket } from './packets.js'
 import { getParams } from './params.js'
 import { loadLevel, loadScript, spawnPlayer } from './scripting.js'
+import { transferToWorld } from './transfer.js'
 
 declare global {
   interface Window {
@@ -17,6 +18,8 @@ declare global {
 }
 
 export const setup = async (container: HTMLDivElement) => {
+  Object.defineProperty(window, 'transferToWorld', { value: transferToWorld })
+
   const { connection, playerInfo, debug } = getParams()
 
   // #region Setup
