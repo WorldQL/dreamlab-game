@@ -53,6 +53,7 @@ export const setup = async (container: HTMLDivElement) => {
 
   setTimeout(() => {
     console.log('RESOLUTION IS two, pixel ratio:', window.devicePixelRatio)
+    console.log('calling resize')
     window.dispatchEvent(new Event('resize'))
     console.log('called resize')
   }, 5_000)
