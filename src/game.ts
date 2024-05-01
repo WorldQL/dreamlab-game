@@ -31,6 +31,7 @@ export const setup = async (container: HTMLDivElement) => {
     setTimeout(() => {
       window.location.reload()
     }, 1_000)
+    // eslint-disable-next-line require-atomic-updates
     window.location.href = worldDetails
     return
   }
@@ -64,6 +65,7 @@ export const setup = async (container: HTMLDivElement) => {
   renderKeybindUI(game)
 
   // @ts-expect-error global assign in dev
+  // eslint-disable-next-line require-atomic-updates
   window.game = game
 
   const onToggleDebug = (pressed: boolean) => {
@@ -106,6 +108,7 @@ export const setup = async (container: HTMLDivElement) => {
       sendPacket({ t: 'RequestFullSnapshot' })
     })
 
+    // eslint-disable-next-line require-atomic-updates
     window.sendPacket = sendPacket
   } else {
     if (import.meta.env.DEV) {
