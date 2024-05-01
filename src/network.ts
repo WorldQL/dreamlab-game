@@ -152,6 +152,11 @@ export const createNetwork = ({
   // let localPlayer: Player | undefined
   const clientTickNumber = 0
 
+  // If we dont recieve a handshake for 5s, reload and try again
+  setTimeout(() => {
+    if (selfID === undefined) window.location.reload()
+  }, 5_000)
+
   deferUntilPlayer(player => {
     player.events.addListener('onMove', (position, velocity, flipped) => {
       window.sendPacket?.({
