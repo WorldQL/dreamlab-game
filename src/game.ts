@@ -55,15 +55,14 @@ export const setup = async (container: HTMLDivElement) => {
     graphicsOptions: {
       backgroundAlpha: 1,
       antialias: true,
-      resolution: 2,
-      autoDensity: true,
+      resolution: 2.5,
     },
   })
 
   console.log("MULTISAMPLE: " + game.client.render.app.renderer.multisample)
 
   setTimeout(() => {
-    console.log('RESOLUTION IS two, pixel ratio:', window.devicePixelRatio)
+    console.log('RESOLUTION IS 2.5, pixel ratio:', window.devicePixelRatio)
     console.log('calling resize')
     window.dispatchEvent(new Event('resize'))
     console.log('called resize. Render type:', game.client.render.app.renderer.type)
