@@ -59,6 +59,8 @@ export const setup = async (container: HTMLDivElement) => {
     },
   })
 
+  console.log("MULTISAMPLE: " + game.client.render.app.renderer.multisample)
+
   setTimeout(() => {
     console.log('RESOLUTION IS two, pixel ratio:', window.devicePixelRatio)
     console.log('calling resize')
