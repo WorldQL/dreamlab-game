@@ -53,10 +53,10 @@ export const setup = async (container: HTMLDivElement) => {
       nickname: playerInfo?.nickname ?? 'Player',
     },
     graphicsOptions: {
-      backgroundAlpha: 0,
+      backgroundAlpha: 1,
       antialias: true,
-      resolution: 1,
-      autoDensity: true,
+      resolution: 2,
+      autoDensity: false,
     },
   })
 
