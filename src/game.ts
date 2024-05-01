@@ -1,5 +1,6 @@
 import { createGame } from '@dreamlab.gg/core'
 import { Cursor, PlayerInput } from '@dreamlab.gg/core/entities'
+import { SCALE_MODES, settings } from 'pixi.js'
 import { Editor } from './editor/editor.js'
 // import { createKeybinds } from './keybinds/entity.js'
 import { bindInput, loadBindings } from './keybinds/persist.js'
@@ -38,6 +39,8 @@ export const setup = async (container: HTMLDivElement) => {
 
   const width = 1_600
   const height = width / (16 / 9)
+
+  settings.SCALE_MODE = SCALE_MODES.LINEAR;
 
   const game = await createGame({
     debug,
