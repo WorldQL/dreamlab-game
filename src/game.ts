@@ -85,6 +85,7 @@ export const setup = async (container: HTMLDivElement) => {
   // #region Automatic Resizing
   const ro = new ResizeObserver(() => {
     const renderScale = container.clientWidth / width
+    console.log("CHANGING RENDERSCALE!!", renderScale)
     game.client.render.camera.rescale({ renderScale })
   })
 
