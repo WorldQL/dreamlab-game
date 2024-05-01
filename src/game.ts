@@ -55,8 +55,8 @@ export const setup = async (container: HTMLDivElement) => {
     graphicsOptions: {
       backgroundAlpha: 0,
       antialias: true,
-      resolution: 2,
-      autoDensity: false,
+      resolution: 1,
+      autoDensity: true,
     },
   })
 
