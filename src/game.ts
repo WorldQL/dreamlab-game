@@ -53,6 +53,7 @@ export const setup = async (container: HTMLDivElement) => {
       antialias: true,
       resolution: 2,
     },
+    transferToWorld,
   })
 
   setTimeout(() => {
