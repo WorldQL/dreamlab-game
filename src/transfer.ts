@@ -1,3 +1,4 @@
+import { game } from '@dreamlab.gg/core/dist/labs'
 import { setup } from './game'
 import { getParams } from './params'
 
@@ -5,6 +6,12 @@ export const transferToInstance = async (instanceId: string) => {
   const params = getParams()
   const connection = params.connection
   if (connection === undefined) throw new Error('Not connected to any server')
+
+  try {
+    await game().shutdown()
+  } catch {
+    // ignore
+  }
 
   const currentAppContainer = document.querySelector('#app') as HTMLDivElement
   const newAppContainer = Object.assign(document.createElement('div'), { id: 'app' })
@@ -22,7 +29,8 @@ export const transferToWorld = async (world: string) => {
     throw new Error('Not connected to any server')
 
   const serverUrl = new URL(connection.server)
-  serverUrl.protocol = { wss: 'https', ws: 'http' }[serverUrl.protocol] ?? serverUrl.protocol
+  serverUrl.protocol =
+    { 'wss:': 'https:', 'ws:': 'http:' }[serverUrl.protocol] ?? serverUrl.protocol
   serverUrl.pathname = '/api/v1/derive-instance/' + connection.instance
   serverUrl.search = ''
 
