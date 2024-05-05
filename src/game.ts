@@ -1,3 +1,4 @@
+import type { IDiscordSDK } from '@discord/embedded-app-sdk'
 import { createGame } from '@dreamlab.gg/core'
 import { Cursor, PlayerInput } from '@dreamlab.gg/core/entities'
 import { Editor } from './editor/editor.js'
@@ -17,7 +18,11 @@ declare global {
   }
 }
 
-export const setup = async (container: HTMLDivElement) => {
+export interface SetupOptions {
+  discord?: IDiscordSDK
+}
+
+export const setup = async (container: HTMLDivElement, opts: SetupOptions = {}) => {
   Object.defineProperty(window, 'transferToWorld', { value: transferToWorld })
 
   const { connection, playerInfo, debug } = getParams()
@@ -54,6 +59,7 @@ export const setup = async (container: HTMLDivElement) => {
       resolution: 2,
     },
     transferToWorld,
+    discord: opts.discord,
   })
 
   setTimeout(() => {

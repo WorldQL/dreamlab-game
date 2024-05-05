@@ -92,7 +92,7 @@ const init = async () => {
   if (!container) throw new Error('missing container')
 
   const { setup } = await import('./game')
-  await setup(container)
+  await setup(container, { discord: sdk })
 
   loading.style.display = 'none'
 }
