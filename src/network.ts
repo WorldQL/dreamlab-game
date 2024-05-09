@@ -243,7 +243,8 @@ export const createNetwork = ({
             const set = listeners.get(channel)
             if (!set) continue
 
-            for (const fn of set.values()) fn(channel, data)
+            // eslint-disable-next-line no-await-in-loop
+            for (const fn of set.values()) await fn(channel, data)
           }
 
           break
