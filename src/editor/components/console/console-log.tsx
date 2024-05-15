@@ -1,6 +1,6 @@
 /* eslint-disable react/iframe-missing-sandbox */
 import type { FC } from 'react'
-import { useState, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import type { EditDetails } from '../../editor'
 import { Card } from '../ui/card'
 
@@ -18,7 +18,26 @@ export const ConsoleLog: FC<{ readonly editDetails?: EditDetails }> = ({ editDet
         }).toString()}`
       : 'about:blank'
 
-  const iframeRef = useRef<HTMLIFrameElement>(null)
+  useEffect(() => {
+    const listener = (ev: MessageEvent) => {
+      if (ev.data !== 'log-viewer:clear') return
+      if (!server || !instance || !secret) return
+
+      const editUrl = new URL(server)
+      editUrl.protocol = editUrl.protocol === 'wss:' ? 'https:' : 'http:'
+      editUrl.pathname = `/api/v1/edit/${instance}/clear-logs`
+
+      void fetch(editUrl, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${secret}`,
+        },
+      })
+    }
+
+    window.addEventListener('message', listener)
+    return () => window.removeEventListener('message', listener)
+  }, [server, instance, secret])
 
   const toggleMinimize = () => {
     setIsMinimized(!isMinimized)
@@ -90,24 +109,6 @@ export const ConsoleLog: FC<{ readonly editDetails?: EditDetails }> = ({ editDet
       {!isMinimized && (
         <iframe
           id='logs'
-          onLoad={() =>
-            iframeRef.current?.contentWindow?.addEventListener('message', ev => {
-              if (ev.data !== 'log-viewer:clear') return
-              if (!server || !instance || !secret) return
-
-              const editUrl = new URL(server)
-              editUrl.protocol = editUrl.protocol === 'wss:' ? 'https:' : 'http:'
-              editUrl.pathname = `/api/v1/edit/${instance}/clear-logs`
-
-              void fetch(editUrl, {
-                method: 'POST',
-                headers: {
-                  Authorization: `Bearer ${secret}`,
-                },
-              })
-            })
-          }
-          ref={iframeRef}
           src={iframeSrc}
           style={{ width: '100%', maxWidth: '800px', height: '260px', border: 'none' }}
           title='Console Logs'
