@@ -1,6 +1,6 @@
 /* eslint-disable react/iframe-missing-sandbox */
 import type { FC } from 'react'
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import type { EditDetails } from '../../editor'
 import { Card } from '../ui/card'
 
